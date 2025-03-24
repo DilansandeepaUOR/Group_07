@@ -10,6 +10,7 @@ import {
   FaInfoCircle,
 } from "react-icons/fa";
 import Navbarmenu from "./Navbarmenu";
+import { FaUserPlus, FaSignInAlt } from "react-icons/fa";
 
 function Navbar() {
   const menu = [
@@ -21,16 +22,31 @@ function Navbar() {
     { name: "ABOUT US", icon: FaInfoCircle },
   ];
 
-  return (
-    <nav>
-      <div className="flex justify-between items-center gap-8 bg-[#22292F]">
-        <img src={logo} alt="4paws logo" className="w-[200px] object-cover" />
+  const menubuttons = [
+    { name: "Register", icon: FaUserPlus },
+    { name: "Sign in", icon: FaSignInAlt },
+  ];
 
-        
+  return (
+    <nav >
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-8 bg-[#22292F]">
+          <img
+            src={logo}
+            alt="4paws logo"
+            className="w-[200px] object-cover cursor-pointer"
+          />
+
           {menu.map((item) => (
             <Navbarmenu name={item.name} Icon={item.icon} />
           ))}
-        
+        </div>
+
+        <div className="items-center gap-8 m-10px">
+          {menubuttons.map((item) => (
+            <Navbarmenu name={item.name} Icon={item.icon} />
+          ))}
+        </div>
       </div>
     </nav>
   );
