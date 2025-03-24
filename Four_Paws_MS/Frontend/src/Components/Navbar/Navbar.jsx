@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import Navbarmenu from "./Navbarmenu";
 import { FaUserPlus, FaSignInAlt } from "react-icons/fa";
+import Regandsignbtn from "./regandsignbtn";
 
 function Navbar() {
   const menu = [
@@ -29,7 +30,7 @@ function Navbar() {
 
   return (
     <nav >
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center p-5">
         <div className="flex items-center gap-8 bg-[#22292F]">
           <img
             src={logo}
@@ -42,9 +43,9 @@ function Navbar() {
           ))}
         </div>
 
-        <div className="items-center gap-8 m-10px">
+        <div className=" flex items-center gap-8">
           {menubuttons.map((item) => (
-            <Navbarmenu name={item.name} Icon={item.icon} />
+            <Regandsignbtn name={item.name} Icon={item.icon}/>
           ))}
         </div>
       </div>
