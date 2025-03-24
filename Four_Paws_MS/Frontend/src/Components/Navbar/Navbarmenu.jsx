@@ -1,12 +1,12 @@
-import React from 'react'
+import React from "react";
 
-function Navbarmenu(name, Icon) {
+function Navbarmenu({ name, Icon }) {
   return (
-    <div>
-        <Icon/>
-        <h2>{name}</h2>
+    <div className="text-white flex items-center gap-3 text-[16px]">
+      <Icon />
+      <h2 className="font-Poppins">{name}</h2>
     </div>
-  )
+  );
 }
 
-export default Navbarmenu
+export default Navbarmenu;
