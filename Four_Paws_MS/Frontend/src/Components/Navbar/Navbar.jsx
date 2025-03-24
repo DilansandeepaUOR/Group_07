@@ -1,23 +1,33 @@
-import React from 'react'
-import '../../Styles/Navbar/Navbar.css'
-import logo from '../../assets/logo.png'
-import { Button } from "flowbite-react";
+import React from "react";
+import "../../Styles/Navbar/Navbar.css";
+import logo from "../../assets/logo.png";
+import { FaHome, FaPaw, FaStore, FaPills, FaEnvelope, FaInfoCircle } from "react-icons/fa";
+import Navbarmenu from "./Navbarmenu";
 
 function Navbar() {
+
+  const menu = [
+    { name: "HOME", icon: FaHome },
+    { name: "OUR SERVICES", icon: FaPaw },
+    { name: "PET SHOP", icon: FaStore },
+    { name: "PHARMACY", icon: FaPills },
+    { name: "CONTACT US", icon: FaEnvelope },
+    { name: "ABOUT US", icon: FaInfoCircle }
+  ];
+
   return (
     <nav>
-      <Button color="blue">Click Me</Button>;
-        <img src={logo} alt="" />
-        <ul>
-            <li>Home</li>
-            <li>Our Services</li>
-            <li>Pet Shop</li>
-            <li>Pharmacy</li>
-            <li>Contact Us</li>
-            <li>About Us</li>
-        </ul>
+      <div>
+        <img src={logo} alt="" className="w-[200px] object-cover" />
+      </div>
+
+      <div>
+        {menu.map((item) => (
+          <Navbarmenu name={item.name} icon={item.icon}/>
+        ))}
+      </div>
     </nav>
-  )
+  );
 }
 
-export default Navbar
+export default Navbar;
