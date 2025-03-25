@@ -1,5 +1,6 @@
 import React from "react";
 import paw from "../assets/paw_vector.png";
+import mainimage from "../assets/mainsection2.jpg";
 import "../Styles/Home.css";
 
 function Home() {
@@ -35,10 +36,9 @@ return (
                 </div>
                 <div
                     className="w-full lg:w-5/12 flex justify-center items-center"
-                    
                 >
                     <img src={paw} alt="paw" className="w-16 h-16 opacity-50" />
-                    <img src={paw} alt="Dog1" className="w-80" />
+                    <img src={mainimage} alt="Dog1" className="w-80 border-4 border-gray-300 shadow-lg rounded-lg" />
                     <img src={paw} alt="paw" className="w-16 h-16 opacity-50" />
                 </div>
             </div>
