@@ -1,13 +1,14 @@
+
 @import "tailwindcss";
+/* Add your styles here */
 
 * {
-    margin: 0;
-    padding: 0;
     box-sizing: border-box;
 }
 
 body {
     background: #22292F;
+    
 }
 
 a {

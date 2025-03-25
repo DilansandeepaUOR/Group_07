@@ -1,5 +1,7 @@
 import React from "react";
 import "../../Styles/Navbar/Navbar.css";
+import Navbarmenu from "./Navbarmenu";
+import { useState } from "react";
 import logo from "../../assets/logo.png";
 import {
   FaHome,
@@ -9,11 +11,15 @@ import {
   FaEnvelope,
   FaInfoCircle,
 } from "react-icons/fa";
-import Navbarmenu from "./Navbarmenu";
+
 import { FaUserPlus, FaSignInAlt } from "react-icons/fa";
 import Regandsignbtn from "./regandsignbtn";
+import { FaBars } from "react-icons/fa";
 
 function Navbar() {
+
+  const[showMenu, setShowMenu] = useState(false);
+
   const menu = [
     { name: "HOME", icon: FaHome },
     { name: "OUR SERVICES", icon: FaPaw },
@@ -29,7 +35,7 @@ function Navbar() {
   ];
 
   return (
-    <nav >
+    <nav>
       <div className="flex justify-between items-center p-5">
         <div className="flex items-center gap-8 bg-[#22292F]">
           <img
@@ -38,14 +44,38 @@ function Navbar() {
             className="w-[200px] object-cover cursor-pointer"
           />
 
-          {menu.map((item) => (
-            <Navbarmenu name={item.name} Icon={item.icon} />
-          ))}
+          <div className="hidden md:flex gap-8">
+            {menu.map((item) => (
+              <Navbarmenu name={item.name} Icon={item.icon} />
+            ))}
+          </div>
+
+          <div className="flex md:hidden gap-5">
+            {menu.map(
+              (item, index) =>
+                index < 1 && <Navbarmenu name={item.name} Icon={item.icon} />
+            )}
+          </div>
+          <div className="md:hidden" onClick={() => setShowMenu(!showMenu)}>
+            <Navbarmenu name="MENU" Icon={FaBars} />
+            {showMenu ? <div className="absolute mt-[12px] bg-[#313940] border-[1px] border-[#313940] rounded-md px-5 py-3">
+              {menu.map(
+                (item, index) =>
+                  index >= 1 && <Navbarmenu name={item.name} Icon={item.icon} />
+              )}
+
+              <div>
+              {menubuttons.map((item) => (
+                <Regandsignbtn name={item.name} Icon={item.icon}/>
+              ))}
+              </div>
+            </div>: null}
+          </div>
         </div>
 
-        <div className=" flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-8">
           {menubuttons.map((item) => (
-            <Regandsignbtn name={item.name} Icon={item.icon}/>
+            <Regandsignbtn name={item.name} Icon={item.icon} />
           ))}
         </div>
       </div>
