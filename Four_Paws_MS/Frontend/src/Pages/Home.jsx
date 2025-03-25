@@ -2,6 +2,8 @@ import React from "react";
 import paw from "../assets/paw_vector.png";
 import mainimage from "../assets/mainsection2.jpg";
 import "../Styles/Home.css";
+import Buttons from "../Components/Buttons/Buttons.jsx";
+
 
 function Home() {
 return (
@@ -33,6 +35,8 @@ return (
                         the most advanced veterinary care from experienced pet care
                         providers.
                     </h3>
+
+                    <Buttons label="Make an Appointment" css="bg-[#22292F] text-white px-4 py-2 rounded-lg"/>
                 </div>
                 <div
                     className="w-full lg:w-5/12 flex justify-center items-center"
