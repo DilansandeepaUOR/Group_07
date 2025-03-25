@@ -62,10 +62,10 @@ function Home() {
       </div>
       <div>
         <div className="container mx-auto px-4 py-12">
-          <h1 className="text-[#ffffff] text-5xl Montserrat text-center pt-10 pb-10">
+          <h1 className="text-[#ffffff] text-5xl Montserrat text-center pt-10 pb-10 font-bold">
             Our Services
           </h1>
-          <div className="flex flex-wrap justify-center gap-12">
+          <div className="flex flex-wrap justify-center gap-12 pt-10">
             {service.map((item) => (
               <div className="shadow-lg rounded-lg w-70 h-80 flex flex-col items-center justify-center">
                 <Cards name={item.name} image={item.image} />
