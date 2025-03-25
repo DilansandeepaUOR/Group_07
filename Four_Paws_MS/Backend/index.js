@@ -3,8 +3,9 @@ const app = express();
 
 app.get("/", (req, res) => {
     res.send("Hello, Node.js!");
+    //console.log(req);
 });
 
-app.listen(3000, () => {
+app.listen(3001, () => {
     console.log("Server running on http://localhost:3001");
 });
