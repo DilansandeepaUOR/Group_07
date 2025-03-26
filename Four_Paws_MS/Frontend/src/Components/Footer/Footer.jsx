@@ -57,7 +57,7 @@ function Footer() {
           </a>
         </div>
       </div>
-      <div className="mx-6 py-10 text-center md:text-left">
+      <div className="mx-6 py-10 text-center border-b-2 border-neutral-200 p-6 dark:border-neutral-500 md:text-left">
         <div className=" grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {/* <!-- 4paws logo section --> */}
           <div className="">
@@ -76,9 +76,11 @@ function Footer() {
               and advanced veterinary services for your beloved pets.
             </p>
           </div>
+
+
           {/* <!-- Products section --> */}
           <div className="">
-            <h6 className="mb-4 flex justify-center font-semibold uppercase md:justify-start Poppins">
+            <h6 className="mb-6 flex justify-center font-semibold uppercase md:justify-start Poppins">
               Our Products
               
             </h6>
@@ -97,24 +99,24 @@ function Footer() {
 
           {/* <!-- Find us section --> */}
           <div className="">
-            <h6 className="mb-4 flex justify-center font-semibold uppercase md:justify-start Poppins">
+            <h6 className="mb-6 flex justify-center font-semibold uppercase md:justify-start Poppins">
               Find us
             </h6>
             <p className="mb-4">
-              <a className="text-neutral-600 dark:text-neutral-200">Angular</a>
+              <a className="text-neutral-600 dark:text-neutral-200">Facebook</a>
             </p>
             <p className="mb-4">
-              <a className="text-neutral-600 dark:text-neutral-200">React</a>
+              <a className="text-neutral-600 dark:text-neutral-200">Instagram</a>
             </p>
             <p className="mb-4">
-              <a className="text-neutral-600 dark:text-neutral-200">Vue</a>
+              <a className="text-neutral-600 dark:text-neutral-200">Twitter</a>
             </p>
             
           </div>
 
           {/* <!-- Contact section --> */}
           <div>
-            <h6 className="mb-4 flex justify-center font-semibold uppercase md:justify-start Poppins">
+            <h6 className="mb-6 flex justify-center font-semibold uppercase md:justify-start Poppins">
               Contact
             </h6>
             <p className="mb-4 flex items-center justify-center md:justify-start">
@@ -141,13 +143,13 @@ function Footer() {
       </div>
 
       {/* <!--Copyright section--> */}
-      <div className=" p-6 text-center ">
-        <span>© 2023 Copyright:</span>
+      <div className=" p-6 text-center">
+        <span>© 2023 Copyright:  </span>
         <a
           className="font-semibold text-neutral-600 dark:text-neutral-400"
-          href="https://tw-elements.com/"
+          href="https://4paws.lk/"
         >
-          TW Elements
+          4Paws.lk
         </a>
       </div>
     </footer>
