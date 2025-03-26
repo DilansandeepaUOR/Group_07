@@ -1,6 +1,6 @@
 export function Cards({ name, image }) {
 return (
-    <div className="relative grid h-[40rem] w-full max-w-[28rem] items-end justify-center overflow-hidden text-center shadow-none group cursor-pointer transition-transform duration-300 transform hover:scale-105 hover:shadow-[0_10px_20px_rgba(105,240,154,0.4)]">
+    <div className="relative grid h-[40rem] w-full max-w-[28rem] items-end justify-center overflow-hidden text-center shadow-none group cursor-pointer transition-transform duration-300 transform hover:scale-105 hover:shadow-[0_10px_20px_rgba(105,255,154,0.5)]">
         <div
             className="absolute inset-0 m-0 h-full w-full rounded-none bg-cover bg-center transition-opacity duration-300 group-hover:opacity-100"
             style={{ backgroundImage: `url(${image})` }}

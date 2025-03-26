@@ -37,6 +37,8 @@ function Navbar() {
   return (
     <nav>
       <div className="flex justify-between items-center p-5">
+
+        {/* <!-- logo --> */}
         <div className="flex items-center gap-8 bg-[#22292F]">
           <img
             src={logo}
@@ -44,6 +46,7 @@ function Navbar() {
             className="w-[200px] object-cover cursor-pointer"
           />
 
+          {/* <!-- nav bar buttons --> */}
           <div className="hidden md:flex gap-8">
             {menu.map((item) => (
               <Navbarmenu name={item.name} Icon={item.icon} />
@@ -56,6 +59,8 @@ function Navbar() {
                 index < 1 && <Navbarmenu name={item.name} Icon={item.icon} />
             )}
           </div>
+
+          {/* <!-- responsive items --> */}
           <div className="md:hidden" onClick={() => setShowMenu(!showMenu)}>
             <Navbarmenu name="MENU" Icon={FaBars} />
             {showMenu ? <div className="absolute mt-[12px] bg-[#313940] border-[1px] border-[#313940] rounded-md px-5 py-3">
@@ -72,7 +77,8 @@ function Navbar() {
             </div>: null}
           </div>
         </div>
-
+        
+        {/* <!-- register and signin buttons --> */}
         <div className="hidden md:flex items-center gap-8">
           {menubuttons.map((item) => (
             <Regandsignbtn name={item.name} Icon={item.icon} />
