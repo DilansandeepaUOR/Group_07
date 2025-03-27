@@ -15,10 +15,13 @@ import {
 import { FaUserPlus, FaSignInAlt } from "react-icons/fa";
 import Regandsignbtn from "./regandsignbtn";
 import { FaBars } from "react-icons/fa";
+import Login from "../../Pages/Login";
+
 
 function Navbar() {
 
   const[showMenu, setShowMenu] = useState(false);
+  const[showLogin, setShowLogin] = useState(false);
 
   const menu = [
     { name: "HOME", icon: FaHome },
@@ -71,7 +74,7 @@ function Navbar() {
 
               <div className="">
               {menubuttons.map((item) => (
-                <Regandsignbtn name={item.name} Icon={item.icon}/>
+                <Regandsignbtn name={item.name} Icon={item.icon} onClick={item.name === "Sign in" ? () => setShowLogin(!showLogin): null}/>
               ))}
               </div>
             </div>: null}
@@ -81,10 +84,11 @@ function Navbar() {
         {/* <!-- register and signin buttons --> */}
         <div className="hidden md:flex items-center gap-8">
           {menubuttons.map((item) => (
-            <Regandsignbtn name={item.name} Icon={item.icon} />
+            <Regandsignbtn name={item.name} Icon={item.icon} onClick={item.name === "Sign in" ? () => setShowLogin(!showLogin): null}/>
           ))}
         </div>
       </div>
+      <Login isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)}/>
     </nav>
   );
 }
