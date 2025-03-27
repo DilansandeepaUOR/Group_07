@@ -74,7 +74,7 @@ function Navbar() {
 
               <div className="">
               {menubuttons.map((item) => (
-                <Regandsignbtn name={item.name} Icon={item.icon} onClick={item.name === "Sign in" ? () => setShowLogin(!showLogin): null}/>
+                <Regandsignbtn name={item.name} Icon={item.icon} onClick={item.name === "Sign in" ? () => setShowLogin(true): null}/>
               ))}
               </div>
             </div>: null}
@@ -84,11 +84,11 @@ function Navbar() {
         {/* <!-- register and signin buttons --> */}
         <div className="hidden md:flex items-center gap-8">
           {menubuttons.map((item) => (
-            <Regandsignbtn name={item.name} Icon={item.icon} onClick={item.name === "Sign in" ? () => setShowLogin(!showLogin): null}/>
+            <Regandsignbtn name={item.name} Icon={item.icon} onClick={item.name === "Sign in" ? () => setShowLogin(true): null}/>
           ))}
         </div>
       </div>
-      <Login isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)}/>
+      <Login isOpen={showLogin} onClose={() => setShowLogin(false)}/>
     </nav>
   );
 }

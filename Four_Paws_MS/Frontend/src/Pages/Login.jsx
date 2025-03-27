@@ -1,6 +1,6 @@
 import React from 'react'
 
-const Login = ({isOpen, onClose}) => {
+function Login ({isOpen, onClose}) {
   if (!isOpen) return null; // Don't render anything if not open
   
   return (
