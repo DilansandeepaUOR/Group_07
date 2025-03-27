@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FaTimes, FaEye, FaEyeSlash, FaExclamationCircle } from "react-icons/fa";
 import paw from "../assets/paw_vector.png"; // Add your paw vector image here
 import "../Styles/Fonts/Fonts.css"; // Add your CSS file here
+import "../Styles/Registerpage/Register.css"; // Add your CSS file here
 
 function Register({ onClose }) {
   const [formData, setFormData] = useState({
@@ -51,8 +52,8 @@ function Register({ onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 backdrop-blur-md z-50">
-      <div className="bg-gradient-to-b from-[#182020] to-[#394a46] p-8 rounded-lg shadow-lg w-96 relative border-2 border-gray-800">
+    <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 backdrop-blur-md z-50 overlay">
+      <div className="bg-gradient-to-b from-[#182020] to-[#394a46] p-8 rounded-lg shadow-lg w-96 relative border-2 border-gray-800 scrollable-modal">
         
         {/* Close Button */}
         <button
