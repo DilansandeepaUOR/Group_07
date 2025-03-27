@@ -69,7 +69,7 @@ function Navbar() {
                   index >= 1 && <Navbarmenu name={item.name} Icon={item.icon} />
               )}
 
-              <div>
+              <div className="">
               {menubuttons.map((item) => (
                 <Regandsignbtn name={item.name} Icon={item.icon}/>
               ))}
