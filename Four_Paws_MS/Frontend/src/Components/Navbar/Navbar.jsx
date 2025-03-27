@@ -16,6 +16,7 @@ import { FaUserPlus, FaSignInAlt } from "react-icons/fa";
 import Regandsignbtn from "./regandsignbtn";
 import { FaBars } from "react-icons/fa";
 import Login from "../../Pages/Login";
+import Register from "../../Pages/Register";
 
 function Navbar() {
   const [showMenu, setShowMenu] = useState(false);
@@ -104,11 +105,11 @@ function Navbar() {
                 () => {
                   if (item.name === "Sign in") {
                     setShowLogin(true);
-                    setShowRegister(false);
+                 
                   }
                   if (item.name === "Register") {
                     setShowRegister(true);
-                    setShowLogin(false);
+               
                   }
                 }
               }
