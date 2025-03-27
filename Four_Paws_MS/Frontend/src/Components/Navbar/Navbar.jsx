@@ -16,14 +16,13 @@ import { FaUserPlus, FaSignInAlt } from "react-icons/fa";
 import Regandsignbtn from "./regandsignbtn";
 import { FaBars } from "react-icons/fa";
 import Login from "../../Pages/Login";
-import Register from "../../Pages/Register";
 
 
 function Navbar() {
 
   const[showMenu, setShowMenu] = useState(false);
   const[showLogin, setShowLogin] = useState(false);
-  const[showRegister, setShowRegister] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
 
   const menu = [
     { name: "HOME", icon: FaHome },
@@ -90,10 +89,7 @@ function Navbar() {
           ))}
         </div>
       </div>
-
-      {/* <!-- register and signin pages --> */}
       <Login isOpen={showLogin} onClose={() => setShowLogin(false)}/>
-        <Register/>
     </nav>
   );
 }

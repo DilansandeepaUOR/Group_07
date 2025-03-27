@@ -35,7 +35,7 @@ function Login({ isOpen, onClose }) {
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-white hover:text-gray-200 text-lg"
+          className="absolute top-3 right-3 text-white hover:text-gray-200 text-lg cursor-pointer"
         >
           <FaTimes size={22} />
         </button>
