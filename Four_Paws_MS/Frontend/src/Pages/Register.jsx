@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { FaTimes, FaEye, FaEyeSlash, FaExclamationCircle } from "react-icons/fa";
-import paw from "../assets/paw_vector.png";
-import "../Styles/Fonts/Fonts.css";
+import paw from "../assets/paw_vector.png"; // Add your paw vector image here
+import "../Styles/Fonts/Fonts.css"; // Add your CSS file here
 
-function Register({ isOpen, onClose }) {
+function Register({ onClose }) {
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -19,8 +19,6 @@ function Register({ isOpen, onClose }) {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  if (!isOpen) return null; // Don't render if not open
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -49,7 +47,7 @@ function Register({ isOpen, onClose }) {
     }
 
     alert(`Welcome, ${formData.name}! Your account has been created.`);
-    onClose();
+    onClose(); // Close the modal after registration
   };
 
   return (

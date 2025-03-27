@@ -4,14 +4,14 @@ import paw from "../assets/paw_vector.png";
 import "../Styles/Fonts/Fonts.css";
 
 
-function Login({ isOpen, onClose }) {
+function Login({onClose }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  if (!isOpen) return null; // Don't render if not open
+  // Don't render if not open
 
   const handleLogin = () => {
     setError("");

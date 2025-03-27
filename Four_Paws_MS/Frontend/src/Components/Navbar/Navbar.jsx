@@ -17,11 +17,9 @@ import Regandsignbtn from "./regandsignbtn";
 import { FaBars } from "react-icons/fa";
 import Login from "../../Pages/Login";
 
-
 function Navbar() {
-
-  const[showMenu, setShowMenu] = useState(false);
-  const[showLogin, setShowLogin] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
   const menu = [
@@ -41,7 +39,6 @@ function Navbar() {
   return (
     <nav>
       <div className="flex justify-between items-center p-5">
-
         {/* <!-- logo --> */}
         <div className="flex items-center gap-8 bg-[#22292F]">
           <img
@@ -67,29 +64,60 @@ function Navbar() {
           {/* <!-- responsive items --> */}
           <div className="md:hidden" onClick={() => setShowMenu(!showMenu)}>
             <Navbarmenu name="MENU" Icon={FaBars} />
-            {showMenu ? <div className="absolute mt-[12px] bg-[#313940] border-[1px] border-[#313940] rounded-md px-5 py-3">
-              {menu.map(
-                (item, index) =>
-                  index >= 1 && <Navbarmenu name={item.name} Icon={item.icon} />
-              )}
+            {showMenu ? (
+              <div className="absolute mt-[12px] bg-[#313940] border-[1px] border-[#313940] rounded-md px-5 py-3">
+                {menu.map(
+                  (item, index) =>
+                    index >= 1 && (
+                      <Navbarmenu name={item.name} Icon={item.icon} />
+                    )
+                )}
 
-              <div className="">
-              {menubuttons.map((item) => (
-                <Regandsignbtn name={item.name} Icon={item.icon} onClick={item.name === "Sign in" ? () => setShowLogin(true): null}/>
-              ))}
+                <div className="">
+                  {menubuttons.map((item) => (
+                    <Regandsignbtn
+                      name={item.name}
+                      Icon={item.icon}
+                      onClick={() => {
+                        if (item.name === "Sign in") {
+                          setShowLogin(true);
+                        }
+                        if (item.name === "Register") {
+                          setShowRegister(true);
+                        }
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>: null}
+            ) : null}
           </div>
         </div>
-        
+
         {/* <!-- register and signin buttons --> */}
         <div className="hidden md:flex items-center gap-8">
           {menubuttons.map((item) => (
-            <Regandsignbtn name={item.name} Icon={item.icon} onClick={item.name === "Sign in" ? () => setShowLogin(true): null}/>
+            <Regandsignbtn
+              name={item.name}
+              Icon={item.icon}
+              onClick={
+                () => {
+                  if (item.name === "Sign in") {
+                    setShowLogin(true);
+                    setShowRegister(false);
+                  }
+                  if (item.name === "Register") {
+                    setShowRegister(true);
+                    setShowLogin(false);
+                  }
+                }
+              }
+            />
           ))}
         </div>
       </div>
-      <Login isOpen={showLogin} onClose={() => setShowLogin(false)}/>
+      {showLogin && <Login onClose={() => setShowLogin(false)} />}
+      {showRegister && <Register onClose={() => setShowRegister(false)} />}
     </nav>
   );
 }
