@@ -42,11 +42,13 @@ function Navbar() {
       <div className="flex justify-between items-center p-5">
         {/* <!-- logo --> */}
         <div className="flex items-center gap-8 bg-[#22292F]">
-          <img
-            src={logo}
-            alt="4paws logo"
-            className="w-[200px] object-cover cursor-pointer"
-          />
+          <a href="/">
+            <img
+              src={logo}
+              alt="4paws logo"
+              className="w-[200px] object-cover cursor-pointer"
+            />
+          </a>
 
           {/* <!-- nav bar buttons --> */}
           <div className="hidden md:flex gap-8">
@@ -70,7 +72,11 @@ function Navbar() {
                 {menu.map(
                   (item, index) =>
                     index >= 1 && (
-                      <Navbarmenu name={item.name} Icon={item.icon} to={item.to} />
+                      <Navbarmenu
+                        name={item.name}
+                        Icon={item.icon}
+                        to={item.to}
+                      />
                     )
                 )}
 
@@ -101,18 +107,14 @@ function Navbar() {
             <Regandsignbtn
               name={item.name}
               Icon={item.icon}
-              onClick={
-                () => {
-                  if (item.name === "Sign in") {
-                    setShowLogin(true);
-                 
-                  }
-                  if (item.name === "Register") {
-                    setShowRegister(true);
-               
-                  }
+              onClick={() => {
+                if (item.name === "Sign in") {
+                  setShowLogin(true);
                 }
-              }
+                if (item.name === "Register") {
+                  setShowRegister(true);
+                }
+              }}
             />
           ))}
         </div>

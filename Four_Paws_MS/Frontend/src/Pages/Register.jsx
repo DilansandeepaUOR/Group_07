@@ -21,11 +21,11 @@ function Register({ onClose }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleChange = (e) => {
+  function handleChange (e) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleRegister = () => {
+  function handleRegister () {
     setError("");
 
     if (
