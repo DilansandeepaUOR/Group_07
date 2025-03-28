@@ -1,6 +1,6 @@
 import React from "react";
 import paw from "../assets/paw_vector.png";
-import mainimage from "../assets/mainsection3.jpg";
+import mainimage from "../assets/mainsection4.png";
 import "../Styles/Fonts/Fonts.css";
 import Buttons from "../Components/Buttons/Buttons.jsx";
 import s1 from "../assets/Surgery.png";
@@ -39,15 +39,15 @@ function Home() {
             />
           </div>
           {/* Image Section */}
-          <div className="w-full lg:w-5/12 flex justify-center items-center relative">
-            <img
-              src={mainimage}
-              alt="Main Dog Image"
-              className="w-96 rounded-xl shadow-lg transform transition duration-300 hover:scale-105"
-            />
-          </div>
-        </div>
-        {/* Subtle paw graphic */}
+                <div className="absolute top-0 right-0 flex justify-center items-center">
+                <img
+                  src={mainimage}
+                  alt="Main Dog Image"
+                  className="w-150 transform transition duration-300 hover:scale-105"
+                />
+                </div>
+              </div>
+              {/* Subtle paw graphic */}
         <img src={paw} alt="paw" className="absolute bottom-0 right-0 w-24 opacity-30 transform rotate-45"/>
       </div>
 
