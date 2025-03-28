@@ -147,7 +147,7 @@ function Footer() {
       <div className=" p-6 text-center">
         <span>© 2025 Copyright: </span>
         <a
-          className="font-semibold text-neutral-600 dark:text-neutral-400"
+          className="font-semibold text-neutral-400"
           href="https://4paws.lk/"
         >
           4Paws.lk
