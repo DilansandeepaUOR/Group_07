@@ -30,14 +30,17 @@ function Home() {
               Sharing <span className="text-red-500">Love</span> with
               compassionate care for every pet’s health and
             </h1>
-            <h1 className="text-6xl font-extrabold text-[#fff] mt-2 Poppins">Happiness.</h1>
+            <h1 className="hidden text-4xl font-extrabold text-[#fff] mt-2 Poppins">Happiness.</h1>
+
+            {/* <!-- Responsive Happiness word --> */}
+            <h1 className="text-4xl font-extrabold text-[#fff] mt-2 Poppins md:text-8xl">Happiness.</h1>
             <p className="text-lg text-gray-200 mt-4 w-3/4">
               When you choose 4Paws Veterinary Clinic, you ensure advanced veterinary care
               from experienced pet care providers.
             </p>
             <Buttons
               label="Make an Appointment"
-              css="bg-[#FFD700] text-[#22292F] px-6 py-3 rounded-lg mt-6 font-bold shadow-md transition duration-300 hover:bg-[#E6C200] hover:shadow-lg"
+              css="bg-[#FFD700] text-[#22292F] px-6 py-3 rounded-lg mt-6 font-bold shadow-md transition duration-300 hover:bg-[#E6C200] hover:shadow-lg Poppins cursor-pointer"
             />
           </div>
           <div className="w-full lg:w-5/12 flex justify-center items-center">

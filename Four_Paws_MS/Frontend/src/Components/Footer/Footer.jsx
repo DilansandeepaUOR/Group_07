@@ -12,52 +12,56 @@ import {
 
 function Footer() {
   return (
-    <footer className="bg-neutral-100 text-center text-neutral-600 dark:bg-[#22292F] dark:text-neutral-200 lg:text-left">
-      <div className="flex items-center justify-center border-b-2 border-neutral-200 p-6 dark:border-neutral-500 lg:justify-between">
+    <footer className=" bg-[#22292F] text-neutral-200 lg:text-left">
+      <div className="flex items-center justify-center border-b-2 border-neutral-500 p-6 lg:justify-between">
         <div className="mr-12 hidden lg:block">
           <span>Get connected with us on social networks:</span>
         </div>
 
         {/* <!-- Social network icons container --> */}
-        <div className="flex justify-center">
-          <a
-            className="mr-6 text-neutral-600 dark:text-neutral-200"
-            href="https://www.facebook.com"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <FaFacebookF />
-          </a>
+        <div className="flex justify-center ">
+          <div className=" mr-6 text-neutral-200 hover:text-[#69cac2]">
+            <a
+              href="https://www.facebook.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaFacebookF />
+            </a>
+          </div>
 
-          <a
-            className="mr-6 text-neutral-600 dark:text-neutral-200"
-            href="https://www.instagram.com"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <FaInstagram />
-          </a>
+          <div className="mr-6 text-neutral-200 hover:text-[#69cac2]">
+            <a
+              href="https://www.instagram.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaInstagram />
+            </a>
+          </div>
 
-          <a
-            className="mr-6 text-neutral-600 dark:text-neutral-200"
-            href="https://www.twitter.com"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <FaTwitter />
-          </a>
+          <div className="mr-6 text-neutral-200 hover:text-[#69cac2]">
+            <a
+              href="https://www.twitter.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaTwitter />
+            </a>
+          </div>
 
-          <a
-            className="mr-6 text-neutral-600 dark:text-neutral-200"
-            href="https://www.gmail.com"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <FaEnvelope />
-          </a>
+          <div className="mr-6 text-neutral-200 hover:text-[#69cac2]">
+            <a
+              href="https://www.gmail.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaEnvelope />
+            </a>
+          </div>
         </div>
       </div>
-      <div className="mx-6 py-10 text-center border-b-2 border-neutral-200 p-6 dark:border-neutral-500 md:text-left">
+      <div className="mx-6 py-10 text-center border-b-2 p-6 border-neutral-500 md:text-left">
         <div className=" grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {/* <!-- 4paws logo section --> */}
           <div className="">
@@ -65,11 +69,13 @@ function Footer() {
               Our business
             </h6>
             <div className="">
-              <img
-                src={logo}
-                alt="4paws logo"
-                className="w-[150px] object-cover cursor-pointer mb-5"
-              />
+              <a href="">
+                <img
+                  src={logo}
+                  alt="4paws logo"
+                  className="w-[150px] object-cover mb-5"
+                />
+              </a>
             </div>
             <p>
               4Paws Animal Hospital is dedicated to providing compassionate care
@@ -77,24 +83,21 @@ function Footer() {
             </p>
           </div>
 
-
           {/* <!-- Products section --> */}
           <div className="">
             <h6 className="mb-6 flex justify-center font-semibold uppercase md:justify-start Poppins">
               Our Products
-              
             </h6>
-            
-            <p className="mb-4">
-              <a className="text-neutral-600 dark:text-neutral-200">Pharmacy items</a>
+
+            <p className="mb-4 hover:text-[#69cac2]">
+              <a className="text-neutral-200">Pharmacy items</a>
             </p>
-            <p className="mb-4">
-              <a className="text-neutral-600 dark:text-neutral-200">Pets</a>
+            <p className="mb-4 hover:text-[#69cac2]">
+              <a className="text-neutral-200">Pets</a>
             </p>
-            <p className="mb-4">
-              <a className="text-neutral-600 dark:text-neutral-200">Pet accessories</a>
+            <p className="mb-4 hover:text-[#69cac2]">
+              <a className="text-neutral-200">Pet accessories</a>
             </p>
-            
           </div>
 
           {/* <!-- Find us section --> */}
@@ -102,16 +105,15 @@ function Footer() {
             <h6 className="mb-6 flex justify-center font-semibold uppercase md:justify-start Poppins">
               Find us
             </h6>
-            <p className="mb-4">
-              <a className="text-neutral-600 dark:text-neutral-200">Facebook</a>
+            <p className="mb-4 hover:text-[#69cac2]">
+              <a className="text-neutral-200">Facebook</a>
             </p>
-            <p className="mb-4">
-              <a className="text-neutral-600 dark:text-neutral-200">Instagram</a>
+            <p className="mb-4 hover:text-[#69cac2]">
+              <a className="text-neutral-200">Instagram</a>
             </p>
-            <p className="mb-4">
-              <a className="text-neutral-600 dark:text-neutral-200">Twitter</a>
+            <p className="mb-4 hover:text-[#69cac2]">
+              <a className="text-neutral-200">Twitter</a>
             </p>
-            
           </div>
 
           {/* <!-- Contact section --> */}
@@ -126,25 +128,24 @@ function Footer() {
               526/A, Colombo Rd, Rathnapura
             </p>
             <p className="mb-4 flex items-center justify-center md:justify-start">
-            <div className="mr-3 h-5 w-5">
+              <div className="mr-3 h-5 w-5">
                 <FaEnvelope />
               </div>
               4pawslk@gmail.com
             </p>
             <p className="mb-4 flex items-center justify-center md:justify-start">
-            <div className="mr-3 h-5 w-5">
+              <div className="mr-3 h-5 w-5">
                 <FaPhone />
               </div>
               +94 760999899
             </p>
-            
           </div>
         </div>
       </div>
 
       {/* <!--Copyright section--> */}
       <div className=" p-6 text-center">
-        <span>© 2025 Copyright:  </span>
+        <span>© 2025 Copyright: </span>
         <a
           className="font-semibold text-neutral-600 dark:text-neutral-400"
           href="https://4paws.lk/"
