@@ -58,7 +58,7 @@ function Navbar() {
           <div className="flex md:hidden gap-5">
             {menu.map(
               (item, index) =>
-                index < 1 && <Navbarmenu name={item.name} Icon={item.icon} />
+                index < 1 && <Navbarmenu Icon={item.icon} />
             )}
           </div>
 
