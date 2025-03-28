@@ -66,7 +66,7 @@ function Navbar() {
           <div className="md:hidden" onClick={() => setShowMenu(!showMenu)}>
             <Navbarmenu name="MENU" Icon={FaBars} />
             {showMenu ? (
-              <div className="absolute mt-[12px] bg-[#313940] border-[1px] border-[#313940] rounded-md px-5 py-3">
+              <div className="absolute right-0 mt-[12px] bg-[#313940] border-[1px] border-[#313940] rounded-md px-5 py-3 ">
                 {menu.map(
                   (item, index) =>
                     index >= 1 && (
