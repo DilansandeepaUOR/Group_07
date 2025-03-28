@@ -24,12 +24,12 @@ function Navbar() {
   const [showRegister, setShowRegister] = useState(false);
 
   const menu = [
-    { name: "HOME", icon: FaHome },
-    { name: "OUR SERVICES", icon: FaPaw },
-    { name: "PET SHOP", icon: FaStore },
-    { name: "PHARMACY", icon: FaPills },
-    { name: "CONTACT US", icon: FaEnvelope },
-    { name: "ABOUT US", icon: FaInfoCircle },
+    { name: "HOME", icon: FaHome, to: "/" },
+    { name: "OUR SERVICES", icon: FaPaw, to: "/Ourservices" },
+    { name: "PET SHOP", icon: FaStore, to: "/Petshop" },
+    { name: "PHARMACY", icon: FaPills, to: "/Pharmacy" },
+    { name: "CONTACT US", icon: FaEnvelope, to: "/Contactus" },
+    { name: "ABOUT US", icon: FaInfoCircle, to: "/Aboutus" },
   ];
 
   const menubuttons = [
@@ -51,14 +51,14 @@ function Navbar() {
           {/* <!-- nav bar buttons --> */}
           <div className="hidden md:flex gap-8">
             {menu.map((item) => (
-              <Navbarmenu name={item.name} Icon={item.icon} />
+              <Navbarmenu name={item.name} Icon={item.icon} to={item.to} />
             ))}
           </div>
 
           <div className="flex md:hidden gap-5">
             {menu.map(
               (item, index) =>
-                index < 1 && <Navbarmenu Icon={item.icon} />
+                index < 1 && <Navbarmenu Icon={item.icon} to={item.to} />
             )}
           </div>
 
@@ -70,7 +70,7 @@ function Navbar() {
                 {menu.map(
                   (item, index) =>
                     index >= 1 && (
-                      <Navbarmenu name={item.name} Icon={item.icon} />
+                      <Navbarmenu name={item.name} Icon={item.icon} to={item.to} />
                     )
                 )}
 
