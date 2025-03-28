@@ -1,0 +1,10 @@
+.scrollable-modal {
+    max-height: 80vh;  /* Adjust this as needed for the height */
+    overflow-y: auto;  /* Enable vertical scrolling */
+  }
+  
+  /* Optional: Style for the background overlay */
+  .overlay {
+    background-color: rgba(0, 0, 0, 0.5);  /* Semi-transparent background */
+    backdrop-filter: blur(10px);  /* Optional: Adds a blur effect to the background */
+  }
