@@ -1,25 +1,31 @@
 "use client"
 
-import React from "react"
+import { useState, useEffect } from "react"
 import Sidebar, { SidebarItem } from "../sidebar"
 import { LayoutDashboard, BarChart3, UsersRound, Settings, HelpCircle, Package, Search, Bell } from "lucide-react"
 
+// Import the Header directly here to ensure it's loaded
+import Header from "../header"
+
 export default function Home() {
   // Detect if we're on mobile for responsive layout
-  const [isMobile, setIsMobile] = React.useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768)
     }
 
     handleResize()
     window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
+
+    return () => {
+      window.removeEventListener("resize", handleResize)
+    }
   }, [])
 
   return (
-    <div style={{ display: "flex" }}>
+    <div style={{ display: "flex", height: "100vh", width: "100%" }}>
       <Sidebar>
         <SidebarItem icon={<LayoutDashboard size={20} />} text="Dashboard" active />
         <SidebarItem icon={<BarChart3 size={20} />} text="Statistics" />
@@ -27,22 +33,30 @@ export default function Home() {
         <SidebarItem icon={<Package size={20} />} text="Products" />
         <SidebarItem icon={<Search size={20} />} text="Search" />
         <SidebarItem icon={<Bell size={20} />} text="Notifications" alert />
-        
+        <SidebarItem icon={<Settings size={20} />} text="Settings" />
+        <SidebarItem icon={<HelpCircle size={20} />} text="Help" />
       </Sidebar>
-      <main
+
+      {/* Main content area */}
+      <div
         style={{
           flexGrow: 1,
           padding: "16px",
           marginLeft: isMobile ? "0" : "72px",
           transition: "all 300ms",
+          overflowY: "auto",
+          backgroundColor: "#f9fafb",
         }}
       >
         <div style={{ maxWidth: "56rem", margin: "0 auto" }}>
+          {/* Header with search and date/time */}
+          <Header />
+
           <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "16px" }}>Dashboard</h1>
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: isMobile ? "1fr" : window.innerWidth >= 1024 ? "repeat(3, 1fr)" : "repeat(2, 1fr)",
+              gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))",
               gap: "16px",
             }}
           >
@@ -62,7 +76,7 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   )
 }

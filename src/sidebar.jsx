@@ -91,6 +91,7 @@ export default function Sidebar({ children }) {
           top: isMobile ? "0" : "auto",
           left: isMobile ? "0" : "auto",
           zIndex: isMobile ? "50" : "auto",
+          width: "auto", // Add this line to ensure it doesn't take full width
         }}
       >
         <nav
