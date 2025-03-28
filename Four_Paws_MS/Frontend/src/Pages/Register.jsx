@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { FaTimes, FaEye, FaEyeSlash, FaExclamationCircle } from "react-icons/fa";
-import paw from "../assets/paw_vector.png"; // Add your paw vector image here
-import "../Styles/Fonts/Fonts.css"; // Add your CSS file here
-import "../Styles/Registerpage/Register.css"; // Add your CSS file here
+import paw from "../assets/paw_vector.png";
+import "../Styles/Fonts/Fonts.css"; 
+import "../Styles/Registerpage/Register.css"; 
 
 function Register({ onClose }) {
   const [formData, setFormData] = useState({
@@ -48,7 +48,7 @@ function Register({ onClose }) {
     }
 
     alert(`Welcome, ${formData.name}! Your account has been created.`);
-    onClose(); // Close the modal after registration
+    onClose();
   };
 
   return (
@@ -58,7 +58,7 @@ function Register({ onClose }) {
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-white hover:text-gray-200 text-lg"
+          className="absolute top-3 right-3 text-white hover:text-gray-200 text-lg cursor-pointer"
         >
           <FaTimes size={22} />
         </button>
