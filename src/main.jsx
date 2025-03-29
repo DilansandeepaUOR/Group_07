@@ -5,6 +5,7 @@ import { createRoot } from "react-dom/client"
 import "./index.css"
 import Sidebar, { SidebarItem } from "./sidebar.jsx"
 import Header from "./header.jsx" // Import the Header component
+import DashboardSection from "./components/dashboard.jsx"
 import { Receipt, BarChart3, LayoutDashboard, Bell } from "lucide-react"
 import React from "react"
 
@@ -50,31 +51,11 @@ function App() {
           {/* Header with search and date/time */}
           <Header />
 
-          <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "16px" }}>Dashboard</h1>
+          <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "4px" }}>Dashboard</h1>
+          <h6 style={{ fontSize: "1.0rem", fontWeight: "initial", marginTop: "0px", marginBottom: "0px" }}>A Quick Data Overview</h6>
 
-          {/* Content cards */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))",
-              gap: "16px",
-            }}
-          >
-            {[1, 2, 3, 4, 5, 6].map((item) => (
-              <div
-                key={item}
-                style={{
-                  backgroundColor: "white",
-                  padding: "16px",
-                  borderRadius: "8px",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)",
-                }}
-              >
-                <h2 style={{ fontWeight: "600", marginBottom: "8px" }}>Card {item}</h2>
-                <p style={{ color: "#4b5563" }}>This is a sample card for the dashboard.</p>
-              </div>
-            ))}
-          </div>
+          {/* Dashboard Section */}
+          <DashboardSection />
         </div>
       </div>
     </div>

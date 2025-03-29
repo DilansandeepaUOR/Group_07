@@ -6,6 +6,7 @@ import { LayoutDashboard, BarChart3, UsersRound, Settings, HelpCircle, Package, 
 
 // Import the Header directly here to ensure it's loaded
 import Header from "../header"
+import DashboardSection from "../components/dashboard"
 
 export default function Home() {
   // Detect if we're on mobile for responsive layout
@@ -23,6 +24,39 @@ export default function Home() {
       window.removeEventListener("resize", handleResize)
     }
   }, [])
+
+  // Render the appropriate section based on activeSection
+  const renderSection = () => {
+    switch (activeSection) {
+      case "dashboard":
+        return <DashboardSection />
+    }
+  }
+
+  return (
+    <div style={{ display: "flex" }}>
+      <Sidebar onSectionChange={setActiveSection}>
+        <SidebarItem
+          icon={<LayoutDashboard size={20} />}
+          text="Dashboard"
+          active={activeSection === "dashboard"}
+          section="dashboard"
+        />
+        
+      </Sidebar>
+      <main
+        style={{
+          flexGrow: 1,
+          padding: "16px",
+          marginLeft: isMobile ? "0" : "72px",
+          transition: "all 300ms",
+        }}
+      >
+        <div style={{ maxWidth: "56rem", margin: "0 auto" }}>{renderSection()}</div>
+      </main>
+    </div>
+  )
+      
 
   return (
     <div style={{ display: "flex", height: "100vh", width: "100%" }}>
