@@ -1,13 +1,12 @@
 import express from "express";
-import pool from "./db.js"; // Ensure correct import
-
+import pool from "./db.js"; 
 const app = express();
 
 async function connectDB() {
     try {
-        const connection = await pool.getConnection(); // Corrected
+        const connection = await pool.getConnection(); 
         console.log("Connected to MySQL database!");
-        connection.release(); // Release connection back to the pool
+        connection.release(); 
     } catch (error) {
         console.error("Database connection failed:", error.message);
     }
