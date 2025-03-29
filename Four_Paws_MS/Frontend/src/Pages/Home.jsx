@@ -43,25 +43,25 @@ function Home() {
             />
           </div>
           {/* Image Section */}
-          <div className="hidden absolute top-0 right-0 justify-center items-center md:flex">
-            <img
-              src={mainimage}
-              alt="Main Dog Image"
-              className="w-150 transform transition duration-300 hover:scale-105"
-            />
-          </div>
+                <div className="hidden absolute top-0 right-0 justify-center items-center xl:flex">
+                <img
+                  src={mainimage}
+                  alt="Main Dog Image"
+                  className="w-96 lg:w-150 transform transition duration-300 hover:scale-105"
+                />
+                </div>
 
-          <div className="top-0 right-0 justify-center items-center md:hidden">
-            <img
-              src={mainimage}
-              alt="Main Dog Image"
-              className="w-150 transform transition duration-300 hover:scale-105"
-            />
-          </div>
+                <div className="top-0 right-0 justify-center items-center xl:hidden">
+                <img
+                  src={mainimage}
+                  alt="Main Dog Image"
+                  className="w-96 lg:w-150 transform transition duration-300 hover:scale-105"
+                />
+                </div>
 
-        </div>
+              </div>
 
-        {/* Subtle paw graphic */}
+              {/* Subtle paw graphic */}
         <img
           src={paw}
           alt="paw"

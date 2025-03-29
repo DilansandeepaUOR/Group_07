@@ -8,7 +8,7 @@
 
 body {
     background: #22292F;
-    
+    overflow-x: hidden;
 }
 
 a {

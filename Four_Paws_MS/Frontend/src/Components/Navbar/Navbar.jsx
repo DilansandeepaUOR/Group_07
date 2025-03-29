@@ -51,13 +51,13 @@ function Navbar() {
           </a>
 
           {/* <!-- nav bar buttons --> */}
-          <div className="hidden md:flex gap-8">
+          <div className="hidden lg:flex gap-8">
             {menu.map((item) => (
               <Navbarmenu name={item.name} Icon={item.icon} to={item.to} />
             ))}
           </div>
 
-          <div className="flex md:hidden gap-5">
+          <div className="flex lg:hidden gap-5">
             {menu.map(
               (item, index) =>
                 index < 1 && <Navbarmenu Icon={item.icon} to={item.to} />
@@ -65,7 +65,7 @@ function Navbar() {
           </div>
 
           {/* <!-- Menu items --> */}
-          <div className="md:hidden" onClick={() => setShowMenu(!showMenu)}>
+          <div className="lg:hidden" onClick={() => setShowMenu(!showMenu)}>
             <Navbarmenu name="MENU" Icon={FaBars} />
             {showMenu ? (
               <div className="absolute right-0 mt-[12px] bg-[#313940] border-[1px] border-[#313940] rounded-md px-5 py-3 ">
@@ -102,7 +102,7 @@ function Navbar() {
         </div>
 
         {/* <!-- register and signin buttons --> */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden lg:flex items-center gap-8">
           {menubuttons.map((item) => (
             <Regandsignbtn
               name={item.name}
