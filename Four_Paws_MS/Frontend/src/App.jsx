@@ -11,6 +11,7 @@ import Pharmacy from './Pages/Pharmacy'
 import Profile from './Pages/Profile'
 import Login from './Pages/Login'
 import Register from './Pages/Register'
+import Appointment from './Pages/Appointment'
  
 
 const App = () => {
@@ -27,6 +28,7 @@ const App = () => {
         <Route path="/Login" element={<Login />} />
         <Route path="/Register" element={<Register />} />
         <Route path="/Profile" element={<Profile/>}/>
+        <Route path="/appointment" element={<Appointment/>}/>
         <Route path="*" element={<h1>404 Not Found</h1>} />
       </Routes>
       <Footer/>
