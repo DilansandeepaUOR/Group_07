@@ -1,4 +1,5 @@
 import React from "react";
+import {Link} from "react-router-dom";
 import paw from "../assets/paw_vector.png";
 import mainimage from "../assets/mainsection4.png";
 import "../Styles/Fonts/Fonts.css";
@@ -36,12 +37,18 @@ function Home() {
               When you choose 4Paws Veterinary Clinic, you ensure advanced
               veterinary care from experienced pet care providers.
             </p>
+
+            <Link to="/Profile">Login</Link>
+
             {/* Appointment Button */}
             <Buttons
               label="Make an Appointment"
               css="bg-[#FFD700] text-[#22292F] px-6 py-3 rounded-lg mt-6 font-bold shadow-md transition duration-300 hover:bg-[#E6C200] hover:shadow-lg Poppins cursor-pointer transform hover:scale-105"
             />
           </div>
+
+          
+
           {/* Image Section */}
                 <div className="hidden absolute top-0 right-0 justify-center items-center xl:flex">
                 <img
