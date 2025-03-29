@@ -64,7 +64,7 @@ function Navbar() {
             )}
           </div>
 
-          {/* <!-- responsive items --> */}
+          {/* <!-- Menu items --> */}
           <div className="md:hidden" onClick={() => setShowMenu(!showMenu)}>
             <Navbarmenu name="MENU" Icon={FaBars} />
             {showMenu ? (
