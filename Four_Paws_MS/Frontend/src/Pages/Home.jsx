@@ -1,4 +1,5 @@
 import React from "react";
+import {Link} from "react-router-dom";
 import paw from "../assets/paw_vector.png";
 import mainimage from "../assets/mainsection4.png";
 import "../Styles/Fonts/Fonts.css";
@@ -25,30 +26,54 @@ function Home() {
           {/* Text Section */}
           <div className="w-full lg:w-7/12 mb-8 lg:mb-0">
             <h1 className="text-5xl font-bold text-[#FFD700] leading-tight Fredoka1">
-              Sharing <span className="text-red-500">Love</span> with compassionate care for every pet’s health and
+              Sharing <span className="text-red-500">Love</span> with
+              compassionate care for every pet’s health and
             </h1>
-            <h1 className="text-4xl font-extrabold text-[#fff] mt-2 Poppins md:text-8xl">Happiness.</h1>
+            <h1 className="text-4xl font-extrabold text-[#fff] mt-2 Poppins md:text-8xl">
+              Happiness.
+            </h1>
 
             <p className="text-lg text-gray-200 mt-4 w-3/4">
-              When you choose 4Paws Veterinary Clinic, you ensure advanced veterinary care from experienced pet care providers.
+              When you choose 4Paws Veterinary Clinic, you ensure advanced
+              veterinary care from experienced pet care providers.
             </p>
+
+            <Link to="/Profile">Login</Link>
+
             {/* Appointment Button */}
             <Buttons
               label="Make an Appointment"
               css="bg-[#FFD700] text-[#22292F] px-6 py-3 rounded-lg mt-6 font-bold shadow-md transition duration-300 hover:bg-[#E6C200] hover:shadow-lg Poppins cursor-pointer transform hover:scale-105"
             />
           </div>
+
+          
+
           {/* Image Section */}
-                <div className="absolute top-0 right-0 flex justify-center items-center">
+                <div className="hidden absolute top-0 right-0 justify-center items-center xl:flex">
                 <img
                   src={mainimage}
                   alt="Main Dog Image"
-                  className="w-150 transform transition duration-300 hover:scale-105"
+                  className="w-96 lg:w-150 transform transition duration-300 hover:scale-105"
                 />
                 </div>
+
+                <div className="top-0 right-0 justify-center items-center xl:hidden">
+                <img
+                  src={mainimage}
+                  alt="Main Dog Image"
+                  className="w-96 lg:w-150 transform transition duration-300 hover:scale-105"
+                />
+                </div>
+
               </div>
+
               {/* Subtle paw graphic */}
-        <img src={paw} alt="paw" className="absolute bottom-0 right-0 w-24 opacity-30 transform rotate-45"/>
+        <img
+          src={paw}
+          alt="paw"
+          className="absolute bottom-0 right-0 w-24 opacity-30 transform rotate-45"
+        />
       </div>
 
       {/* Our Services Section */}
@@ -58,7 +83,11 @@ function Home() {
             <h1 className="text-[#FFD700] text-5xl Fredoka1 text-center pt-10 pb-10 font-bold">
               Our Services
             </h1>
-            <img src={paw} alt="paw" className="absolute justify-center w-16 h-16 opacity-50" />
+            <img
+              src={paw}
+              alt="paw"
+              className="absolute justify-center w-16 h-16 opacity-50"
+            />
             <div className="flex flex-wrap justify-center gap-12 pt-10">
               {service.map((item) => (
                 <div className="shadow-[5px_5px_15px_rgba(0,0,0,0.3)] rounded-lg w-70 h-80 flex flex-col items-center justify-center">

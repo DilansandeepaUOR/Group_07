@@ -12,7 +12,7 @@ import {
 
 function Footer() {
   return (
-    <footer className=" bg-[#22292F] text-neutral-200 lg:text-left">
+    <footer className=" bg-[#22292F] text-neutral-200 lg:text-left w-full">
       <div className="flex items-center justify-center border-b-2 border-neutral-500 p-6 lg:justify-between">
         <div className="mr-12 hidden lg:block">
           <span>Get connected with us on social networks:</span>
@@ -68,8 +68,8 @@ function Footer() {
             <h6 className="mb-4 flex justify-center font-semibold uppercase md:justify-start Poppins">
               Our business
             </h6>
-            <div className="">
-              <a href="">
+            <div className="flex justify-center items-center">
+              <a href="/">
                 <img
                   src={logo}
                   alt="4paws logo"

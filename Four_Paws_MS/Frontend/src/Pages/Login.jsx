@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { FaTimes, FaEye, FaEyeSlash, FaExclamationCircle } from "react-icons/fa";
 import paw from "../assets/paw_vector.png";
 import "../Styles/Fonts/Fonts.css";
@@ -101,6 +102,8 @@ function Login({onClose }) {
           >
             Cancel
           </button>
+
+          <div>
           <button
             onClick={handleLogin}
             className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${
@@ -112,6 +115,8 @@ function Login({onClose }) {
           >
             {loading ? "Logging in..." : "Login"}
           </button>
+          </div>
+
         </div>
 
         {/* Divider */}

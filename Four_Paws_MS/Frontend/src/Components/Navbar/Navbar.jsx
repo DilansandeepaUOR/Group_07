@@ -42,35 +42,41 @@ function Navbar() {
       <div className="flex justify-between items-center p-5">
         {/* <!-- logo --> */}
         <div className="flex items-center gap-8 bg-[#22292F]">
-          <img
-            src={logo}
-            alt="4paws logo"
-            className="w-[200px] object-cover cursor-pointer"
-          />
+          <a href="/">
+            <img
+              src={logo}
+              alt="4paws logo"
+              className="w-[200px] object-cover cursor-pointer"
+            />
+          </a>
 
           {/* <!-- nav bar buttons --> */}
-          <div className="hidden md:flex gap-8">
+          <div className="hidden lg:flex gap-8">
             {menu.map((item) => (
               <Navbarmenu name={item.name} Icon={item.icon} to={item.to} />
             ))}
           </div>
 
-          <div className="flex md:hidden gap-5">
+          <div className="flex lg:hidden gap-5">
             {menu.map(
               (item, index) =>
                 index < 1 && <Navbarmenu Icon={item.icon} to={item.to} />
             )}
           </div>
 
-          {/* <!-- responsive items --> */}
-          <div className="md:hidden" onClick={() => setShowMenu(!showMenu)}>
+          {/* <!-- Menu items --> */}
+          <div className="lg:hidden" onClick={() => setShowMenu(!showMenu)}>
             <Navbarmenu name="MENU" Icon={FaBars} />
             {showMenu ? (
               <div className="absolute right-0 mt-[12px] bg-[#313940] border-[1px] border-[#313940] rounded-md px-5 py-3 ">
                 {menu.map(
                   (item, index) =>
                     index >= 1 && (
-                      <Navbarmenu name={item.name} Icon={item.icon} to={item.to} />
+                      <Navbarmenu
+                        name={item.name}
+                        Icon={item.icon}
+                        to={item.to}
+                      />
                     )
                 )}
 
@@ -96,23 +102,19 @@ function Navbar() {
         </div>
 
         {/* <!-- register and signin buttons --> */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden lg:flex items-center gap-8">
           {menubuttons.map((item) => (
             <Regandsignbtn
               name={item.name}
               Icon={item.icon}
-              onClick={
-                () => {
-                  if (item.name === "Sign in") {
-                    setShowLogin(true);
-                 
-                  }
-                  if (item.name === "Register") {
-                    setShowRegister(true);
-               
-                  }
+              onClick={() => {
+                if (item.name === "Sign in") {
+                  setShowLogin(true);
                 }
-              }
+                if (item.name === "Register") {
+                  setShowRegister(true);
+                }
+              }}
             />
           ))}
         </div>
