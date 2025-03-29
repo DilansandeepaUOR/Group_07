@@ -1,23 +1,22 @@
-import express from "express";
-import pool from "./db.js"; 
+const express = require('express');
+const db = require('./db');  
 const app = express();
+const port = 3001;
 
-async function connectDB() {
-    try {
-        const connection = await pool.getConnection(); 
-        console.log("Connected to MySQL database!");
-        connection.release(); 
-    } catch (error) {
-        console.error("Database connection failed:", error.message);
-    }
-}
 
-connectDB();
+//Sample code
 
-app.get("/", (req, res) => {
-    res.send("Hello, Node.js!");
-});
+// app.get('/', (req, res) => {
+//   db.query('SELECT * FROM owners', (err, results) => {
+//     if (err) {
+//       console.error(err);
+//       res.status(500).send('Database error');
+//       return;
+//     }
+//     res.json(results); 
+//   });
+// });
 
-app.listen(3001, () => {
-    console.log("Server running on http://localhost:3001");
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
 });
