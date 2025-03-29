@@ -68,8 +68,8 @@ function Footer() {
             <h6 className="mb-4 flex justify-center font-semibold uppercase md:justify-start Poppins">
               Our business
             </h6>
-            <div className="">
-              <a href="">
+            <div className="flex justify-center items-center">
+              <a href="/">
                 <img
                   src={logo}
                   alt="4paws logo"
