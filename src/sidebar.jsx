@@ -1,39 +1,33 @@
 "use client"
 
 import { useContext, createContext, useState, useEffect } from "react"
-import { MoreVertical, ChevronLast, ChevronFirst, Menu, X } from "lucide-react"
+import { MoreVertical, ChevronLast, ChevronFirst, Menu, X, ChevronDown } from "lucide-react"
 
-// Simple utility to join classnames
-function classNames(...classes) {
-  return classes.filter(Boolean).join(" ")
-}
-
-const SidebarContext = createContext({ expanded: true, isMobile: false })
+const SidebarContext = createContext({ 
+  expanded: true, 
+  isMobile: false,
+  activeSection: "",
+  setActiveSection: () => {}
+})
 
 export default function Sidebar({ children }) {
   const [expanded, setExpanded] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  // Handle responsive behavior
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768
       setIsMobile(mobile)
 
-      // Auto-collapse on smaller screens
       if (mobile && expanded) {
         setExpanded(false)
       }
     }
 
-    // Set initial state
     handleResize()
-
-    // Add event listener
     window.addEventListener("resize", handleResize)
 
-    // Clean up
     return () => window.removeEventListener("resize", handleResize)
   }, [expanded])
 
@@ -47,7 +41,6 @@ export default function Sidebar({ children }) {
 
   return (
     <>
-      {/* Mobile overlay */}
       {isMobile && mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
@@ -63,7 +56,6 @@ export default function Sidebar({ children }) {
         />
       )}
 
-      {/* Mobile toggle button */}
       {isMobile && (
         <button
           onClick={toggleSidebar}
@@ -91,7 +83,7 @@ export default function Sidebar({ children }) {
           top: isMobile ? "0" : "auto",
           left: isMobile ? "0" : "auto",
           zIndex: isMobile ? "50" : "auto",
-          width: "auto", // Add this line to ensure it doesn't take full width
+          width: "auto",
         }}
       >
         <nav
@@ -102,7 +94,8 @@ export default function Sidebar({ children }) {
             backgroundColor: "white",
             borderRight: "1px solid #e5e7eb",
             boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-            width: isMobile ? "280px" : "auto",
+            width: isMobile ? "280px" : expanded ? "240px" : "72px",
+            transition: "width 300ms",
           }}
         >
           <div
@@ -137,8 +130,18 @@ export default function Sidebar({ children }) {
             )}
           </div>
 
-          <SidebarContext.Provider value={{ expanded: isMobile ? true : expanded, isMobile }}>
-            <ul style={{ flexGrow: 1, padding: "0 12px" }}>{children}</ul>
+          <SidebarContext.Provider value={{ 
+            expanded: isMobile ? true : expanded, 
+            isMobile 
+          }}>
+            <ul style={{ 
+              flexGrow: 1, 
+              padding: "0 12px",
+              overflowY: "auto",
+              overflowX: "hidden"
+            }}>
+              {children}
+            </ul>
           </SidebarContext.Provider>
 
           <div
@@ -160,7 +163,7 @@ export default function Sidebar({ children }) {
                 alignItems: "center",
                 overflow: "hidden",
                 transition: "all 300ms",
-                width: expanded || isMobile ? "208px" : "0",
+                width: expanded || isMobile ? "calc(100% - 52px)" : "0",
                 marginLeft: expanded || isMobile ? "12px" : "0",
               }}
             >
@@ -177,15 +180,123 @@ export default function Sidebar({ children }) {
   )
 }
 
-export function SidebarItem({ icon, text, active, alert }) {
+export function SidebarItem({ 
+  icon, 
+  text, 
+  active, 
+  alert, 
+  children,
+  section,
+  onSectionChange 
+}) {
   const { expanded, isMobile } = useContext(SidebarContext)
-
   const [isHovered, setIsHovered] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+
+  const handleClick = () => {
+    if (children) {
+      setIsOpen(!isOpen)
+    } else if (section && onSectionChange) {
+      onSectionChange(section)
+    }
+  }
 
   return (
-    <li
+    <li style={{ listStyle: "none" }}>
+      <div
+        style={{
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          padding: "8px 12px",
+          margin: "4px 0",
+          fontWeight: "500",
+          borderRadius: "6px",
+          cursor: "pointer",
+          transition: "background-color 150ms",
+          backgroundColor: active ? "#e0e7ff" : "transparent",
+          color: active ? "#3730a3" : "#4b5563",
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={handleClick}
+      >
+        {icon}
+        <span
+          style={{
+            overflow: "hidden",
+            transition: "all 300ms",
+            width: expanded || isMobile ? "calc(100% - 40px)" : "0",
+            marginLeft: expanded || isMobile ? "12px" : "0",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {text}
+        </span>
+        {alert && (
+          <div
+            style={{
+              position: "absolute",
+              right: "8px",
+              top: expanded ? "auto" : "8px",
+              width: "8px",
+              height: "8px",
+              borderRadius: "50%",
+              backgroundColor: "#818cf8",
+            }}
+          />
+        )}
+        {children && (
+          <ChevronDown
+            size={16}
+            style={{
+              marginLeft: "auto",
+              transition: "transform 200ms",
+              transform: isOpen ? "rotate(180deg)" : "rotate(0)",
+            }}
+          />
+        )}
+
+        {!expanded && !isMobile && isHovered && !children && (
+          <div
+            style={{
+              position: "absolute",
+              left: "100%",
+              borderRadius: "6px",
+              padding: "4px 8px",
+              marginLeft: "24px",
+              backgroundColor: "#e0e7ff",
+              color: "#3730a3",
+              fontSize: "0.875rem",
+              zIndex: 10,
+            }}
+          >
+            {text}
+          </div>
+        )}
+      </div>
+      {children && (
+        <div
+          style={{
+            overflow: "hidden",
+            maxHeight: isOpen ? "500px" : "0",
+            transition: "max-height 200ms ease-in-out",
+            paddingLeft: expanded || isMobile ? "24px" : "12px",
+          }}
+        >
+          {children}
+        </div>
+      )}
+    </li>
+  )
+}
+
+export function SidebarSubItem({ text, active, section, onSectionChange }) {
+  const { expanded, isMobile } = useContext(SidebarContext)
+
+  return (
+    <div
       style={{
-        position: "relative",
         display: "flex",
         alignItems: "center",
         padding: "8px 12px",
@@ -196,53 +307,11 @@ export function SidebarItem({ icon, text, active, alert }) {
         transition: "background-color 150ms",
         backgroundColor: active ? "#e0e7ff" : "transparent",
         color: active ? "#3730a3" : "#4b5563",
+        fontSize: "0.875rem",
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onClick={() => onSectionChange && onSectionChange(section)}
     >
-      {icon}
-      <span
-        style={{
-          overflow: "hidden",
-          transition: "all 300ms",
-          width: expanded || isMobile ? "208px" : "0",
-          marginLeft: expanded || isMobile ? "12px" : "0",
-        }}
-      >
-        {text}
-      </span>
-      {alert && (
-        <div
-          style={{
-            position: "absolute",
-            right: "8px",
-            top: expanded ? "auto" : "8px",
-            width: "8px",
-            height: "8px",
-            borderRadius: "50%",
-            backgroundColor: "#818cf8",
-          }}
-        />
-      )}
-
-      {!expanded && !isMobile && isHovered && (
-        <div
-          style={{
-            position: "absolute",
-            left: "100%",
-            borderRadius: "6px",
-            padding: "4px 8px",
-            marginLeft: "24px",
-            backgroundColor: "#e0e7ff",
-            color: "#3730a3",
-            fontSize: "0.875rem",
-            zIndex: 10,
-          }}
-        >
-          {text}
-        </div>
-      )}
-    </li>
+      {text}
+    </div>
   )
 }
-
