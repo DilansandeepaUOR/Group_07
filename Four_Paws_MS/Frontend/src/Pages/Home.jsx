@@ -37,6 +37,11 @@ function Home() {
               label="Make an Appointment"
               css="bg-[#FFD700] text-[#22292F] px-6 py-3 rounded-lg mt-6 font-bold shadow-md transition duration-300 hover:bg-[#E6C200] hover:shadow-lg Poppins cursor-pointer transform hover:scale-105"
             />
+            {/* Add a Record Button */}
+            <Buttons
+              label="Add a Record"
+              css="bg-[#22292F] text-[#FFD700] px-6 py-3 rounded-lg mt-6 ml-4 font-bold shadow-md transition duration-300 hover:bg-[#333F48] hover:shadow-lg Poppins cursor-pointer transform hover:scale-105"
+            />
           </div>
           {/* Image Section */}
           <div className="w-full lg:w-5/12 flex justify-center items-center relative">
