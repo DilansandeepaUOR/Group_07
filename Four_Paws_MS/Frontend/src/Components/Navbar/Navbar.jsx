@@ -64,7 +64,7 @@ function Navbar() {
             )}
           </div>
 
-          {/* <!-- Menu items --> */}
+          {/* <!-- Responsive menu items --> */}
           <div className="lg:hidden" onClick={() => setShowMenu(!showMenu)}>
             <Navbarmenu name="MENU" Icon={FaBars} />
             {showMenu ? (
@@ -103,20 +103,37 @@ function Navbar() {
 
         {/* <!-- register and signin buttons --> */}
         <div className="hidden lg:flex items-center gap-8">
-          {menubuttons.map((item) => (
+          {menubuttons.map((item) =>
+            item.name === "Register" ? (
+              <div className="bg-red-500 px-6 py-3 font-bold rounded-lg transition duration-300 hover:bg-red-600 transform hover:scale-105">
+                <Regandsignbtn
+                name={item.name}
+                Icon={item.icon}
+                onClick={() => {
+                  if (item.name === "Sign in") {
+                    setShowLogin(true);
+                  }
+                  if (item.name === "Register") {
+                    setShowRegister(true);
+                  }
+                }}
+              />
+              </div>
+            ) : <div className="px-6 py-3 border rounded-lg transition duration-300 transform hover:scale-105">
             <Regandsignbtn
-              name={item.name}
-              Icon={item.icon}
-              onClick={() => {
-                if (item.name === "Sign in") {
-                  setShowLogin(true);
-                }
-                if (item.name === "Register") {
-                  setShowRegister(true);
-                }
-              }}
-            />
-          ))}
+            name={item.name}
+            Icon={item.icon}
+            onClick={() => {
+              if (item.name === "Sign in") {
+                setShowLogin(true);
+              }
+              if (item.name === "Register") {
+                setShowRegister(true);
+              }
+            }}
+          />
+          </div>
+          )}
         </div>
       </div>
       {showLogin && <Login onClose={() => setShowLogin(false)} />}
