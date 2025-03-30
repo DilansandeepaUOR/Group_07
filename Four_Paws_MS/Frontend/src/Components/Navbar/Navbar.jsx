@@ -64,37 +64,69 @@ function Navbar() {
             )}
           </div>
 
-          {/* <!-- Menu items --> */}
+          {/* <!-- Responsive menu items --> */}
           <div className="lg:hidden" onClick={() => setShowMenu(!showMenu)}>
             <Navbarmenu name="MENU" Icon={FaBars} />
             {showMenu ? (
-              <div className="absolute right-0 mt-[12px] bg-[#313940] border-[1px] border-[#313940] rounded-md px-5 py-3 ">
-                {menu.map(
-                  (item, index) =>
-                    index >= 1 && (
-                      <Navbarmenu
+              <div>
+                <div className="absolute max-w-xs right-0 mt-[12px] bg-[#313940] border-[1px] border-[#313940] rounded-md px-5 py-3 sm:hidden">
+                  {menu.map(
+                    (item, index) =>
+                      index >= 1 && (
+                        <Navbarmenu
+                          name={item.name}
+                          Icon={item.icon}
+                          to={item.to}
+                        />
+                      )
+                  )}
+
+                  <div className="">
+                    {menubuttons.map((item) => (
+                      <Regandsignbtn
                         name={item.name}
                         Icon={item.icon}
-                        to={item.to}
+                        onClick={() => {
+                          if (item.name === "Sign in") {
+                            setShowLogin(true);
+                          }
+                          if (item.name === "Register") {
+                            setShowRegister(true);
+                          }
+                        }}
                       />
-                    )
-                )}
+                    ))}
+                  </div>
+                </div>
 
-                <div className="">
-                  {menubuttons.map((item) => (
-                    <Regandsignbtn
-                      name={item.name}
-                      Icon={item.icon}
-                      onClick={() => {
-                        if (item.name === "Sign in") {
-                          setShowLogin(true);
-                        }
-                        if (item.name === "Register") {
-                          setShowRegister(true);
-                        }
-                      }}
-                    />
-                  ))}
+                <div className="absolute mt-[12px] bg-[#313940] border-[1px] border-[#313940] rounded-md px-5 py-3 hidden sm:block">
+                  {menu.map(
+                    (item, index) =>
+                      index >= 1 && (
+                        <Navbarmenu
+                          name={item.name}
+                          Icon={item.icon}
+                          to={item.to}
+                        />
+                      )
+                  )}
+
+                  <div className="">
+                    {menubuttons.map((item) => (
+                      <Regandsignbtn
+                        name={item.name}
+                        Icon={item.icon}
+                        onClick={() => {
+                          if (item.name === "Sign in") {
+                            setShowLogin(true);
+                          }
+                          if (item.name === "Register") {
+                            setShowRegister(true);
+                          }
+                        }}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
             ) : null}
@@ -103,20 +135,39 @@ function Navbar() {
 
         {/* <!-- register and signin buttons --> */}
         <div className="hidden lg:flex items-center gap-8">
-          {menubuttons.map((item) => (
-            <Regandsignbtn
-              name={item.name}
-              Icon={item.icon}
-              onClick={() => {
-                if (item.name === "Sign in") {
-                  setShowLogin(true);
-                }
-                if (item.name === "Register") {
-                  setShowRegister(true);
-                }
-              }}
-            />
-          ))}
+          {menubuttons.map((item) =>
+            item.name === "Register" ? (
+              <div className="bg-red-500 px-6 py-3 font-bold rounded-lg transition duration-300 hover:bg-red-600 transform hover:scale-105">
+                <Regandsignbtn
+                  name={item.name}
+                  Icon={item.icon}
+                  onClick={() => {
+                    if (item.name === "Sign in") {
+                      setShowLogin(true);
+                    }
+                    if (item.name === "Register") {
+                      setShowRegister(true);
+                    }
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="px-6 py-3 border rounded-lg transition duration-300 transform hover:scale-105">
+                <Regandsignbtn
+                  name={item.name}
+                  Icon={item.icon}
+                  onClick={() => {
+                    if (item.name === "Sign in") {
+                      setShowLogin(true);
+                    }
+                    if (item.name === "Register") {
+                      setShowRegister(true);
+                    }
+                  }}
+                />
+              </div>
+            )
+          )}
         </div>
       </div>
       {showLogin && <Login onClose={() => setShowLogin(false)} />}

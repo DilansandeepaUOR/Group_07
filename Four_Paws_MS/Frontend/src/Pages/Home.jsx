@@ -80,8 +80,8 @@ function Home() {
 
       {/* Our Services Section */}
       <div>
-        <div className="container mx-auto px-4 py-12 bg-gradient-to-b from-[#22292F] via-[#333F48] to-[#555E64]">
-          <div className="flex flex-col items-center pt-10 pb-20 rounded-2xl shadow-[5px_5px_15px_rgba(0,0,0,0.3)] bg-gradient-to-b from-[#22292F] via-[#333F48] to-[#555E64]">
+        <div className="container mx-auto px-4 py-12 bg-gradient-to-b from-[#555E64] via-[#333F48] to-[#22292F]">
+          <div className="flex flex-col items-center pt-10 pb-20 rounded-2xl shadow-[5px_5px_15px_rgba(0,0,0,0.3)] bg-gradient-to-b from-[#46dfd0] via-[#028478] to-[#22292F]">
             <h1 className="text-[#FFD700] text-5xl Fredoka1 text-center pt-10 pb-10 font-bold">
               Our Services
             </h1>

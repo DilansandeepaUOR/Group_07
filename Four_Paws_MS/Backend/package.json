@@ -10,13 +10,14 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "body-parser": "^1.20.3",
+    "cores": "^0.8.0",
     "cors": "^2.8.5",
     "cours": "^1.0.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "mongoose": "^8.13.0",
-    "mysql2": "^3.14.0"
+    "mongoose": "^8.13.0"
   },
   "devDependencies": {
     "jest": "^29.7.0",
