@@ -9,6 +9,8 @@ import { Textarea } from "@/Components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
 import { Plus } from "lucide-react"
 
+const uId=201;
+
 const AppointmentDetails = () => {
   const [appointment, setAppointment] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -18,10 +20,14 @@ const AppointmentDetails = () => {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [timeSlots, setTimeSlots] = useState([]);
+  const [availability, setAvailability] = useState({});
+
+  const [reason, setReason] = useState("");
+  const [reasons, setReasons] = useState([]);
 
   useEffect(() => {
     axios
-      .get("http://localhost:3001/appointments?id=201")
+      .get(`http://localhost:3001/appointments?id=${uId}`)
       .then((response) => {
         setAppointment(response.data);
         setLoading(false);
@@ -36,60 +42,93 @@ const AppointmentDetails = () => {
     axios
       .get("http://localhost:3001/appointments/timeslots")
       .then((response) => {
-        // Format the time slots for display
         const formattedSlots = response.data.map(slot => {
-          // Extract hours and minutes (remove seconds)
           const [hours, minutes] = slot.time_slot.split(':');
-          // Convert to 12-hour format for display
           const hour12 = hours % 12 || 12;
           return {
             display: `${hour12}:${minutes} ${slot.am_pm}`,
-            value: `${hours}:${minutes}`, // Store just the time without AM/PM
-            rawTime: slot.time_slot // Store the raw time from API
+            value: `${hours}:${minutes}`,
+            rawTime: slot.time_slot
           };
         });
         setTimeSlots(formattedSlots);
+        
+        // Initialize availability for all slots
+        const initialAvailability = {};
+        formattedSlots.forEach(slot => {
+          initialAvailability[slot.rawTime] = null; 
+        });
+        setAvailability(initialAvailability);        
         setLoading(false);
       })
       .catch(() => {
         setError("Failed to fetch time slots");
         setLoading(false);
       });
-  }, []); 
+  }, []);
 
+// Check availability for all time slots when date changes
   useEffect(() => {
-    if (date && time) {
-      // Find the selected time slot to get the raw time value
-      const selectedSlot = timeSlots.find(slot => slot.value === time);
-      const timeToSend = selectedSlot ? selectedSlot.rawTime : time.split(' ')[0];
-      
-      console.log("Fetching appointments for:", date, timeToSend);
-      axios.get(`http://localhost:3001/appointments/checkdatetime?date=${date}&time=${timeToSend}`)
-        .then((response) => {
-          setAppointment(response.data);
-          setLoading(false);
-        })
-        .catch(() => {
-          setError("Failed to fetch appointment data");
-          setLoading(false);
-        });
+    if (date) {
+      timeSlots.forEach(slot => {
+        checkSlotAvailability(date, slot.rawTime);
+      });
     }
-  }, [date, time, timeSlots]);
+  }, [date, timeSlots]);
+
+  const checkSlotAvailability = async (date, time) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3001/appointments/checkdatetime?date=${date}&time=${time}`
+      );
+      setAvailability(prev => ({
+        ...prev,
+        [time]: response.data.available
+      }));
+    } catch (error) {
+      console.error("Error checking availability:", error);
+      setAvailability(prev => ({
+        ...prev,
+        [time]: false // Assume unavailable if there's an error
+      }));
+    }
+  };
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert("Appointment Updated: " + JSON.stringify(formData));
-    setPetType("");
+  
+    const appointmentData = {
+      petType,
+      time,
+      date,
+      reason: formData.reason,
+      status: formData.status,
+    };
+  
+    axios
+      .post("http://localhost:3001/appointment", appointmentData)
+      .then((response) => {
+        alert("Appointment Updated Successfully!");
+        console.log(response.data);
+        setPetType("");
+        setTime(""); // Reset fields after submission
+      })
+      .catch((error) => {
+        console.error("Error updating appointment:", error);
+        alert("Failed to update appointment. Please try again.");
+      });
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleAddPet = (e) => {
-    e.preventDefault();
-    console.log("Appointment Updated:", formData);
-  }
+  useEffect(() => {
+    axios.get("http://localhost:3001/appointments/reasons")
+      .then((response) => {
+        setReasons(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching reasons:", error);
+      });
+  }, []);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
@@ -105,17 +144,17 @@ const AppointmentDetails = () => {
         <TabsContent value="details">
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle>Appointment ID: {appointment.appointment_id}</CardTitle>
+              <CardTitle>Appointment ID: {appointment?.appointment_id}</CardTitle>
               <CardDescription>Details of the appointment</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                <li><strong>Pet ID:</strong> {appointment.pet_id}</li>
-                <li><strong>Reason:</strong> {appointment.reason}</li>
-                <li><strong>Status:</strong> {appointment.status}</li>
-                <li><strong>Owner ID:</strong> {appointment.owner_id}</li>
-                <li><strong>Date:</strong> {new Date(appointment.appointment_date).toLocaleDateString()}</li>
-                <li><strong>Time:</strong> {appointment.appointment_time}</li>
+                <li><strong>Pet ID:</strong> {appointment?.pet_id}</li>
+                <li><strong>Reason:</strong> {appointment?.reason}</li>
+                <li><strong>Status:</strong> {appointment?.status}</li>
+                <li><strong>Owner ID:</strong> {appointment?.owner_id}</li>
+                <li><strong>Date:</strong> {appointment?.appointment_date && new Date(appointment.appointment_date).toLocaleDateString()}</li>
+                <li><strong>Time:</strong> {appointment?.appointment_time}</li>
               </ul>
             </CardContent>
           </Card>
@@ -137,9 +176,7 @@ const AppointmentDetails = () => {
                     <SelectContent>
                       <SelectItem value="dog">Dog</SelectItem>
                       <SelectItem value="cat">Cat</SelectItem>
-                      <SelectItem value="bird">Bird</SelectItem>
-                      <SelectItem value="rabbit">Rabbit</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="bird">Cow</SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -167,17 +204,71 @@ const AppointmentDetails = () => {
                         <SelectValue placeholder="Select time" />
                       </SelectTrigger>
                       <SelectContent>
-                        {timeSlots.map((slot, index) => (
-                          <SelectItem key={index} value={slot.value}>
-                            {slot.display}
-                          </SelectItem>
-                        ))}
+                        {timeSlots.map((slot, index) => {
+                          const isAvailable = availability[slot.rawTime];
+                          const isDisabled = isAvailable === false;
+                          
+                          return (
+                            <SelectItem 
+                              key={index} 
+                              value={slot.value}
+                              disabled={isDisabled}
+                              className={isDisabled ? "text-red-500" : ""}
+                            >
+                              {slot.display} {isDisabled && "(Unavailable)"}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
-                <Button type="submit" variant="primary" onChange={handleAddPet}>Save Changes</Button>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="reason" className="text-sm">Status</Label>
+                    <Select value={reason} onValueChange={setReason} required>
+      <SelectTrigger className="h-9">
+        <SelectValue placeholder="Select Reason" />
+      </SelectTrigger>
+      <SelectContent>
+        {reasons.length > 0 ? (
+          reasons.map((r) => (
+            <SelectItem key={r.id} value={r.reason_name}>
+              {r.reason_name}
+            </SelectItem>
+          ))
+        ) : (
+          <p className="p-2 text-gray-500">No reasons available</p>
+        )}
+      </SelectContent>
+    </Select>
+                  </div>
+                </div>
+                
+
+                <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="reason" className="text-sm">Additional Note </Label>
+                          <Textarea
+                            id="reason"
+                            value={formData.reason}
+                            onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                            placeholder="Enter reason for appointment"
+                            required
+                            className="h-24"
+                          />
+                        </div>
+
+                </div>
+
+                <Button 
+                  type="submit" 
+                  variant="primary" 
+                  disabled={!time || availability[timeSlots.find(slot => slot.value === time)?.rawTime] === false}
+                >
+                  Save Changes
+                </Button>
               </form>
             </CardContent>
           </Card>

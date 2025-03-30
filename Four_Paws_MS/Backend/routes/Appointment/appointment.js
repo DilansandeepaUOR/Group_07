@@ -11,6 +11,21 @@ router.use((req, res, next) => {
   next();
 });
 
+
+const formatTimeToMySQL = (time) => {
+  const [hourMin, period] = time.split(" ");
+  let [hours, minutes] = hourMin.split(":");
+  
+  if (period.toLowerCase() === "pm" && hours !== "12") {
+      hours = String(Number(hours) + 12);
+  } else if (period.toLowerCase() === "am" && hours === "12") {
+      hours = "00";
+  }
+
+  return `${hours}:${minutes}:00`; // Convert to HH:MM:SS format
+};
+
+
 // Route to get a specific appointment by ID
 router.get('/', (req, res) => {
     const appointmentId = req.query.id;
@@ -42,7 +57,7 @@ router.get('/checkdatetime', (req, res) => {
     return res.status(400).json({ error: "Date and time are required" });
   }
 
-  console.log(`Checking availability for date: ${date}, time: ${time}`);
+  //console.log(`Checking availability for date: ${date}, time: ${time}`);
   db.query('SELECT * FROM appointments WHERE appointment_date = ? AND appointment_time = ?', [date, time], (err, results) => {
     if (err) {
       console.error(err);
@@ -73,6 +88,38 @@ router.get('/timeslots', (req, res) => {
     }
 
     res.json(results);
+  });
+});
+
+
+router.get('/reasons', (req, res) => {
+  db.query('SELECT * FROM reasons ORDER BY id', (err, results) => {
+      if (err) {
+          console.error(err);
+          return res.status(500).json({ error: "Database error" });
+      }
+      res.json(results);
+  });
+});
+
+
+router.post("/appointment", (req, res) => {
+  const { petType, time, date, reason, status } = req.body;
+
+  if (!petType || !time || !date || !reason || !status) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+  let Correcttime = formatTimeToMySQL(time);
+
+  const query =
+    "INSERT INTO appointments (pet_id, appointment_time, appointment_date, reason, status) VALUES (?, ?, ?, ?, ?)";
+  
+  db.query(query, [petType, Correcttime, date, reason, status], (err, result) => {
+    if (err) {
+      console.error("Error inserting appointment:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    res.json({ success: true, message: "Appointment added successfully!" });
   });
 });
 
