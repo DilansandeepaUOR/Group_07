@@ -7,8 +7,9 @@ app.use(cors());
 
 const appointmentRoutes = require('./routes/Appointment/appointment');
 app.use('/appointments', appointmentRoutes);
-//Sample code
 
+
+//Sample code
 // app.get('/', (req, res) => {
 //   db.query('SELECT * FROM owners', (err, results) => {
 //     if (err) {
