@@ -98,9 +98,10 @@ router.get('/reasons', async (req, res) => {
 });
 
 router.post('/appointment', async (req, res) => {
-  const { petType, time, date, reason, status } = req.body;
+  const { petType, time, date, reason, additional_note } = req.body;
+  console.log(petType, date, time,reason, additional_note);
   
-  if (!petType || !time || !date || !reason || !status) {
+  if (!petType || !time || !date || !reason) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
@@ -110,12 +111,22 @@ router.post('/appointment', async (req, res) => {
       return res.status(400).json({ error: 'Invalid time format' });
     }
 
+  if(!additional_note){
     const [result] = await db.promise().query(
       `INSERT INTO appointments 
-       (pet_id, appointment_time, appointment_date, reason, status) 
+       (pet_id, appointment_time, appointment_date, reason) 
        VALUES (?, ?, ?, ?, ?)`,
-      [petType, mysqlTime, date, reason, status]
+      [petType, mysqlTime, date, reason]
     );
+  }
+  const [result] = await db.promise().query(
+    `INSERT INTO appointments 
+     (pet_id, appointment_time, appointment_date, reason, additional_note) 
+     VALUES (?, ?, ?, ?, ?)`,
+    [petType, mysqlTime, date, additional_note, reason]
+  );
+
+    
     
     res.json({ 
       success: true, 
