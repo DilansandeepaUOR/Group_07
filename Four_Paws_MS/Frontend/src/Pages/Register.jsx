@@ -3,6 +3,8 @@ import { FaTimes, FaEye, FaEyeSlash, FaExclamationCircle } from "react-icons/fa"
 import paw from "../assets/paw_vector.png";
 import "../Styles/Fonts/Fonts.css"; 
 import "../Styles/Registerpage/Register.css"; 
+import axios from "axios";
+import { Navigate } from "react-router-dom";
 
 function Register({ onClose }) {
   const [formData, setFormData] = useState({
@@ -25,8 +27,8 @@ function Register({ onClose }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  function handleRegister () {
-    setError("");
+  async function handleRegister (e) {
+    e.preventDefault();
 
     if (
       !formData.name ||
@@ -47,9 +49,15 @@ function Register({ onClose }) {
       return;
     }
 
-    alert(`Welcome, ${formData.name}! Your account has been created.`);
-    onClose();
-  };
+    try {
+      const res= await axios.post("http://localhost/3001/api/registerform/register",formData);
+      alert(res.data.message);
+    } catch (error) {
+      alert("Error: "+error.response.data.error);
+    }
+
+    Navigate('/');
+  }
 
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 backdrop-blur-md z-50 overlay">
