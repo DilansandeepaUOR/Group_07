@@ -47,8 +47,11 @@ const initialAppointments = [
   },
 ];
 
+const uId=201;
+
 export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState(initialAppointments);
+  const [appointments2, setAppointments2] = useState([]);
   const [activeTab, setActiveTab] = useState("existing");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [newAppointment, setNewAppointment] = useState(null);
