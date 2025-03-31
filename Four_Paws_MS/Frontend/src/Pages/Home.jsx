@@ -39,13 +39,25 @@ function Home() {
             </p>
 
             <Link to="/Profile">Login</Link>
-
+            <p>
             {/* Appointment Button */}
             <Link to="/Appointment">
             <Buttons
               label="Make an Appointment"
               css="bg-[#FFD700] text-[#22292F] px-6 py-3 rounded-lg mt-6 font-bold shadow-md transition duration-300 hover:bg-[#E6C200] hover:shadow-lg Poppins cursor-pointer transform hover:scale-105"
             />
+            </Link>
+          {' '}
+            {/* Records Entry Button */}
+            <Link to="/RecordsEntry">
+            <Buttons
+              label="Record Entry"
+              css="bg-[#FFD700] text-[#22292F] px-6 py-3 rounded-lg mt-6 font-bold shadow-md transition duration-300 hover:bg-[#E6C200] hover:shadow-lg Poppins cursor-pointer transform hover:scale-105"
+              />
+            </Link>
+            </p>
+           
+
           </div>
 
           
