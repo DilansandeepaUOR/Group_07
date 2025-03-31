@@ -4,7 +4,7 @@ const db = require('../../db');
 const bcrypt= require('bcrypt');
 const validRegister=require('../../validations/registervalidator');
 
-router.use(express.json);
+router.use(express.json());
 router.use(express.urlencoded({extended: true}));
 
 router.use((req,res,next) => {
@@ -17,7 +17,7 @@ router.post("/register",validRegister, async (req, res) => {
     const {name, address, phone, email, confirmPassword} =req.body;
     try {
         //existance of email
-        db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
+        db.query('SELECT * FROM pet_owner WHERE E_mail = ?', [email], async (err, results) => {
             if (err) {
                 console.error(err);
                 return res.status(500).json({ error: "Database error" });
@@ -38,12 +38,13 @@ router.post("/register",validRegister, async (req, res) => {
 
                 const ownerid=ownerResult.insertId;
 
-                const {petname, petage, pettype} = req.body;
+                const {petName, petAge, petType} = req.body;
                 const petsql= "INSERT INTO pet (Owner_id, Pet_name, Pet_type, Pet_age) VALUES (?, ?, ?, ?)";
 
-                db.query(petsql,[ownerid,petname,pettype,petage], (err) => {
+                db.query(petsql,[ownerid,petName,petType,petAge], (err) => {
                     if(err) {
                         console.error("Error inserting pet", err);
+                        return res.status(500).json({ error: "Error inserting pet" });
                     }
                 });
                 res.status(201).json({message: "pet and pet owner added successfully"});

@@ -12,7 +12,10 @@ const userRegisterValidator = z.object({
 
   petName: z.string().max(50, "Pet name must be at most 50 characters").regex(/^[A-Za-z\s]+$/, "Pet name must only contain letters and spaces"),
 
-  petAge: z.number().int("Pet age must be a number."),
+  petAge: z.string()
+  .regex(/^\d+$/, "Pet age must be a number") 
+  .transform(Number) 
+  .refine(age => age > 0, "Pet age must be a positive number"),
 
   petType: z.enum(["dog", "cat", "cow","other"], "Invalid pet type"),
 
@@ -26,7 +29,7 @@ const userRegisterValidator = z.object({
 });
 
 const validRegister= (req,res,next) => {
-    validationresult =userRegisterValidator.safeParse(req.body);
+    const validationresult =userRegisterValidator.safeParse(req.body);
 
     if(!validationresult.success) {
         return res.status(400).json({error: validationresult.error.errors});

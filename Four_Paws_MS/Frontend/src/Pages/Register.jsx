@@ -4,7 +4,7 @@ import paw from "../assets/paw_vector.png";
 import "../Styles/Fonts/Fonts.css"; 
 import "../Styles/Registerpage/Register.css"; 
 import axios from "axios";
-import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function Register({ onClose }) {
   const [formData, setFormData] = useState({
@@ -19,9 +19,12 @@ function Register({ onClose }) {
     confirmPassword: "",
   });
 
+  const [showLogin, setShowLogin] =useState(false);
+  const [showRegister, setShowRegister] =useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate=useNavigate();
 
   function handleChange (e) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -48,15 +51,31 @@ function Register({ onClose }) {
       setError("Passwords do not match!");
       return;
     }
-
+    // post data to backend
     try {
-      const res= await axios.post("http://localhost/3001/api/registerform/register",formData);
+      const res= await axios.post("http://localhost:3001/api/registerform/register",formData);
       alert(res.data.message);
+      if (res.data.message === "pet and pet owner added successfully") {
+        onClose();
+        navigate('/');
+      }
+      
     } catch (error) {
-      alert("Error: "+error.response.data.error);
+      if (error.response && error.response.data) {
+        console.error("Backend error response:", error.response.data);
+        
+        if (Array.isArray(error.response.data.error)) {
+          // If the backend sends multiple validation errors as an array
+          const errorMessages = error.response.data.error.map(err => err.message).join("\n");
+          alert("Error:\n" + errorMessages);
+        } else {
+          // If it's a single error message
+          alert("Error: " + error.response.data.error);
+        }
+      } else {
+        alert("Error: Something went wrong. Please try again.");
+      }
     }
-
-    Navigate('/');
   }
 
   return (
