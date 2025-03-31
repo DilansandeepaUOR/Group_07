@@ -12,4 +12,38 @@ router.use((req,res,next) => {
     next();
 });
 
+router.post("/login", validLogin, async (req,res) => {
 
+    const {email, password}=req.body;
+
+    try {
+        const emailquery='SELECT * FROM pet_owner WHERE E_mail = ?';
+
+        db.query(emailquery, [email], async (err, result) => {
+            if (result.length === 0) {
+                return res.status(401).json({error: "email or password does not match"});
+            }
+
+            if (err) {
+                return res.status(500).json({ error: "Database error" });
+            }
+
+            const user=result[0];
+
+            const pwmatch= await bcrypt.compare(password,user.passwordassword);
+
+            if(!pwmatch) {
+                return res.status(401).json({error: "email or password does not match"});
+            }
+
+            const token = jwt.sign({ id: user.id, email: user.email }, "secret", { expiresIn: "3h" });
+            res.status(200).json({ message: "Login successful", token });
+        });
+
+    } catch (error) {
+        return res.status(500).json({error: "Internal server error"});
+    }
+
+});
+
+module.exports = router;

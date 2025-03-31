@@ -5,11 +5,11 @@ const userLoginValidator=z.object({
     password: z.string().min(8).max(30)
 });
 
-const validLogin= (res, req, next) => {
+const validLogin= (req, res, next) => {
     const validationresult=userLoginValidator.safeParse(req.body);
 
     if(!validationresult.success) {
-        return res.status(400).json({error: validationresult.error.errors});
+        return res.status(400).json({ error: validationresult.error.errors });
     }
 
     next();

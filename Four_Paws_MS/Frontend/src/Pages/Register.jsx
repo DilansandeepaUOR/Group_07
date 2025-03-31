@@ -19,8 +19,6 @@ function Register({ onClose }) {
     confirmPassword: "",
   });
 
-  const [showLogin, setShowLogin] =useState(false);
-  const [showRegister, setShowRegister] =useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
