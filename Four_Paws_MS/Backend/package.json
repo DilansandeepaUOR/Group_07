@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
     "body-parser": "^1.20.3",
     "cores": "^0.8.0",
@@ -17,8 +18,11 @@
     "cours": "^1.0.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "math-intrinsics": "^1.1.0",
     "mongoose": "^8.13.0",
-    "mysql2": "^3.14.0"
+    "mysql2": "^3.14.0",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "jest": "^29.7.0",

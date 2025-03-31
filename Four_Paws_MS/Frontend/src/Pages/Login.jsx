@@ -3,30 +3,53 @@ import { Link } from "react-router-dom";
 import { FaTimes, FaEye, FaEyeSlash, FaExclamationCircle } from "react-icons/fa";
 import paw from "../assets/paw_vector.png";
 import "../Styles/Fonts/Fonts.css";
+import axios from "axios";
 
 
 function Login({onClose }) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Don't render if not open
+  const handleLogin = async (e) => {
 
-  const handleLogin = () => {
+    e.preventDefault();
     setError("");
-    if (!username || !password) {
+    if (!email || !password) {
       setError("Please fill in both fields.");
       return;
     }
 
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      alert(`Welcome, ${username}!`);
-      onClose();
-    }, 2000); // Simulated login delay
+    try {
+      const res = await axios.post("http://localhost:3001/api/loginform/login", {email,password});
+      alert(res.data.message);
+      localStorage.setItem("token", res.data.token);
+
+      if(res.data.message === "Login successful") {
+        onClose();
+        navigate('/');
+      }
+
+      
+      
+      
+    } catch (error) {
+      if (error.response && error.response.data) {
+        console.error("Backend error response:", error.response.data);
+        
+        if (Array.isArray(error.response.data.error)) {
+          // If the backend sends multiple validation errors as an array
+          const errorMessages = error.response.data.error.map(err => err.message).join("\n");
+          alert("Error:\n" + errorMessages);
+        } else {
+          // If it's a single error message
+          alert("Error: " + error.response.data.error);
+        }
+      } else {
+        alert("Error: Something went wrong. Please try again.");
+      }
+    }
   };
 
   return (
@@ -61,9 +84,9 @@ function Login({onClose }) {
         {/* Username Input */}
         <input
           type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Your E-mail"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           className="w-full p-3 mb-3 border border-[#46dfd0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#028478] text-[#ffffff]"
         />
 
@@ -106,14 +129,9 @@ function Login({onClose }) {
           <div>
           <button
             onClick={handleLogin}
-            className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${
-              loading
-                ? "bg-gray-500 cursor-not-allowed"
-                : "bg-[#028478] hover:bg-[#5ba29c] text-white cursor-pointer"
-            }`}
-            disabled={loading}
+            className='px-4 py-2 rounded-lg transition flex items-center gap-2 bg-[#028478] hover:bg-[#5ba29c] text-white cursor-pointer'
           >
-            {loading ? "Logging in..." : "Login"}
+            Login
           </button>
           </div>
 
