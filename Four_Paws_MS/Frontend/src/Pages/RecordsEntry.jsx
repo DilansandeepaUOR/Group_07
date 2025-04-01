@@ -26,35 +26,36 @@ const PetServiceForm = () => {
     };
   
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        
-        const formData = {
-          ownerName,
-          petName,
-          date,
-          services,
-          serviceDetails,
-        };
+      e.preventDefault();
       
-        try {
-          const response = await fetch('http://localhost:5000/api/pet-service', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData),
-          });
-      
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-      
-          const data = await response.json();
-          console.log(data.message); // Handle success message
-        } catch (error) {
-          console.error('Error:', error);
-        }
+      const formData = {
+        ownerName,
+        petName,
+        date,
+        services,
+        serviceDetails,
       };
+  
+      try {
+        const response = await fetch('http://localhost:3001/record/', {  // Add trailing slash
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+  
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+  
+        const data = await response.json();
+        console.log(data.message); // Handle success message
+      } catch (error) {
+        console.error('Error:', error);
+      }
+  };
+  
   
     const handleCancel = () => {
       setOwnerName('');
