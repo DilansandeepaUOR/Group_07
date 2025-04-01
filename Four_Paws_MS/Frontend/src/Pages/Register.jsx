@@ -3,6 +3,8 @@ import { FaTimes, FaEye, FaEyeSlash, FaExclamationCircle } from "react-icons/fa"
 import paw from "../assets/paw_vector.png";
 import "../Styles/Fonts/Fonts.css"; 
 import "../Styles/Registerpage/Register.css"; 
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function Register({ onClose }) {
   const [formData, setFormData] = useState({
@@ -20,13 +22,14 @@ function Register({ onClose }) {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate=useNavigate();
 
   function handleChange (e) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  function handleRegister () {
-    setError("");
+  async function handleRegister (e) {
+    e.preventDefault();
 
     if (
       !formData.name ||
@@ -46,10 +49,32 @@ function Register({ onClose }) {
       setError("Passwords do not match!");
       return;
     }
-
-    alert(`Welcome, ${formData.name}! Your account has been created.`);
-    onClose();
-  };
+    // post data to backend
+    try {
+      const res= await axios.post("http://localhost:3001/api/registerform/register",formData);
+      alert(res.data.message);
+      if (res.data.message === "pet and pet owner added successfully") {
+        onClose();
+        navigate('/');
+      }
+      
+    } catch (error) {
+      if (error.response && error.response.data) {
+        console.error("Backend error response:", error.response.data);
+        
+        if (Array.isArray(error.response.data.error)) {
+          // If the backend sends multiple validation errors as an array
+          const errorMessages = error.response.data.error.map(err => err.message).join("\n");
+          alert("Error:\n" + errorMessages);
+        } else {
+          // If it's a single error message
+          alert("Error: " + error.response.data.error);
+        }
+      } else {
+        alert("Error: Something went wrong. Please try again.");
+      }
+    }
+  }
 
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 backdrop-blur-md z-50 overlay">
