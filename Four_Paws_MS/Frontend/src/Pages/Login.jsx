@@ -22,32 +22,28 @@ function Login({onClose }) {
     }
 
     try {
-      const res = await axios.post("http://localhost:3001/api/loginform/login", {email,password});
-      alert(res.data.message);
-      localStorage.setItem("token", res.data.token);
+      const res = await axios.post("http://localhost:3001/api/loginform/login", { email, password });
 
-      if(res.data.message === "Login successful") {
-        onClose();
-        navigate('/');
+      if (res.status !== 200 || res.data.error) {
+        throw new Error(res.data.error || "Unexpected error occurred");
       }
 
-      
-      
-      
-    } catch (error) {
-      if (error.response && error.response.data) {
-        console.error("Backend error response:", error.response.data);
-        
-        if (Array.isArray(error.response.data.error)) {
+      document.cookie = `token=${res.data.token}; Secure; HttpOnly; SameSite=Strict`; // Safer storage
+      alert("Login successful!");
+      onClose();
+      navigate('/');
+    } catch (err) {
+      if (err.response && err.response.data) {
+        console.error("Backend error response:", err.response.data);
+
+        if (Array.isArray(err.response.data.error)) {
           // If the backend sends multiple validation errors as an array
-          const errorMessages = error.response.data.error.map(err => err.message).join("\n");
+          const errorMessages = err.response.data.error.map(err => err.message).join("\n");
           alert("Error:\n" + errorMessages);
         } else {
           // If it's a single error message
-          alert("Error: " + error.response.data.error);
+          alert("Error: " + err.response.data.error);
         }
-      } else {
-        alert("Error: Something went wrong. Please try again.");
       }
     }
   };
