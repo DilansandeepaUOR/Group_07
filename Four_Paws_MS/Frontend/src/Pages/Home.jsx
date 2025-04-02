@@ -40,6 +40,7 @@ function Home() {
               When you choose 4Paws Veterinary Clinic, you ensure advanced
               veterinary care from experienced pet care providers.
 
+
             {/* profile Button */}
             <Link to="/Profile">
             <Buttons

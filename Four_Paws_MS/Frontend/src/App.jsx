@@ -1,6 +1,5 @@
 import React from 'react'
 import { Routes, Route } from 'react-router-dom'
-import Navbar from './Components/Navbar/Navbar'
 import Home from './Pages/Home'
 import Footer from './Components/Footer/Footer'
 import Aboutus from './Pages/Aboutus'
@@ -14,7 +13,6 @@ import Register from './Pages/Register'
 import Appointment from './Pages/Appointment'
 import AppointmentDetails from './Pages/ap'
 import RecordsEntry from './Pages/RecordsEntry'
- 
 
 const App = () => {
   return (

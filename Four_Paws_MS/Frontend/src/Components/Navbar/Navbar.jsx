@@ -17,6 +17,7 @@ import Regandsignbtn from "./regandsignbtn";
 import { FaBars } from "react-icons/fa";
 import Login from "../../Pages/Login";
 import Register from "../../Pages/Register";
+import Profilearea from "../Profilearea/profilearea";
 
 function Navbar() {
   const [showMenu, setShowMenu] = useState(false);
@@ -168,6 +169,7 @@ function Navbar() {
             )
           )}
         </div>
+        <Profilearea/>
       </div>
       {showLogin && <Login onClose={() => setShowLogin(false)} />}
       {showRegister && <Register onClose={() => setShowRegister(false)} />}

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import { FaTimes, FaEye, FaEyeSlash, FaExclamationCircle } from "react-icons/fa";
 import paw from "../assets/paw_vector.png";
 import "../Styles/Fonts/Fonts.css";
@@ -25,7 +24,7 @@ function Login({onClose}) {
         axios.post("http://localhost:3001/api/loginform/login", { email, password }, { withCredentials: true })
             .then(response => {
                 alert("Login successful!");
-                window.location.href = "/profile"; // Redirect to profile
+                window.location.href = "/"; // Redirect to profile
             })
             .catch(error => {
                 alert("Login failed: " + error.response.data.error);
