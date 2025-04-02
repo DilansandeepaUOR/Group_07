@@ -9,6 +9,7 @@ import s2 from "../assets/OPD_Treatments.jpg";
 import s3 from "../assets/Vet_lab.jpg";
 import s4 from "../assets/Mobile_service.jpeg";
 import Cards from "../Components/Cards/Cards.jsx";
+import Navbar from "@/Components/Navbar/Navbar";
 
 function Home() {
   const service = [
@@ -19,7 +20,9 @@ function Home() {
   ];
 
   return (
+
     <section id="home">
+      <Navbar/>
       {/* Main Home Section */}
       <div className="container mx-auto px-6 py-16 bg-gradient-to-b from-[#22292F] via-[#028478] to-[#46dfd0] text-white relative">
         <div className="flex flex-wrap items-center justify-between">
@@ -36,10 +39,8 @@ function Home() {
             <p className="text-lg text-gray-200 mt-4 w-3/4">
               When you choose 4Paws Veterinary Clinic, you ensure advanced
               veterinary care from experienced pet care providers.
-            </p>
-
-            <Link to="/Profile">Login</Link>
-            <p>
+          
+            
             {/* Appointment Button */}
             <Link to="/Appointment">
             <Buttons
@@ -47,7 +48,7 @@ function Home() {
               css="bg-[#FFD700] text-[#22292F] px-6 py-3 rounded-lg mt-6 font-bold shadow-md transition duration-300 hover:bg-[#E6C200] hover:shadow-lg Poppins cursor-pointer transform hover:scale-105"
             />
             </Link>
-          {' '}
+      
             {/* Records Entry Button */}
             <Link to="/RecordsEntry">
             <Buttons

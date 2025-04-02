@@ -1,8 +1,11 @@
 import React from 'react'
+import Navbar from '@/Components/Navbar/Navbar'
 
 function Petshop() {
   return (
-    <div>Petshop</div>
+    <div>
+      <Navbar/>
+      Petshop</div>
   )
 }
 
