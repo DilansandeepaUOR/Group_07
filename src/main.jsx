@@ -6,13 +6,16 @@ import "./index.css"
 import Sidebar, { SidebarItem, SidebarSubItem } from "./sidebar.jsx"
 import Header from "./header.jsx"
 import DashboardSection from "./components/dashboard.jsx"
-import ProductsSection from "./components/Inventory.jsx" // Import the ProductsSection
+import MedicineListSection from "./components/Inventory.jsx"
+import MedicineGroupSection from "./components/MedicineGroup.jsx"
+import ReportsSection from "./components/Reports.jsx"
+import NotificationsSection from "./components/Notifications.jsx"
 import { Receipt, BarChart3, LayoutDashboard, Bell } from "lucide-react"
 import React, { useState, useEffect } from "react"
 
 // Placeholder components for other sections
-const ReportsSection = () => <div>Reports Section</div>
-const NotificationsSection = () => <div>Notifications Section</div>
+
+
 
 const App = () => {
   const [isMobile, setIsMobile] = useState(false)
@@ -37,8 +40,9 @@ const App = () => {
       case "dashboard":
         return <DashboardSection />
       case "medicine-list":
+        return <MedicineListSection />
       case "medicine-group":
-        return <ProductsSection activeTab={activeSection} />
+        return <MedicineGroupSection />
       case "reports":
         return <ReportsSection />
       case "notifications":
@@ -64,7 +68,7 @@ const App = () => {
           icon={<Receipt size={20} />}
           text="Inventory"
           active={activeSection === "medicine-list" || activeSection === "medicine-group"}
-          onSectionChange={() => setActiveSection("medicine-list")} // Default to medicine-list when parent clicked
+          onSectionChange={() => setActiveSection("medicine-list")}
         >
           <SidebarSubItem
             text="Medicine List"
