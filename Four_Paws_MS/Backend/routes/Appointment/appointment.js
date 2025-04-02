@@ -156,6 +156,53 @@ router.post('/appointment', async (req, res) => {
   }
 });
 
+router.put('/cancel/:id', async (req, res) => {
+  const { id } = req.params;
+  
+  if (!id) {
+    return res.status(400).json({ error: 'Appointment ID is required' });
+  }
+
+  try {
+    // First, check if the appointment exists and is in a cancellable state
+    const [appointment] = await db.promise().query(
+      'SELECT * FROM appointments WHERE appointment_id = ?',
+      [id]
+    );
+
+    if (appointment.length === 0) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    if (appointment[0].status === 'Cancelled') {
+      return res.status(400).json({ error: 'Appointment is already cancelled' });
+    }
+
+    if (appointment[0].status === 'Completed') {
+      return res.status(400).json({ error: 'Cannot cancel completed appointments' });
+    }
+
+    // Update the appointment status to "Cancelled"
+    const [result] = await db.promise().query(
+      'UPDATE appointments SET status = ? WHERE appointment_id = ?',
+      ['Cancelled', id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(500).json({ error: 'Failed to cancel appointment' });
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Appointment cancelled successfully',
+      appointment_id: parseInt(id)
+    });
+  } catch (err) {
+    console.error('Database error:', err);
+    res.status(500).json({ error: 'Error cancelling appointment' });
+  }
+});
+
 // Error handling middleware
 router.use((err, req, res, next) => {
   console.error('Error:', err.stack);

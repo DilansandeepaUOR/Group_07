@@ -11,6 +11,7 @@ import { Plus, ArrowLeft, Calendar, Clock, CheckCircle, Filter } from "lucide-re
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { Badge } from "@/Components/ui/badge";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const uId = 22;
 
@@ -37,6 +38,8 @@ const AppointmentDetails = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [noAppointments, setNoAppointments] = useState(false);
   const [hasNoAppointmentsMsg, setHasNoAppointmentsMsg] = useState(false);
+  const [cancellingAppointmentId, setCancellingAppointmentId] = useState(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const convertTimeFormat = (time) => {
     if (!time) return "";
@@ -62,7 +65,7 @@ const AppointmentDetails = () => {
         const appointmentRes = await axios.get(`http://localhost:3001/appointments?id=${uId}`);
         
         // Check if response indicates no appointments found
-        if (appointmentRes.data && appointmentRes.data.msg ===false) {
+        if (appointmentRes.data && appointmentRes.data.msg === false) {
           setNoAppointments(true);
           setAppointments([]);
         } else if (appointmentRes.data && appointmentRes.data.msg === false) {
@@ -197,6 +200,9 @@ const AppointmentDetails = () => {
 
   const handleCancelAppointment = async (appointmentId) => {
     try {
+      setIsCancelling(true);
+      setCancellingAppointmentId(appointmentId);
+      
       await axios.put(`http://localhost:3001/appointments/cancel/${appointmentId}`);
       
       // Update the local state to reflect the cancellation
@@ -211,7 +217,10 @@ const AppointmentDetails = () => {
       toast.success("Appointment cancelled successfully");
     } catch (error) {
       console.error("Error cancelling appointment:", error);
-      toast.error("Failed to cancel appointment. Please try again.");
+      toast.error(error.response?.data?.error || "Failed to cancel appointment. Please try again.");
+    } finally {
+      setIsCancelling(false);
+      setCancellingAppointmentId(null);
     }
   };
 
@@ -257,7 +266,7 @@ const AppointmentDetails = () => {
   );
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
+    <div className="container mx-auto p-4 max-w-6xl">
       <Button 
         variant="outline" 
         onClick={handleBack}
@@ -334,8 +343,8 @@ const AppointmentDetails = () => {
                       <div key={appointment.appointment_id} className="p-4 hover:bg-slate-50">
                         <div className="flex justify-between items-start mb-3">
                           <div>
-                            <h3 className="font-medium">Pet #{appointment.pet_id}</h3>
-                            <p className="text-sm text-gray-500">ID: #{appointment.appointment_id}</p>
+                            <h3 className="font-medium">Appointment ID: #{appointment.appointment_id}</h3>
+                            <p className="text-sm text-gray-500">Pet Type: #{appointment.pet_id}</p>
                           </div>
                           <Badge className={getStatusColor(appointment.status)}>
                             {appointment.status}
@@ -363,14 +372,38 @@ const AppointmentDetails = () => {
                         )}
                         {appointment.status === "Scheduled" && (
                           <div className="flex justify-end">
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              onClick={() => handleCancelAppointment(appointment.appointment_id)}
-                              className="flex items-center text-red-600 border-red-200 bg-red-50 hover:bg-red-100 hover:text-red-700"
-                            >
-                              Cancel
-                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="flex items-center text-red-600 border-red-200 bg-red-50 hover:bg-red-100 hover:text-red-700"
+                                >
+                                  Cancel
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to cancel this appointment? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Go Back</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleCancelAppointment(appointment.appointment_id)}
+                                    disabled={isCancelling && cancellingAppointmentId === appointment.appointment_id}
+                                    className="bg-red-600 hover:bg-red-700 text-white"
+                                  >
+                                    {isCancelling && cancellingAppointmentId === appointment.appointment_id 
+                                      ? "Cancelling..." 
+                                      : "Yes, Cancel Appointment"
+                                    }
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         )}
                       </div>
