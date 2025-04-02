@@ -19,6 +19,10 @@ app.use('/api/registerform', registerRoutes);
 
 const loginRoutes =require('./routes/Userinformations/petownerlogin');
 app.use('/api/loginform/', loginRoutes);
+
+const pharmacy =require('./routes/Pharmacy/pharmacy');
+app.use('pharmacy', pharmacy);
+
 //Sample code
 // app.get('/', (req, res) => {
 //   db.query('SELECT * FROM owners', (err, results) => {
