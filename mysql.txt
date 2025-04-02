@@ -1,6 +1,6 @@
-CREATE DATABASE PawPaws;
-CREATE USER 'fawpaws'@'localhost' IDENTIFIED BY '1234';
-GRANT ALL PRIVILEGES ON PawPaws.* TO 'fawpaws'@'localhost';
+CREATE DATABASE FourPaws;
+CREATE USER 'fourpaws'@'localhost' IDENTIFIED BY '1234';
+GRANT ALL PRIVILEGES ON FourPaws.* TO 'fourpaws'@'localhost';
 
 
 
