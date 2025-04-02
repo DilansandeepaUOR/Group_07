@@ -25,5 +25,6 @@ Backend/node_modules/
 *.sln
 *.sw?
 *.env
+./Four_Paws_MS/Backend/.env
 
 
