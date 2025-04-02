@@ -36,10 +36,15 @@ function Home() {
             <p className="text-lg text-gray-200 mt-4 w-3/4">
               When you choose 4Paws Veterinary Clinic, you ensure advanced
               veterinary care from experienced pet care providers.
-            </p>
 
-            <Link to="/Profile">Login</Link>
-            <p>
+            {/* profile Button */}
+            <Link to="/Profile">
+            <Buttons
+              label="profile"
+              css="bg-[#FFD700] text-[#22292F] px-6 py-3 rounded-lg mt-6 font-bold shadow-md transition duration-300 hover:bg-[#E6C200] hover:shadow-lg Poppins cursor-pointer transform hover:scale-105"
+            />
+            </Link>
+            
             {/* Appointment Button */}
             <Link to="/Appointment">
             <Buttons
@@ -47,7 +52,7 @@ function Home() {
               css="bg-[#FFD700] text-[#22292F] px-6 py-3 rounded-lg mt-6 font-bold shadow-md transition duration-300 hover:bg-[#E6C200] hover:shadow-lg Poppins cursor-pointer transform hover:scale-105"
             />
             </Link>
-          {' '}
+      
             {/* Records Entry Button */}
             <Link to="/RecordsEntry">
             <Buttons

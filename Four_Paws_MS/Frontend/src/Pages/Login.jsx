@@ -6,7 +6,7 @@ import "../Styles/Fonts/Fonts.css";
 import axios from "axios";
 
 
-function Login({onClose }) {
+function Login({onClose}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -22,16 +22,18 @@ function Login({onClose }) {
     }
 
     try {
-      const res = await axios.post("http://localhost:3001/api/loginform/login", { email, password });
+      const res = await axios.post("http://localhost:3001/api/loginform/login", { email, password }, { withCredentials: true });
 
       if (res.status !== 200 || res.data.error) {
         throw new Error(res.data.error || "Unexpected error occurred");
       }
-
-      document.cookie = `token=${res.data.token}; Secure; HttpOnly; SameSite=Strict`; // Safer storage
       alert("Login successful!");
-      onClose();
-      navigate('/');
+
+    // Save user data to sessionStorage
+    sessionStorage.setItem("user", JSON.stringify(res.data.user));
+    onClose();
+    onLogin(res.data.user);
+      
     } catch (err) {
       if (err.response && err.response.data) {
         console.error("Backend error response:", err.response.data);
