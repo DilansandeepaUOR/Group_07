@@ -13,7 +13,7 @@ function Register({ onClose }) {
     phone: "",
     email: "",
     petName: "",
-    petAge: "",
+    petDob: null,
     petType: "dog",
     password: "",
     confirmPassword: "",
@@ -37,7 +37,7 @@ function Register({ onClose }) {
       !formData.phone ||
       !formData.email ||
       !formData.petName ||
-      !formData.petAge ||
+      !formData.petDob ||
       !formData.password ||
       !formData.confirmPassword
     ) {
@@ -49,6 +49,7 @@ function Register({ onClose }) {
       setError("Passwords do not match!");
       return;
     }
+
     // post data to backend
     try {
       const res= await axios.post("http://localhost:3001/api/registerform/register",formData);
@@ -117,9 +118,9 @@ function Register({ onClose }) {
         {/* Pet Details */}
         <h3 className="text-lg font-semibold text-white mb-2 mt-4">Pet Details</h3>
         <input type="text" name="petName" placeholder="Pet Name" value={formData.petName} onChange={handleChange} className="w-full p-3 mb-3 border border-[#46dfd0] rounded-lg text-white bg-transparent focus:ring-2 focus:ring-[#028478]" />
-        <input type="text" name="petAge" placeholder="Pet Age" value={formData.petAge} onChange={handleChange} className="w-full p-3 mb-3 border border-[#46dfd0] rounded-lg text-white bg-transparent focus:ring-2 focus:ring-[#028478]" />
-        
-        {/* Pet Type Dropdown */}
+        <input type="date" name="petDob" placeholder="Pet Date of Birth" value={formData.petDob} onChange={handleChange} className="w-full p-3 mb-3 border border-[#46dfd0] rounded-lg text-white bg-transparent focus:ring-2 focus:ring-[#028478]" />
+          
+          {/* Pet Type Dropdown */}
         <select name="petType" value={formData.petType} onChange={handleChange} className="w-full p-3 mb-3 border border-[#46dfd0] rounded-lg text-white bg-transparent focus:ring-2 focus:ring-[#028478]">
           <option value="dog" className="text-black">Dog</option>
           <option value="cat" className="text-black">Cat</option>

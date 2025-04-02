@@ -1,25 +1,24 @@
 import React from 'react'
 import { Routes, Route } from 'react-router-dom'
-import Navbar from './Components/Navbar/Navbar'
 import Home from './Pages/Home'
 import Footer from './Components/Footer/Footer'
 import Aboutus from './Pages/Aboutus'
 import Contactus from './Pages/Contactus'
 import Ourservices from './Pages/Ourservices'
 import Petshop from './Pages/Petshop'
-import Pharmacy from './Pages/Pharmacy'
+import Pharmacy from './Pages/pharmacy/main.jsx'
 import Profile from './Pages/Profile'
 import Login from './Pages/Login'
 import Register from './Pages/Register'
 import Appointment from './Pages/Appointment'
 import AppointmentDetails from './Pages/ap'
 import RecordsEntry from './Pages/RecordsEntry'
- 
+
 
 const App = () => {
   return (
     <>
-    <Navbar/>
+    
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/Aboutus" element={<Aboutus />} />

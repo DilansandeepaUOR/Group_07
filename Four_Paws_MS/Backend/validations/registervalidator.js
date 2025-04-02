@@ -12,10 +12,11 @@ const userRegisterValidator = z.object({
 
   petName: z.string().max(50, "Pet name must be at most 50 characters").regex(/^[A-Za-z\s]+$/, "Pet name must only contain letters and spaces"),
 
-  petAge: z.string()
-  .regex(/^\d+$/, "Pet age must be a number") 
-  .transform(Number) 
-  .refine(age => age > 0, "Pet age must be a positive number"),
+  petDob: z.string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Date of Birth must be in YYYY-MM-DD format")
+  .transform((str) => new Date(str)) 
+  .refine(date => !isNaN(date.getTime()), "Invalid date")
+  .refine(date => date <= new Date(), "Date of Birth cannot be in the future"),
 
   petType: z.enum(["dog", "cat", "cow","other"], "Invalid pet type"),
 
