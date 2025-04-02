@@ -27,7 +27,6 @@ function Navbar() {
     { name: "HOME", icon: FaHome, to: "/" },
     { name: "OUR SERVICES", icon: FaPaw, to: "/Ourservices" },
     { name: "PET SHOP", icon: FaStore, to: "/Petshop" },
-    { name: "PHARMACY", icon: FaPills, to: "/Pharmacy" },
     { name: "CONTACT US", icon: FaEnvelope, to: "/Contactus" },
     { name: "ABOUT US", icon: FaInfoCircle, to: "/Aboutus" },
   ];

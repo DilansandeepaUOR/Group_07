@@ -9,6 +9,7 @@ import s2 from "../assets/OPD_Treatments.jpg";
 import s3 from "../assets/Vet_lab.jpg";
 import s4 from "../assets/Mobile_service.jpeg";
 import Cards from "../Components/Cards/Cards.jsx";
+import Navbar from "@/Components/Navbar/Navbar";
 
 function Home() {
   const service = [
@@ -19,7 +20,9 @@ function Home() {
   ];
 
   return (
+
     <section id="home">
+      <Navbar/>
       {/* Main Home Section */}
       <div className="container mx-auto px-6 py-16 bg-gradient-to-b from-[#22292F] via-[#028478] to-[#46dfd0] text-white relative">
         <div className="flex flex-wrap items-center justify-between">

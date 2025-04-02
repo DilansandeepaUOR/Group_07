@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 function Profile() {
   const [user, setUser] = useState(null);
@@ -25,6 +26,7 @@ function Profile() {
       await axios.get("http://localhost:3001/api/auth/logout", { withCredentials: true });
       alert("Logged out!");
       setUser(null); // Reset user state after logout
+      <Link to={'/'}></Link>
     } catch (err) {
       console.error("Logout failed:", err);
     }

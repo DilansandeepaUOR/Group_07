@@ -19,7 +19,7 @@ import RecordsEntry from './Pages/RecordsEntry'
 const App = () => {
   return (
     <>
-    <Navbar/>
+    
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/Aboutus" element={<Aboutus />} />

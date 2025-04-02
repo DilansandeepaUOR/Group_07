@@ -1,8 +1,12 @@
 import React from 'react'
+import Navbar from '@/Components/Navbar/Navbar'
 
 function Aboutus() {
   return (
-    <div>Aboutus</div>
+    <div>
+      
+      <Navbar/>
+      Aboutus</div>
   )
 }
 
