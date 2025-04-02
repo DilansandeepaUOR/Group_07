@@ -4,9 +4,13 @@ const db=require('../../db');
 const bcrypt= require('bcrypt');
 const jwt = require("jsonwebtoken");
 const validLogin=require('../../validations/loginvalidator');
+const cookieParser = require('cookie-parser');
 
 router.use(express.json());
 router.use(express.urlencoded({extended: true}));
+router.use(cookieParser());
+
+const SECRET_KEY = "12345";
 
 router.use((req,res,next) => {
     console.log(`${req.method} request for '${req.url}'`);
@@ -36,9 +40,20 @@ router.post("/login", validLogin, async (req,res) => {
             if(!pwmatch) {
                 return res.status(401).json({error: "email or password does not match"});
             }
+            
 
-            const token = jwt.sign({ id: user.Owner_id, email: user.E_mail }, "secret", { expiresIn: "3h" });
-            res.status(200).json({ message: "Login successful", token });
+            const token = jwt.sign({ id: user.Owner_id, name: user.Owner_name , email: user.E_mail }, SECRET_KEY, { expiresIn: "3h" });
+
+            res.cookie("token", token, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'strict',
+                maxAge: 3* 60* 60* 1000,
+            });
+
+            res.status(200).json({ message: "Login successful", user: { name: user.Owner_name, email: user.E_mail} });
+
+            
         });
 
     } catch (error) {

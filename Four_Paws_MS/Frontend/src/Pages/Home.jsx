@@ -1,5 +1,5 @@
 import React from "react";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 import paw from "../assets/paw_vector.png";
 import mainimage from "../assets/mainsection4.png";
 import "../Styles/Fonts/Fonts.css";
@@ -9,6 +9,7 @@ import s2 from "../assets/OPD_Treatments.jpg";
 import s3 from "../assets/Vet_lab.jpg";
 import s4 from "../assets/Mobile_service.jpeg";
 import Cards from "../Components/Cards/Cards.jsx";
+import Navbar from "@/Components/Navbar/Navbar";
 
 function Home() {
   const service = [
@@ -20,68 +21,59 @@ function Home() {
 
   return (
     <section id="home">
+      <Navbar />
       {/* Main Home Section */}
       <div className="container mx-auto px-6 py-16 bg-gradient-to-b from-[#22292F] via-[#028478] to-[#46dfd0] text-white relative">
-        <div className="flex flex-wrap items-center justify-between">
+        <div className="flex flex-wrap items-center justify-center">
           {/* Text Section */}
           <div className="w-full lg:w-7/12 mb-8 lg:mb-0">
             <h1 className="text-5xl font-bold text-[#FFD700] leading-tight Fredoka1">
               Sharing <span className="text-red-500">Love</span> with
-              compassionate care for every pet’s health and
+              compassionate<br/>care for every pet’s health and
             </h1>
             <h1 className="text-4xl font-extrabold text-[#fff] mt-2 Poppins md:text-8xl">
               Happiness.
             </h1>
 
             <p className="text-lg text-gray-200 mt-4 w-3/4">
-              When you choose 4Paws Veterinary Clinic, you ensure advanced
-              veterinary care from experienced pet care providers.
+              When you choose 4Paws Veterinary Clinic, you ensure advanced<br/>
+              veterinary care from experienced pet care providers.<br/>
+              {/* Appointment Button */}
+              <Link to="/Appointment">
+                <Buttons
+                  label="Make an Appointment"
+                  css="bg-[#FFD700] text-[#22292F] px-6 py-3 rounded-lg mt-6 font-bold shadow-md transition duration-300 hover:bg-[#E6C200] hover:shadow-lg Poppins cursor-pointer transform hover:scale-105"
+                />
+              </Link>
+              {/* Records Entry Button */}
+              <Link to="/RecordsEntry">
+                <Buttons
+                  label="Record Entry"
+                  css="bg-[#FFD700] text-[#22292F] px-6 py-3 rounded-lg mt-6 font-bold shadow-md transition duration-300 hover:bg-[#E6C200] hover:shadow-lg Poppins cursor-pointer transform hover:scale-105"
+                />
+              </Link>
             </p>
-
-            <Link to="/Profile">Login</Link>
-            <p>
-            {/* Appointment Button */}
-            <Link to="/Appointment">
-            <Buttons
-              label="Make an Appointment"
-              css="bg-[#FFD700] text-[#22292F] px-6 py-3 rounded-lg mt-6 font-bold shadow-md transition duration-300 hover:bg-[#E6C200] hover:shadow-lg Poppins cursor-pointer transform hover:scale-105"
-            />
-            </Link>
-          {' '}
-            {/* Records Entry Button */}
-            <Link to="/RecordsEntry">
-            <Buttons
-              label="Record Entry"
-              css="bg-[#FFD700] text-[#22292F] px-6 py-3 rounded-lg mt-6 font-bold shadow-md transition duration-300 hover:bg-[#E6C200] hover:shadow-lg Poppins cursor-pointer transform hover:scale-105"
-              />
-            </Link>
-            </p>
-           
-
           </div>
 
-          
-
           {/* Image Section */}
-                <div className="hidden absolute top-0 right-0 justify-center items-center xl:flex">
-                <img
-                  src={mainimage}
-                  alt="Main Dog Image"
-                  className="w-96 lg:w-150 transform transition duration-300 hover:scale-105"
-                />
-                </div>
+          <div className="hidden absolute top-0 right-0 justify-center items-center xl:flex">
+            <img
+              src={mainimage}
+              alt="Main Dog Image"
+              className="w-96 lg:w-150 transform transition duration-300 hover:scale-105"
+            />
+          </div>
 
-                <div className="top-0 right-0 justify-center items-center xl:hidden">
-                <img
-                  src={mainimage}
-                  alt="Main Dog Image"
-                  className="w-96 lg:w-150 transform transition duration-300 hover:scale-105"
-                />
-                </div>
+          <div className="top-0 right-0 justify-center items-center xl:hidden">
+            <img
+              src={mainimage}
+              alt="Main Dog Image"
+              className="w-96 lg:w-150 transform transition duration-300 hover:scale-105"
+            />
+          </div>
+        </div>
 
-              </div>
-
-              {/* Subtle paw graphic */}
+        {/* Subtle paw graphic */}
         <img
           src={paw}
           alt="paw"
