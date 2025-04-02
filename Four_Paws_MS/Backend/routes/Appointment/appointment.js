@@ -46,7 +46,7 @@ router.get('/', async (req, res) => {
       return res.status(404).json({ error: 'Appointment not found' });
     }
     
-    res.json(results[0]);
+    res.json(results);
   } catch (err) {
     console.error('Database error:', err);
     res.status(500).json({ error: 'Error retrieving appointment' });
