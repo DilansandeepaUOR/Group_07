@@ -5,11 +5,10 @@ import Sidebar, { SidebarItem, SidebarSubItem } from "../sidebar"
 import { LayoutDashboard, BarChart3, DollarSign, Bell, ChevronDown } from "lucide-react"
 import Header from "../header"
 import DashboardSection from "../components/dashboard"
+import ReportsSection from "../components/Reports"
+import NotificationsSection from "../components/Notifications"
 
 // Placeholder components for other sections
-function ReportsSection() {
-  return <div>Reports Section</div>
-}
 
 function NotificationsSection() {
   return <div>Notifications Section</div>
