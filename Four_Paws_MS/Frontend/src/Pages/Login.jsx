@@ -22,16 +22,14 @@ function Login({onClose}) {
     }
 
     try {
-      const res = await axios.post("http://localhost:3001/api/loginform/login", { email, password }, { withCredentials: true });
-
-      if (res.status !== 200 || res.data.error) {
-        throw new Error(res.data.error || "Unexpected error occurred");
-      }
-      alert("Login successful!");
-
-    // Save user data to sessionStorage
-    sessionStorage.setItem("user", JSON.stringify(res.data.user));
-    onClose();
+        axios.post("http://localhost:3001/api/loginform/login", { email, password }, { withCredentials: true })
+            .then(response => {
+                alert("Login successful!");
+                window.location.href = "/profile"; // Redirect to profile
+            })
+            .catch(error => {
+                alert("Login failed: " + error.response.data.error);
+            });
       
     } catch (err) {
       if (err.response && err.response.data) {

@@ -40,8 +40,9 @@ router.post("/login", validLogin, async (req,res) => {
             if(!pwmatch) {
                 return res.status(401).json({error: "email or password does not match"});
             }
+            
 
-            const token = jwt.sign({ id: user.Owner_id, email: user.E_mail }, SECRET_KEY, { expiresIn: "3h" });
+            const token = jwt.sign({ id: user.Owner_id, name: user.Owner_name , email: user.E_mail }, SECRET_KEY, { expiresIn: "3h" });
 
             res.cookie("token", token, {
                 httpOnly: true,
@@ -50,7 +51,9 @@ router.post("/login", validLogin, async (req,res) => {
                 maxAge: 3* 60* 60* 1000,
             });
 
-            res.status(200).json({ message: "Login successful", user: { id: user.Owner_id, name: user.Owner_name, email: user.E_mail } });
+            res.status(200).json({ message: "Login successful", user: { name: user.Owner_name,} });
+
+            
         });
 
     } catch (error) {

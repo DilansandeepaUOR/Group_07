@@ -1,44 +1,34 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Navigate } from "react-router-dom";
 
 function Profile() {
   const [user, setUser] = useState(null);
-  const [redirectToLogin, setRedirectToLogin] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch user info from sessionStorage
+  // Fetch user info
   useEffect(() => {
-    const storedUser = sessionStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));  // Parse the data from sessionStorage
-    } else {
-      setRedirectToLogin(true); // Redirect to login if user is not logged in
-    }
+    axios.get("http://localhost:3001/api/auth/user", { withCredentials: true })
+      .then(response => {
+        setUser(response.data);
+      })
+      .catch(() => {
+        setUser(null); // No redirection, just set user to null
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   // Logout function
-  async function handleLogout() {
+  const handleLogout = async () => {
     try {
-      // Send logout request to the backend
-      await axios.post("http://localhost:3001/api/deauth/logout", {}, { withCredentials: true });
-      
-      // Clear sessionStorage
-      sessionStorage.removeItem("user");
-      
-      // Reset the user state
-      setUser(null);
-      
-      // Set redirect state to true to redirect to login page
-      setRedirectToLogin(true);
+      await axios.get("http://localhost:3001/api/auth/logout", { withCredentials: true });
+      alert("Logged out!");
+      setUser(null); // Reset user state after logout
     } catch (err) {
       console.error("Logout failed:", err);
     }
-  }
-
-  // If the user needs to be redirected to login, do so
-  if (redirectToLogin) {
-    return <Navigate to="/" />;
-  }
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -49,7 +39,7 @@ function Profile() {
           <li className="mb-2 text-gray-700 hover:text-blue-500 cursor-pointer">Edit Profile</li>
           <li className="mb-2 text-gray-700 hover:text-blue-500 cursor-pointer">Change Password</li>
           <li className="mb-2 text-gray-700 hover:text-blue-500 cursor-pointer">Privacy Settings</li>
-          <li className="mb-2 text-gray-700 hover:text-blue-500 cursor-pointer" onClick={handleLogout}>
+          <li className="mb-2 text-gray-700 hover:text-red-500 cursor-pointer" onClick={handleLogout}>
             Logout
           </li>
         </ul>
@@ -60,9 +50,11 @@ function Profile() {
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl mx-auto">
           <h1 className="text-2xl font-bold text-center mb-6">User Profile</h1>
 
-          {/* User Info */}
-          {user ? (
+          {loading ? (
+            <p className="text-center">Loading...</p>
+          ) : user ? (
             <>
+              {/* User Info */}
               <div className="mb-6">
                 <h2 className="text-lg font-semibold">Personal Information</h2>
                 <p className="text-gray-700"><strong>Name:</strong> {user.name}</p>
@@ -83,7 +75,7 @@ function Profile() {
               </div>
             </>
           ) : (
-            <p>Please log in</p>
+            <p className="text-center text-gray-600">You are not logged in.</p>
           )}
         </div>
       </main>
@@ -92,4 +84,3 @@ function Profile() {
 }
 
 export default Profile;
-

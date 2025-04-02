@@ -1,9 +1,12 @@
 const express = require('express');  
 const app = express();
 const port = 3001;
+const cookieParser = require("cookie-parser");
 
 const cors = require('cors');
 app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+
+app.use(cookieParser());
 
 const appointmentRoutes = require('./routes/Appointment/appointment');
 app.use('/appointments', appointmentRoutes);
@@ -18,10 +21,10 @@ const loginRoutes =require('./routes/Userinformations/petownerlogin');
 app.use('/api/loginform/', loginRoutes);
 
 const loginUserRoutes =require('./routes/Userinformations/loginuser');
-app.use('/api/auth/', loginRoutes);
+app.use('/api/auth/', loginUserRoutes);
 
 const logOutUserRoutes =require('./routes/Userinformations/logoutuser');
-app.use('/api/deauth/', loginRoutes);
+app.use('/api/auth/', logOutUserRoutes);
 
 //Sample code
 // app.get('/', (req, res) => {
