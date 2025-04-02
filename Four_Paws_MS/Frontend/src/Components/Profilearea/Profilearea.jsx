@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 function Profilearea() {
   const [user, setUser] = useState(null);
@@ -54,9 +55,9 @@ function Profilearea() {
             <span className="block text-sm text-gray-500 truncate">{user?.email || "No email"}</span>
           </div>
           <ul className="py-2">
-            <li><a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</a></li>
-            <li><a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a></li>
-            <li><a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={handleLogout}>Sign out</a></li>
+            <Link to={'/profile'}><li className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</li></Link>
+            <li className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</li>
+            <li className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={handleLogout}>Sign out </li>
           </ul>
         </div>
       )}

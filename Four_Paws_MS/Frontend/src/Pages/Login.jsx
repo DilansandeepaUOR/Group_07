@@ -1,18 +1,24 @@
 import React, { useState } from "react";
-import { FaTimes, FaEye, FaEyeSlash, FaExclamationCircle } from "react-icons/fa";
+import {
+  FaTimes,
+  FaEye,
+  FaEyeSlash,
+  FaExclamationCircle,
+} from "react-icons/fa";
 import paw from "../assets/paw_vector.png";
 import "../Styles/Fonts/Fonts.css";
 import axios from "axios";
 
-
-function Login({onClose}) {
+function Login({ onClose }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  const storeSession = (sessionData) => {
+    sessionStorage.setItem("authToken", sessionData);
+  };
   const handleLogin = async (e) => {
-
     e.preventDefault();
     setError("");
     if (!email || !password) {
@@ -21,22 +27,29 @@ function Login({onClose}) {
     }
 
     try {
-        axios.post("http://localhost:3001/api/loginform/login", { email, password }, { withCredentials: true })
-            .then(response => {
-                alert("Login successful!");
-                window.location.href = "/"; // Redirect to profile
-            })
-            .catch(error => {
-                alert("Login failed: " + error.response.data.error);
-            });
-      
+      axios
+        .post(
+          "http://localhost:3001/api/loginform/login",
+          { email, password },
+          { withCredentials: true }
+        )
+        .then((response) => {
+          storeSession(response.data.session);
+          alert("Login successful!");
+          window.location.href = "/"; // Redirect to profile
+        })
+        .catch((error) => {
+          alert("Login failed: " + error.response.data.error);
+        });
     } catch (err) {
       if (err.response && err.response.data) {
         console.error("Backend error response:", err.response.data);
 
         if (Array.isArray(err.response.data.error)) {
           // If the backend sends multiple validation errors as an array
-          const errorMessages = err.response.data.error.map(err => err.message).join("\n");
+          const errorMessages = err.response.data.error
+            .map((err) => err.message)
+            .join("\n");
           alert("Error:\n" + errorMessages);
         } else {
           // If it's a single error message
@@ -49,7 +62,6 @@ function Login({onClose}) {
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-transparent bg-opacity-50 backdrop-blur-md z-50 ">
       <div className="bg-gradient-to-b from-[#182020] to-[#394a46] items-center p-8 rounded-lg shadow-lg w-96 relative border-2 border-gray-800">
-        
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -62,11 +74,13 @@ function Login({onClose}) {
         <h2 className="text-2xl font-bold text-center text-white mb-4 Poppins">
           Log in to Your Faw Paws Account
         </h2>
-        <span><img
-                src={paw}
-                alt="paw"
-                className="absolute justify-center w-16 h-16 top-[-15px] left-[50%] translate-x-[-50%]"
-              /></span>
+        <span>
+          <img
+            src={paw}
+            alt="paw"
+            className="absolute justify-center w-16 h-16 top-[-15px] left-[50%] translate-x-[-50%]"
+          />
+        </span>
 
         {/* Error Message */}
         {error && (
@@ -121,14 +135,13 @@ function Login({onClose}) {
           </button>
 
           <div>
-          <button
-            onClick={handleLogin}
-            className='px-4 py-2 rounded-lg transition flex items-center gap-2 bg-[#028478] hover:bg-[#5ba29c] text-white cursor-pointer'
-          >
-            Login
-          </button>
+            <button
+              onClick={handleLogin}
+              className="px-4 py-2 rounded-lg transition flex items-center gap-2 bg-[#028478] hover:bg-[#5ba29c] text-white cursor-pointer"
+            >
+              Login
+            </button>
           </div>
-
         </div>
 
         {/* Divider */}
@@ -152,4 +165,3 @@ function Login({onClose}) {
 }
 
 export default Login;
-

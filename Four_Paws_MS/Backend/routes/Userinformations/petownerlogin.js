@@ -51,7 +51,7 @@ router.post("/login", validLogin, async (req,res) => {
                 maxAge: 3* 60* 60* 1000,
             });
 
-            res.status(200).json({ message: "Login successful", user: { name: user.Owner_name,} });
+            res.status(200).json({ message: "Login successful", user: { name: user.Owner_name, email: user.E_mail} });
 
             
         });
