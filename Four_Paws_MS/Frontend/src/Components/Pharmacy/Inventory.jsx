@@ -496,30 +496,11 @@ export default function ProductsSection() {
             </table>
           </div>
 
-          <div className="paginationContainer">
-            <div>
-              Showing {((currentPage - 1) * itemsPerPage) + 1} to{' '}
-              {Math.min(currentPage * itemsPerPage, medicines.length)} of{' '}
-              {medicines.length} entries
-            </div>
-            <div className="paginationButtons">
-              <button
-                className="paginationButton"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </button>
-              <button
-                className="paginationButton"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage * itemsPerPage >= medicines.length}
-              >
-                Next
-              </button>
-            </div>
-          </div>
+          
         </>
+
+
+      // css for page        
       )}
          <style jsx>{`
         .container {
