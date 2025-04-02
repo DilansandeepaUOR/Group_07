@@ -21,14 +21,11 @@
     "jsonwebtoken": "^9.0.2",
     "math-intrinsics": "^1.1.0",
     "mongoose": "^8.13.0",
-
     "mysql": "^2.18.1",
     "mysql2": "^3.14.0",
     "rout": "^1.0.1",
-    "route": "^0.2.5"
-    "mysql2": "^3.14.0",
+    "route": "^0.2.5",
     "zod": "^3.24.2"
-
   },
   "devDependencies": {
     "jest": "^29.7.0",

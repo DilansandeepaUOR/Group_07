@@ -1,19 +1,20 @@
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 
-const router = express.Router();  // Correctly use router
+const router = express.Router();
 router.use(cors());
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
 // Middleware to log requests
 router.use((req, res, next) => {
-  console.log(`${req.method} ${req.originalUrl}`);
+  if (db.state === 'disconnected') {
+    console.error('Database is disconnected!');
+    return res.status(500).json({ error: 'Database connection lost' });
+  }
   next();
 });
-
 // MySQL connection
 const db = mysql.createConnection({
   host: 'localhost',
@@ -37,30 +38,63 @@ router.get('/', (req, res) => {
 
 // Endpoint to handle form submissions
 router.post('/', (req, res) => {
-  const { ownerName, petName, date, services, serviceDetails } = req.body;
-  console.log('Received Data:', ownerName, petName, date, services, serviceDetails);
+  const { 
+    ownerName = '', 
+    petName = '', 
+    date = '', 
+    Surgery = '', 
+    Vaccination = '', 
+    Other = '' 
+  } = req.body;
 
-  if (!ownerName || !petName || !date || !services) {
-    return res.status(400).json({ error: 'Missing required fields' });
+  console.log('Received Data:', { ownerName, petName, date, Surgery, Vaccination, Other });
+
+  if (!ownerName || !petName || !date) {
+      return res.status(400).json({ error: 'Missing required fields' });
   }
 
   const query = `
-    INSERT INTO pet_services 
-    (owner_name, pet_name, date, services, service_details) 
-    VALUES (?, ?, ?, ?, ?)
+      INSERT INTO pet_services 
+      (owner_name, pet_name, date, surgery, vaccination, other) 
+      VALUES (?, ?, ?, ?, ?, ?)
   `;
 
+  const values = [
+      ownerName,
+      petName,
+      date,
+      Surgery,
+      Vaccination,
+      Other
+  ];
+
+  console.log('Executing query with values:', values); // Add this line
+
   db.query(
-    query,
-    [ownerName, petName, date, JSON.stringify(services), JSON.stringify(serviceDetails)],
-    (err, results) => {
-      if (err) {
-        console.error('Database Error:', err);
-        return res.status(500).json({ error: 'Database error' });
+      query,
+      values,
+      (err, results) => {
+          if (err) {
+              console.error('Database Error:', err);
+              console.error('Full error object:', err); // More detailed error
+              console.error('SQL:', err.sql); // Show the actual SQL query
+              console.error('Parameters:', err.parameters); // Show parameters
+              return res.status(500).json({ 
+                  error: 'Database error',
+                  details: err.message,
+                  sql: err.sql,
+                  parameters: err.parameters
+              });
+          }
+          console.log('Insert results:', results); // Log successful insertion
+          res.json({ 
+              message: 'Record saved successfully', 
+              id: results.insertId 
+          });
       }
-      res.json({ message: 'Record saved successfully', id: results.insertId });
-    }
   );
 });
 
+
 module.exports = router;
+
