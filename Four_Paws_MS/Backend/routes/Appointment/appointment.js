@@ -43,9 +43,11 @@ router.get('/', async (req, res) => {
     );
     
     if (results.length === 0) {
-      return res.status(404).json({ error: 'Appointment not found' });
+      // The frontend expects { msg: false } when no appointments are found
+      return res.json({ msg: false });
     }
     
+    // Return the results directly as an array when appointments exist
     res.json(results);
   } catch (err) {
     console.error('Database error:', err);
@@ -98,8 +100,8 @@ router.get('/reasons', async (req, res) => {
 });
 
 router.post('/appointment', async (req, res) => {
-  const { petType, time, date, reason, additional_note } = req.body;
-  console.log(petType, date, time,reason, additional_note);
+  const { petType, time, date, reason, user_id, additional_note } = req.body;
+  console.log(petType, date, time, reason, additional_note, user_id);
   
   if (!petType || !time || !date || !reason) {
     return res.status(400).json({ error: 'All fields are required' });
@@ -111,28 +113,43 @@ router.post('/appointment', async (req, res) => {
       return res.status(400).json({ error: 'Invalid time format' });
     }
 
-  if(!additional_note){
-    const [result] = await db.promise().query(
-      `INSERT INTO appointments 
-       (pet_id, appointment_time, appointment_date, reason) 
-       VALUES (?, ?, ?, ?, ?)`,
-      [petType, mysqlTime, date, reason]
-    );
-  }
-  const [result] = await db.promise().query(
-    `INSERT INTO appointments 
-     (pet_id, appointment_time, appointment_date, reason, additional_note) 
-     VALUES (?, ?, ?, ?, ?)`,
-    [petType, mysqlTime, date, additional_note, reason]
-  );
-
+    let result;
     
+    // Check if additional_note is provided
+    if (!additional_note) {
+      [result] = await db.promise().query(
+        `INSERT INTO appointments 
+         (pet_id, appointment_time, appointment_date, reason, owner_id) 
+         VALUES (?, ?, ?, ?, ?)`,
+        [petType, mysqlTime, date, reason, user_id]
+      );
+    } else {
+      [result] = await db.promise().query(
+        `INSERT INTO appointments 
+         (pet_id, appointment_time, appointment_date, reason, additional_note, owner_id) 
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [petType, mysqlTime, date, reason, additional_note, user_id]
+      );
+    }
+    
+    // Fetch the newly created appointment to return complete data
+    const [newAppointment] = await db.promise().query(
+      'SELECT * FROM appointments WHERE appointment_id = ?',
+      [result.insertId]
+    );
     
     res.json({ 
       success: true, 
       message: 'Appointment added successfully',
-      appointmentId: result.insertId 
+      appointment_id: result.insertId,
+      status: 'Scheduled',
+      petType: petType,
+      date: date,
+      time: mysqlTime,
+      reason: reason,
+      additional_note: additional_note || null
     });
+    
   } catch (err) {
     console.error('Database error:', err);
     res.status(500).json({ error: 'Error creating appointment' });

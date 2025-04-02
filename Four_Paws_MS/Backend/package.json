@@ -15,7 +15,6 @@
     "cours": "^1.0.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "math-intrinsics": "^1.1.0",
     "jsonwebtoken": "^9.0.2",
     "math-intrinsics": "^1.1.0",
     "mongoose": "^8.13.0",
