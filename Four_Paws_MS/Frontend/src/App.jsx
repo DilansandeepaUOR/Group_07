@@ -1,7 +1,6 @@
 import React from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Home from './Pages/Home'
-import Footer from './Components/Footer/Footer'
 import Aboutus from './Pages/Aboutus'
 import Contactus from './Pages/Contactus'
 import Ourservices from './Pages/Ourservices'
@@ -13,7 +12,7 @@ import Register from './Pages/Register'
 import Appointment from './Pages/Appointment'
 import AppointmentDetails from './Pages/ap'
 import RecordsEntry from './Pages/RecordsEntry'
-
+import Adlogin from './Admin/Pages/adlogin'
 
 const App = () => {
   return (
@@ -32,9 +31,16 @@ const App = () => {
         <Route path="/appointment" element={<Appointment/>}/>
         <Route path="/RecordsEntry" element={<RecordsEntry/>}/>
         <Route path="/test" element={<AppointmentDetails/>}/>
+        
+
+        {/* Admin logins  */}
+        <Route path="/Adlogin" element={<Adlogin/>}/>
+
+
+
         <Route path="*" element={<h1>404 Not Found</h1>} />
       </Routes>
-      <Footer/>
+      
       </>
       
     
