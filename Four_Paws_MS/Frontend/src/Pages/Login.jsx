@@ -32,7 +32,6 @@ function Login({onClose}) {
     // Save user data to sessionStorage
     sessionStorage.setItem("user", JSON.stringify(res.data.user));
     onClose();
-    onLogin(res.data.user);
       
     } catch (err) {
       if (err.response && err.response.data) {

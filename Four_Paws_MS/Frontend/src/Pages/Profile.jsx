@@ -12,7 +12,7 @@ function Profile() {
     if (storedUser) {
       setUser(JSON.parse(storedUser));  // Parse the data from sessionStorage
     } else {
-      setRedirectToLogin(true);  // Redirect to login if user is not logged in
+      setRedirectToLogin(true); // Redirect to login if user is not logged in
     }
   }, []);
 
@@ -37,7 +37,7 @@ function Profile() {
 
   // If the user needs to be redirected to login, do so
   if (redirectToLogin) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/" />;
   }
 
   return (
@@ -92,3 +92,4 @@ function Profile() {
 }
 
 export default Profile;
+
