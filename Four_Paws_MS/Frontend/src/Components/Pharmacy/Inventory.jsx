@@ -24,34 +24,49 @@ export default function ProductsSection() {
     stock: '',
     status: 'In Stock'
   })
-  const itemsPerPage = 5
+  const itemsPerPage = 20
 
-  // Fetch medicines from backend
+// Helper function to determine status based on stock count-------------------------------------------------------
+const getStockStatus = (stock) => {
+  const stockCount = parseInt(stock);
+  if (stockCount === 0) return "Out of Stock";
+  if (stockCount > 0 && stockCount <= 15) return "Low Stock";
+  return "In Stock";
+};
+
+  // Fetch medicines from backend---------------------------------------------------------------------------------
   useEffect(() => {
     const fetchMedicines = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
         const response = await fetch(
           `http://localhost:5000/api/medicines?search=${searchTerm}&page=${currentPage}&limit=${itemsPerPage}`
-        )
-        if (!response.ok) {
-          throw new Error('Failed to fetch medicines')
-        }
-        const data = await response.json()
-        setMedicines(data.data || data) // Handle both formats
-        setError(null)
+        );
+        if (!response.ok) throw new Error('Failed to fetch medicines');
+        
+        const data = await response.json();
+        const medicinesData = data.data || data;
+        
+        // Ensure status is calculated based on stock
+        const processedMedicines = medicinesData.map(medicine => ({
+          ...medicine,
+          status: getStockStatus(medicine.stock)
+        }));
+        
+        setMedicines(processedMedicines);// Store fetched medicines in state
+        setError(null);
       } catch (err) {
-        setError(err.message)
-        console.error("Error fetching medicines:", err)
+        setError(err.message);
+        console.error("Error fetching medicines:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
     
-    fetchMedicines()
-  }, [searchTerm, currentPage])
+    fetchMedicines();
+  }, [searchTerm, currentPage]);
 
-  // Handle delete
+  // Handle delete------------------------------------------------------------------------------------------------
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this medicine?')) {
       return
@@ -75,7 +90,7 @@ export default function ProductsSection() {
     }
   }
 
-  // Handle edit click
+  // Handle edit click--------------------------------------------------------------------------------------------
   const handleEditClick = (medicine) => {
     setEditingMedicine(medicine.id)
     setEditFormData({
@@ -112,42 +127,40 @@ export default function ProductsSection() {
     }
   }
 
-  // Handle edit form submit
+  // Handle edit form submit------------------------------------------------------------------------------------
   const handleEditSubmit = async (id) => {
-    // Final validation
+    // Final validation for stock and price can't be negative value
     if (parseFloat(editFormData.stock) < 0 || parseFloat(editFormData.price) < 0) {
       setError('Stock and price cannot be negative');
       return;
     }
     
     try {
+      const updatedData = {
+        ...editFormData,
+        price: parseFloat(editFormData.price),
+        stock: parseInt(editFormData.stock),
+        status: getStockStatus(editFormData.stock) // Auto-set status
+      };
+  
       const response = await fetch(`http://localhost:5000/api/medicines/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ...editFormData,
-          price: parseFloat(editFormData.price),
-          stock: parseInt(editFormData.stock)
-        })
-      })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData)
+      });
       
-      if (!response.ok) {
-        throw new Error('Failed to update medicine')
-      }
+      if (!response.ok) throw new Error('Failed to update medicine');
       
-      // Refresh the medicines list after update
       const updatedMedicines = medicines.map(medicine => 
-        medicine.id === id ? { ...medicine, ...editFormData } : medicine
-      )
+        medicine.id === id ? { ...medicine, ...updatedData } : medicine
+      );
       
-      setMedicines(updatedMedicines)
-      setEditingMedicine(null)
-      setError(null)
+      setMedicines(updatedMedicines);
+      setEditingMedicine(null);
+      setError(null);
     } catch (err) {
-      setError(err.message)
-      console.error("Error updating medicine:", err)
+      setError(err.message);
+      console.error("Error updating medicine:", err);
     }
   }
 
@@ -160,45 +173,36 @@ export default function ProductsSection() {
     }
     
     try {
-      const response = await fetch('http://localhost:5000/api/medicines', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ...addFormData,
-          price: parseFloat(addFormData.price),
-          stock: parseInt(addFormData.stock)
-        })
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to add medicine')
-      }
-      
-      const data = await response.json()
-      
-      // Refresh the medicines list
-      setMedicines([...medicines, {
-        id: data.id,
+      const newMedicine = {
         ...addFormData,
         price: parseFloat(addFormData.price),
-        stock: parseInt(addFormData.stock)
-      }])
+        stock: parseInt(addFormData.stock),
+        status: getStockStatus(addFormData.stock) // Auto-set status
+      };
+  
+      const response = await fetch('http://localhost:5000/api/medicines', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newMedicine)
+      });
       
-      // Reset form and hide it
+      if (!response.ok) throw new Error('Failed to add medicine');
+      
+      const data = await response.json();
+      setMedicines([...medicines, { id: data.id, ...newMedicine }]);
+      
       setAddFormData({
         name: '',
         category: '',
         price: '',
         stock: '',
-        status: 'In Stock'
-      })
-      setShowAddForm(false)
-      setError(null)
+        status: 'In Stock' // Reset to default
+      });
+      setShowAddForm(false);
+      setError(null);
     } catch (err) {
-      setError(err.message)
-      console.error("Error adding medicine:", err)
+      setError(err.message);
+      console.error("Error adding medicine:", err);
     }
   }
 
@@ -429,27 +433,28 @@ export default function ProductsSection() {
                         )}
                       </td>
                       <td>
-                        {editingMedicine === medicine.id ? (
-                          <select
-                            name="status"
-                            value={editFormData.status}
-                            onChange={(e) => handleFormChange(e, 'edit')}
-                            className="formSelect"
-                          >
-                            <option value="In Stock">In Stock</option>
-                            <option value="Low Stock">Low Stock</option>
-                            <option value="Out of Stock">Out of Stock</option>
-                          </select>
-                        ) : (
-                          <span className={`statusBadge ${
-                            medicine.status === "In Stock" ? 'inStock' :
-                            medicine.status === "Low Stock" ? 'lowStock' :
-                            'outOfStock'
-                          }`}>
-                            {medicine.status}
-                          </span>
-                        )}
-                      </td>
+                      {editingMedicine === medicine.id ? (
+                        <select
+                          name="status"
+                          value={editFormData.status}
+                          onChange={(e) => handleFormChange(e, 'edit')}
+                          className="formSelect"
+                          disabled // Disable manual selection since we auto-calculate
+                        >
+                          <option value="In Stock">In Stock</option>
+                          <option value="Low Stock">Low Stock</option>
+                          <option value="Out of Stock">Out of Stock</option>
+                        </select>
+                      ) : (
+                        <span className={`statusBadge ${
+                          medicine.status === "In Stock" ? 'inStock' :
+                          medicine.status === "Low Stock" ? 'lowStock' :
+                          'outOfStock'
+                        }`}>
+                          {getStockStatus(medicine.stock)} {/* Always show calculated status */}
+                        </span>
+                      )}
+                    </td>
                       <td>
                         {editingMedicine === medicine.id ? (
                           <div className="editFormButtons">
