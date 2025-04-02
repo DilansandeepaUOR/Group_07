@@ -7,7 +7,9 @@ import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import { Textarea } from "@/Components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
-import { Plus } from "lucide-react"
+import { Plus } from "lucide-react";
+
+const uId = 201;
 
 const AppointmentDetails = () => {
   const [appointment, setAppointment] = useState(null);
@@ -18,78 +20,107 @@ const AppointmentDetails = () => {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [timeSlots, setTimeSlots] = useState([]);
+  const [availability, setAvailability] = useState({});
+  const [reasons, setReasons] = useState([]);
+
+  const convertTimeFormat = (time) => {
+    if (!time) return "";
+    const [hour, minute] = time.split(":").map(Number);
+    const period = hour >= 12 ? "PM" : "AM";
+    const formattedHour = hour % 12 || 12;
+    return `${formattedHour}:${minute.toString().padStart(2, "0")} ${period}`;
+  };
 
   useEffect(() => {
-    axios
-      .get("http://localhost:3001/appointments?id=201")
-      .then((response) => {
-        setAppointment(response.data);
+    const fetchData = async () => {
+      try {
+        // Fetch appointment details
+        const appointmentRes = await axios.get(`http://localhost:3001/appointments?id=${uId}`);
+        setAppointment(appointmentRes.data);
+
+        // Fetch time slots
+        const slotsRes = await axios.get("http://localhost:3001/appointments/timeslots");
+        const formattedSlots = slotsRes.data.map(slot => ({
+          display: convertTimeFormat(slot.time_slot),
+          value: slot.time_slot,
+          rawTime: slot.time_slot
+        }));
+        setTimeSlots(formattedSlots);
+
+        // Initialize availability
+        const initialAvailability = {};
+        formattedSlots.forEach(slot => {
+          initialAvailability[slot.rawTime] = null;
+        });
+        setAvailability(initialAvailability);
+
+        // Fetch reasons
+        const reasonsRes = await axios.get("http://localhost:3001/appointments/reasons");
+        setReasons(reasonsRes.data);
+
         setLoading(false);
-      })
-      .catch(() => {
-        setError("Failed to fetch appointment data");
+      } catch (err) {
+        setError("Failed to fetch data");
         setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
   }, []);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:3001/appointments/timeslots")
-      .then((response) => {
-        // Format the time slots for display
-        const formattedSlots = response.data.map(slot => {
-          // Extract hours and minutes (remove seconds)
-          const [hours, minutes] = slot.time_slot.split(':');
-          // Convert to 12-hour format for display
-          const hour12 = hours % 12 || 12;
-          return {
-            display: `${hour12}:${minutes} ${slot.am_pm}`,
-            value: `${hours}:${minutes}`, // Store just the time without AM/PM
-            rawTime: slot.time_slot // Store the raw time from API
-          };
-        });
-        setTimeSlots(formattedSlots);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Failed to fetch time slots");
-        setLoading(false);
+    if (date) {
+      timeSlots.forEach(slot => {
+        checkSlotAvailability(date, slot.rawTime);
       });
-  }, []); 
-
-  useEffect(() => {
-    if (date && time) {
-      // Find the selected time slot to get the raw time value
-      const selectedSlot = timeSlots.find(slot => slot.value === time);
-      const timeToSend = selectedSlot ? selectedSlot.rawTime : time.split(' ')[0];
-      
-      console.log("Fetching appointments for:", date, timeToSend);
-      axios.get(`http://localhost:3001/appointments/checkdatetime?date=${date}&time=${timeToSend}`)
-        .then((response) => {
-          setAppointment(response.data);
-          setLoading(false);
-        })
-        .catch(() => {
-          setError("Failed to fetch appointment data");
-          setLoading(false);
-        });
     }
-  }, [date, time, timeSlots]);
+  }, [date, timeSlots]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert("Appointment Updated: " + JSON.stringify(formData));
-    setPetType("");
+  const checkSlotAvailability = async (date, time) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3001/appointments/checkdatetime?date=${date}&time=${time}`
+      );
+      setAvailability(prev => ({
+        ...prev,
+        [time]: response.data.available
+      }));
+    } catch (error) {
+      console.error("Error checking availability:", error);
+      setAvailability(prev => ({
+        ...prev,
+        [time]: false
+      }));
+    }
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleAddPet = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Appointment Updated:", formData);
-  }
+    
+    if (!availability[time]) {
+      alert("Please select an available time slot");
+      return;
+    }
+
+    try {
+      const appointmentData = {
+        petType,
+        time,
+        date,
+        reason: formData.reason,
+        status: formData.status,
+      };
+
+      await axios.post("http://localhost:3001/appointment", appointmentData);
+      alert("Appointment Updated Successfully!");
+      setPetType("");
+      setTime("");
+      setFormData({ reason: "", status: "" });
+    } catch (error) {
+      console.error("Error updating appointment:", error);
+      alert("Failed to update appointment. Please try again.");
+    }
+  };
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
@@ -105,17 +136,17 @@ const AppointmentDetails = () => {
         <TabsContent value="details">
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle>Appointment ID: {appointment.appointment_id}</CardTitle>
+              <CardTitle>Appointment ID: {appointment?.appointment_id}</CardTitle>
               <CardDescription>Details of the appointment</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                <li><strong>Pet ID:</strong> {appointment.pet_id}</li>
-                <li><strong>Reason:</strong> {appointment.reason}</li>
-                <li><strong>Status:</strong> {appointment.status}</li>
-                <li><strong>Owner ID:</strong> {appointment.owner_id}</li>
-                <li><strong>Date:</strong> {new Date(appointment.appointment_date).toLocaleDateString()}</li>
-                <li><strong>Time:</strong> {appointment.appointment_time}</li>
+                <li><strong>Pet ID:</strong> {appointment?.pet_id}</li>
+                <li><strong>Reason:</strong> {appointment?.reason}</li>
+                <li><strong>Status:</strong> {appointment?.status}</li>
+                <li><strong>Owner ID:</strong> {appointment?.owner_id}</li>
+                <li><strong>Date:</strong> {appointment?.appointment_date && new Date(appointment.appointment_date).toLocaleDateString()}</li>
+                <li><strong>Time:</strong> {appointment?.appointment_time}</li>
               </ul>
             </CardContent>
           </Card>
@@ -128,7 +159,7 @@ const AppointmentDetails = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <Label htmlFor="reason" className="text-sm">Pet name</Label>
+                <Label htmlFor="petType" className="text-sm">Pet name</Label>
                 <div className="flex items-center gap-2">
                   <Select value={petType} onValueChange={setPetType} required>
                     <SelectTrigger className="h-9">
@@ -137,19 +168,17 @@ const AppointmentDetails = () => {
                     <SelectContent>
                       <SelectItem value="dog">Dog</SelectItem>
                       <SelectItem value="cat">Cat</SelectItem>
-                      <SelectItem value="bird">Bird</SelectItem>
-                      <SelectItem value="rabbit">Rabbit</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="bird">Cow</SelectItem>
                     </SelectContent>
                   </Select>
-
                   <Button variant="outline" size="icon">
                     <Plus />
                   </Button>
                 </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="reason" className="text-sm">Date</Label>
+                    <Label htmlFor="date" className="text-sm">Date</Label>
                     <Input
                       id="date"
                       type="date"
@@ -161,23 +190,70 @@ const AppointmentDetails = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="reason" className="text-sm">Time</Label>
+                    <Label htmlFor="time" className="text-sm">Time</Label>
                     <Select value={time} onValueChange={setTime} required>
                       <SelectTrigger className="h-9">
                         <SelectValue placeholder="Select time" />
                       </SelectTrigger>
                       <SelectContent>
-                        {timeSlots.map((slot, index) => (
-                          <SelectItem key={index} value={slot.value}>
-                            {slot.display}
-                          </SelectItem>
-                        ))}
+                        {timeSlots.map((slot, index) => {
+                          const isAvailable = availability[slot.rawTime];
+                          const isDisabled = isAvailable === false;
+                          
+                          return (
+                            <SelectItem 
+                              key={index} 
+                              value={slot.value}
+                              disabled={isDisabled}
+                              className={isDisabled ? "text-red-500" : ""}
+                            >
+                              {slot.display} {isDisabled && "(Unavailable)"}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
-                <Button type="submit" variant="primary" onChange={handleAddPet}>Save Changes</Button>
+                <div>
+                  <Label htmlFor="reason" className="text-sm">Reason</Label>
+                  <Select 
+                    value={formData.status} 
+                    onValueChange={(value) => setFormData({...formData, status: value})} 
+                    required
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Select Reason" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {reasons.map((r) => (
+                        <SelectItem key={r.id} value={r.reason_name}>
+                          {r.reason_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="note" className="text-sm">Additional Note</Label>
+                  <Textarea
+                    id="note"
+                    value={formData.reason}
+                    onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                    placeholder="Enter additional notes"
+                    className="h-24"
+                  />
+                </div>
+
+                <Button 
+                  type="submit" 
+                  variant="primary" 
+                  disabled={!time || availability[time] === false}
+                >
+                  Save Changes
+                </Button>
               </form>
             </CardContent>
           </Card>

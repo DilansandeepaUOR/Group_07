@@ -1,0 +1,6 @@
+CREATE DATABASE FourPaws;
+CREATE USER 'fourpaws'@'localhost' IDENTIFIED BY '1234';
+GRANT ALL PRIVILEGES ON FourPaws.* TO 'fourpaws'@'localhost';
+
+
+

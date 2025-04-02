@@ -1,0 +1,29 @@
+{
+  "name": "group_07",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DilansandeepaUOR/Group_07.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/DilansandeepaUOR/Group_07/issues"
+  },
+"scripts": {
+  "start": "react-scripts start",
+  "dev": "react-scripts start",
+  "build": "react-scripts build",
+  "test": "react-scripts test"
+},
+
+  "homepage": "https://github.com/DilansandeepaUOR/Group_07#readme"
+}
