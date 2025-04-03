@@ -10,6 +10,7 @@ import s3 from "../assets/Vet_lab.jpg";
 import s4 from "../assets/Mobile_service.jpeg";
 import Cards from "../Components/Cards/Cards.jsx";
 import Navbar from "@/Components/Navbar/Navbar";
+import Footer from "@/Components/Footer/Footer";
 
 function Home() {
   const service = [
@@ -103,6 +104,8 @@ function Home() {
           </div>
         </div>
       </div>
+
+      <Footer/>
     </section>
   );
 }
