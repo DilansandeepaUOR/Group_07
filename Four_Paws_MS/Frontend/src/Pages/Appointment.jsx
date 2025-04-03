@@ -11,7 +11,7 @@ import { Plus, ArrowLeft, Calendar, Clock, CheckCircle, Filter } from "lucide-re
 import { useNavigate } from "react-router-dom";
 //import { toast } from "react-hot-toast";
 import { Badge } from "@/Components/ui/badge";
-//import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const AppointmentDetails = () => {
   const navigate = useNavigate();
