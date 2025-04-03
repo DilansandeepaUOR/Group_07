@@ -111,7 +111,7 @@ function Adlogin() {
         {/* Forgot Password */}
         <div className="text-right mt-2 mb-4">
           <button
-            className="text-sm text-[#182020] hover:underline underline-offset-4 hover:text-[#69cac2] cursor-pointer"
+            className="text-sm text-[#182020] hover:underline underline-offset-4 cursor-pointer"
             onClick={() => alert("Forgot Password functionality coming soon!")}
           >
             Forgot Password?

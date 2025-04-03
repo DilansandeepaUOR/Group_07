@@ -35,6 +35,9 @@ app.use('/api/auth/', loginUserRoutes);
 const logOutUserRoutes =require('./routes/Userinformations/logoutuser');
 app.use('/api/auth/', logOutUserRoutes);
 
+const petProfileRoutes =require('./routes/Userinformations/petownergetprofile');
+app.use('/api/', petProfileRoutes);
+
 const pharmacy =require('./routes/Pharmacy/pharmacy');
 app.use('pharmacy', pharmacy);
 
