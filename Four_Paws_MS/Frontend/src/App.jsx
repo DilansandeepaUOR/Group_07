@@ -13,6 +13,8 @@ import Appointment from './Pages/Appointment'
 import RecordsEntry from './Pages/RecordsEntry'
 import Adlogin from './Admin/Pages/Adlogin'
 import Addashboard from './Admin/Pages/Addashboard'
+import EditRecords from './Pages/EditRecords'
+import SearchRecords from './Pages/SearchRecords'
 
 const App = () => {
   return (
@@ -30,6 +32,9 @@ const App = () => {
         <Route path="/Profile" element={<Profile/>}/>
         <Route path="/appointment" element={<Appointment/>}/>
         <Route path="/RecordsEntry" element={<RecordsEntry/>}/>
+        <Route path="/records" element={<RecordsEntry />} />
+        <Route path="/edit/:id" element={<EditRecords />} />
+        <Route path="/search" element={<SearchRecords />} />
         
 
         {/* Admin logins  */}
