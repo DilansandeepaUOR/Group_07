@@ -6,16 +6,14 @@ const app = express();
 app.use(cors());
 app.use(express.json() );
 
-// MySQL Connection Pool
-const pool = mysql.createPool({
+// MySQL Connection 
+const db = mysql.createConnection({
   host: 'localhost',
-  user: 'root',
+  user: 'fourpaws',
   password: '1234',
-  database: 'pharmacy_dashboard',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+  database: 'fourpaws'
 });
+
 
 // Test connection
 pool.getConnection()
