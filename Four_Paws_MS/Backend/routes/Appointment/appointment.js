@@ -78,7 +78,7 @@ router.get('/checkdatetime', async (req, res) => {
 router.get('/timeslots', async (req, res) => {
   try {
     const [results] = await db.promise().query(
-      'SELECT time_slot, am_pm FROM time_slots'
+      'SELECT time_slot FROM time_slots'
     );
     res.json(results);
   } catch (err) {
@@ -119,14 +119,14 @@ router.post('/appointment', async (req, res) => {
     if (!additional_note) {
       [result] = await db.promise().query(
         `INSERT INTO appointments 
-         (pet_id, appointment_time, appointment_date, reason, owner_id) 
+         (pet_type, appointment_time, appointment_date, reason, owner_id) 
          VALUES (?, ?, ?, ?, ?)`,
         [petType, mysqlTime, date, reason, user_id]
       );
     } else {
       [result] = await db.promise().query(
         `INSERT INTO appointments 
-         (pet_id, appointment_time, appointment_date, reason, additional_note, owner_id) 
+         (pet_type, appointment_time, appointment_date, reason, additional_note, owner_id) 
          VALUES (?, ?, ?, ?, ?, ?)`,
         [petType, mysqlTime, date, reason, additional_note, user_id]
       );
