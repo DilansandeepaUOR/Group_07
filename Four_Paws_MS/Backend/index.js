@@ -43,6 +43,9 @@ app.use('/api/', petProfileRoutes);
 const adminRegRoutes =require('./routes/Admininformations/adregister');
 app.use('/api/adregform', adminRegRoutes);
 
+const adminloginRoutes =require('./routes/Admininformations/adlogin');
+app.use('/api/adloginform/', adminloginRoutes);
+
 const pharmacy =require('./routes/Pharmacy/pharmacy');
 app.use('pharmacy', pharmacy);
 
