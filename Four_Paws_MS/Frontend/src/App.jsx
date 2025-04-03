@@ -10,9 +10,8 @@ import Profile from './Pages/Profile'
 import Login from './Pages/Login'
 import Register from './Pages/Register'
 import Appointment from './Pages/Appointment'
-import AppointmentDetails from './Pages/ap'
 import RecordsEntry from './Pages/RecordsEntry'
-import Adlogin from './Admin/Pages/adlogin'
+import Adlogin from './Admin/Pages/Adlogin'
 import Addashboard from './Admin/Pages/Addashboard'
 import EditRecords from './Pages/EditRecords'
 import SearchRecords from './Pages/SearchRecords'
@@ -33,7 +32,6 @@ const App = () => {
         <Route path="/Profile" element={<Profile/>}/>
         <Route path="/appointment" element={<Appointment/>}/>
         <Route path="/RecordsEntry" element={<RecordsEntry/>}/>
-        <Route path="/test" element={<AppointmentDetails/>}/>
         <Route path="/records" element={<RecordsEntry />} />
         <Route path="/edit/:id" element={<EditRecords />} />
         <Route path="/search" element={<SearchRecords />} />

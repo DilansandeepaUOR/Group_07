@@ -13,8 +13,6 @@ import { useNavigate } from "react-router-dom";
 import { Badge } from "@/Components/ui/badge";
 //import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/Components/ui/alert-dialog";
 
-const uId = 22;
-
 const AppointmentDetails = () => {
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
@@ -40,6 +38,11 @@ const AppointmentDetails = () => {
   const [hasNoAppointmentsMsg, setHasNoAppointmentsMsg] = useState(false);
   const [cancellingAppointmentId, setCancellingAppointmentId] = useState(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  
+  // Authentication states
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const convertTimeFormat = (time) => {
     if (!time) return "";
@@ -58,56 +61,95 @@ const AppointmentDetails = () => {
     });
   };
 
+  // Check authentication first
   useEffect(() => {
-    const fetchData = async () => {
+    const checkAuth = async () => {
       try {
-        // Fetch appointment details
-        const appointmentRes = await axios.get(`http://localhost:3001/appointments?id=${uId}`);
-        
-        // Check if response indicates no appointments found
-        if (appointmentRes.data && appointmentRes.data.msg === false) {
-          setNoAppointments(true);
-          setAppointments([]);
-        } else if (appointmentRes.data && appointmentRes.data.msg === false) {
-          // Handle the specific case where msg is false
-          setHasNoAppointmentsMsg(true);
-          setNoAppointments(true);
-          setAppointments([]);
-          setActiveTab("actions");
-        } else {
-          setAppointments(appointmentRes.data);
-        }
-
-        // Fetch time slots
-        const slotsRes = await axios.get("http://localhost:3001/appointments/timeslots");
-        const formattedSlots = slotsRes.data.map(slot => ({
-          display: convertTimeFormat(slot.time_slot),
-          value: slot.time_slot,
-          rawTime: slot.time_slot
-        }));
-        setTimeSlots(formattedSlots);
-
-        // Initialize availability
-        const initialAvailability = {};
-        formattedSlots.forEach(slot => {
-          initialAvailability[slot.rawTime] = null;
+        const response = await axios.get("http://localhost:3001/api/auth/user", { 
+          withCredentials: true 
         });
-        setAvailability(initialAvailability);
-
-        // Fetch reasons
-        const reasonsRes = await axios.get("http://localhost:3001/appointments/reasons");
-        setReasons(reasonsRes.data);
-
-        setLoading(false);
+        
+        if (response.data) {
+          setUser(response.data);
+          setIsAuthenticated(true);
+          
+          // Fetch user profile after authentication
+          try {
+            const profileRes = await axios.get(`http://localhost:3001/api/profile/?id=${response.data.id}`);
+            setProfile(profileRes.data);
+          } catch (profileErr) {
+            console.error("Error fetching profile:", profileErr);
+          }
+        } else {
+          setIsAuthenticated(false);
+          setUser(null);
+        }
       } catch (err) {
-        setError("Failed to fetch data. Please try again later.");
+        console.error("Authentication check failed:", err);
+        setIsAuthenticated(false);
+        setUser(null);
+      } finally {
+        // Even if auth check fails, we'll show appropriate UI
         setLoading(false);
-        toast.error("Failed to fetch data. Please try again later.");
       }
     };
 
-    fetchData();
+    checkAuth();
   }, []);
+
+  // Only fetch appointment data if user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && user?.id) {
+      const fetchData = async () => {
+        try {
+          // Fetch appointment details
+          const appointmentRes = await axios.get(`http://localhost:3001/appointments?id=${user.id}`);
+          
+          // Check if response indicates no appointments found
+          if (appointmentRes.data && appointmentRes.data.msg === false) {
+            setNoAppointments(true);
+            setAppointments([]);
+          } else if (appointmentRes.data && appointmentRes.data.msg === false) {
+            // Handle the specific case where msg is false
+            setHasNoAppointmentsMsg(true);
+            setNoAppointments(true);
+            setAppointments([]);
+            setActiveTab("actions");
+          } else {
+            setAppointments(appointmentRes.data);
+          }
+
+          // Fetch time slots
+          const slotsRes = await axios.get("http://localhost:3001/appointments/timeslots");
+          const formattedSlots = slotsRes.data.map(slot => ({
+            display: convertTimeFormat(slot.time_slot),
+            value: slot.time_slot,
+            rawTime: slot.time_slot
+          }));
+          setTimeSlots(formattedSlots);
+
+          // Initialize availability
+          const initialAvailability = {};
+          formattedSlots.forEach(slot => {
+            initialAvailability[slot.rawTime] = null;
+          });
+          setAvailability(initialAvailability);
+
+          // Fetch reasons
+          const reasonsRes = await axios.get("http://localhost:3001/appointments/reasons");
+          setReasons(reasonsRes.data);
+
+          setLoading(false);
+        } catch (err) {
+          setError("Failed to fetch data. Please try again later.");
+          setLoading(false);
+          toast.error("Failed to fetch data. Please try again later.");
+        }
+      };
+
+      fetchData();
+    }
+  }, [isAuthenticated, user?.id]);
 
   useEffect(() => {
     if (date) {
@@ -137,6 +179,13 @@ const AppointmentDetails = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Double check authentication
+    if (!isAuthenticated || !user?.id) {
+      toast.error("Please log in to book an appointment");
+      return;
+    }
+    
     setIsSubmitting(true);
     
     if (!availability[time]) {
@@ -151,7 +200,7 @@ const AppointmentDetails = () => {
         time,
         date,
         reason: formData.reason,
-        user_id: uId,
+        user_id: user.id,
         additional_note: formData.additional_note || null,
       };
 
@@ -173,7 +222,7 @@ const AppointmentDetails = () => {
       
       // Refresh appointments after booking
       try {
-        const appointmentRes = await axios.get(`http://localhost:3001/appointments?id=${uId}`);
+        const appointmentRes = await axios.get(`http://localhost:3001/appointments?id=${user.id}`);
         if (appointmentRes.data && !appointmentRes.data.msg) {
           setAppointments(appointmentRes.data);
         }
@@ -248,16 +297,53 @@ const AppointmentDetails = () => {
 
   // If no appointments found, automatically set active tab to "actions"
   useEffect(() => {
-    if (noAppointments && !loading) {
+    if (noAppointments && !loading && isAuthenticated) {
       setActiveTab("actions");
     }
-  }, [noAppointments, loading]);
+  }, [noAppointments, loading, isAuthenticated]);
+
+  // Handle redirect to login
+  const handleRedirectToLogin = () => {
+    navigate("/login");
+  };
 
   if (loading) return (
     <div className="flex justify-center items-center h-64">
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
     </div>
   );
+  
+  // Show login required message if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="container mx-auto p-4 max-w-6xl">
+        <Button 
+          variant="outline" 
+          onClick={() => navigate(-1)}
+          className="mb-6 hover:bg-slate-100"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
+        
+        <Card className="shadow-lg">
+          <CardHeader className="bg-slate-50 border-b">
+            <CardTitle className="text-xl">Authentication Required</CardTitle>
+            <CardDescription>You need to be logged in to manage appointments</CardDescription>
+          </CardHeader>
+          <CardContent className="py-12 text-center">
+            <p className="text-gray-600 mb-6">Please log in to view and book appointments for your pets</p>
+            <Button 
+                onClick={handleRedirectToLogin}
+                className="bg-[#008879] hover:bg-[#07776b] text-white"
+              >
+                Login to Continue
+              </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   
   if (error) return (
     <div className="flex justify-center items-center h-64">
@@ -267,6 +353,7 @@ const AppointmentDetails = () => {
 
   return (
     <div className="container mx-auto p-4 max-w-6xl">
+      
       <Button 
         variant="outline" 
         onClick={handleBack}
@@ -344,7 +431,7 @@ const AppointmentDetails = () => {
                         <div className="flex justify-between items-start mb-3">
                           <div>
                             <h3 className="font-medium">Appointment ID: #{appointment.appointment_id}</h3>
-                            <p className="text-sm text-gray-500">Pet Type: #{appointment.pet_id}</p>
+                            <p className="text-sm text-gray-500">Pet Type: {appointment.pet_type}</p>
                           </div>
                           <Badge className={getStatusColor(appointment.status)}>
                             {appointment.status}
@@ -414,7 +501,7 @@ const AppointmentDetails = () => {
               <CardFooter className="bg-slate-50 border-t p-4">
                 <Button 
                   onClick={() => setActiveTab("actions")}
-                  className="flex items-center ml-auto"
+                  className="flex items-center ml-auto bg-[#008879] hover:bg-[#07776b] text-white"
                 >
                   <Plus className="h-4 w-4 mr-1" />
                   New Appointment
@@ -443,14 +530,12 @@ const AppointmentDetails = () => {
                         <SelectValue placeholder="Select Pet" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="100">Dog</SelectItem>
-                        <SelectItem value="101">Cat</SelectItem>
-                        <SelectItem value="102">Cow</SelectItem>
+                        <SelectItem value="Dog">Dog</SelectItem>
+                        <SelectItem value="Cat">Cat</SelectItem>
+                        <SelectItem value="Cow">Cow</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Button variant="outline" size="icon" type="button" className="h-10 w-10">
-                      <Plus className="h-4 w-4" />
-                    </Button>
+                    
                   </div>
                 </div>
 
@@ -529,7 +614,7 @@ const AppointmentDetails = () => {
                   type="submit" 
                   variant="default"
                   disabled={!time || availability[time] === false || isSubmitting}
-                  className="w-full h-10"
+                  className="w-full h-10 bg-[#008879] hover:bg-[#07776b] text-white"
                 >
                   {isSubmitting ? "Booking..." : "Book Appointment"}
                 </Button>

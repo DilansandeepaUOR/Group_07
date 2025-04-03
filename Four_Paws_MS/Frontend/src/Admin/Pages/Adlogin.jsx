@@ -65,7 +65,7 @@ function Adlogin() {
 
         {/* Title */}
         <h2 className="text-2xl font-bold text-center text-[#182020] mb-4 Poppins">
-          Four Paws Admin
+          Four Paws Administrative login
         </h2>
         <span>
           <img
