@@ -11,7 +11,7 @@ import Login from './Pages/Login'
 import Register from './Pages/Register'
 import Appointment from './Pages/Appointment'
 import RecordsEntry from './Pages/RecordsEntry'
-import Adlogin from './Admin/Pages/adlogin'
+import Adlogin from './Admin/Pages/Adlogin'
 import Addashboard from './Admin/Pages/Addashboard'
 
 const App = () => {
