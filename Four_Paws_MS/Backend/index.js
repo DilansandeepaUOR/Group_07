@@ -38,6 +38,11 @@ app.use('/api/auth/', logOutUserRoutes);
 const petProfileRoutes =require('./routes/Userinformations/petownergetprofile');
 app.use('/api/', petProfileRoutes);
 
+
+//admin routes
+const adminRegRoutes =require('./routes/Admininformations/adregister');
+app.use('/api/adregform', adminRegRoutes);
+
 const pharmacy =require('./routes/Pharmacy/pharmacy');
 app.use('pharmacy', pharmacy);
 
