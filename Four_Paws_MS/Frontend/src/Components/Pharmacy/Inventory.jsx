@@ -26,7 +26,7 @@ export default function ProductsSection() {
     stock: '',
     status: 'In Stock'
   })
-  const itemsPerPage = 5
+  const itemsPerPage = 4
 
   const getStockStatus = (stock) => {
     const stockCount = parseInt(stock);
@@ -36,11 +36,23 @@ export default function ProductsSection() {
   };
 
   // Pagination handlers
-  const handleFirstPage = () => setCurrentPage(1)
-  const handleLastPage = () => setCurrentPage(totalPages)
-  const handlePrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1))
-  const handleNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages))
-  const handlePageChange = (page) => setCurrentPage(Math.max(1, Math.min(page, totalPages)))
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
+  const goToPage = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
 
   // Fetch medicines from backend
   useEffect(() => {
@@ -74,7 +86,7 @@ export default function ProductsSection() {
     };
     
     fetchMedicines();
-  }, [searchTerm, currentPage]);
+  }, [searchTerm, currentPage, itemsPerPage]);
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this medicine?')) {
@@ -106,7 +118,7 @@ export default function ProductsSection() {
     setEditFormData({
       name: medicine.name,
       category: medicine.category,
-      price: medicine.price.toString().replace('$', ''),
+      price: medicine.price.toString().replace('Rs ', ''),
       stock: medicine.stock.toString(),
       status: getStockStatus(medicine.stock)
     })
@@ -235,25 +247,6 @@ export default function ProductsSection() {
     })
   }
 
-  // Fixed pagination handlers
-  const goToNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(prev => prev + 1);
-    }
-  };
-
-  const goToPrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(prev => prev - 1);
-    }
-  };
-
-  const goToPage = (pageNumber) => {
-    if (pageNumber >= 1 && pageNumber <= totalPages) {
-      setCurrentPage(pageNumber);
-    }
-  };
-
   return (
     <div className="container">
       <h1 className="title">List Of Medicine</h1>
@@ -305,7 +298,7 @@ export default function ProductsSection() {
             />
           </div>
           <div className="formGroup">
-            <label className="formLabel">Price:</label>
+            <label className="formLabel">Price (Rs):</label>
             <input
               type="number"
               name="price"
@@ -439,7 +432,7 @@ export default function ProductsSection() {
                             }}
                           />
                         ) : (
-                          `$${medicine.price}`
+                          `Rs ${medicine.price}`
                         )}
                       </td>
                       <td>
