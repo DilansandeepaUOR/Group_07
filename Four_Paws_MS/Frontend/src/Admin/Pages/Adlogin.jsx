@@ -28,14 +28,14 @@ function Adlogin() {
     try {
       axios
         .post(
-          "http://localhost:3001/api/loginform/login",
+          "http://localhost:3001/api/adloginform/adlogin",
           { email, password },
           { withCredentials: true }
         )
         .then((response) => {
           storeSession(response.data.session);
           alert("Login successful!");
-          window.location.href = "/"; // Redirect to profile
+          window.location.href = "/Addashboard"; // Redirect to admin login
         })
         .catch((error) => {
           alert("Login failed: " + error.response.data.error);
