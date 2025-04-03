@@ -7,6 +7,7 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 import axios from "axios";
+import dp from "../assets/paw_vector.png"
 
 function Profile() {
   const [user, setUser] = useState(null);
@@ -82,7 +83,7 @@ function Profile() {
           <h1 className="text-3xl font-bold text-center mb-6">Profile Information</h1>
 
           <div className="mb-6">
-            <h2 className="text-lg font-semibold">Your Information</h2>
+            <h2 className="text-lg font-semibold">Your Information</h2><br />
             <p className="text-gray-300"><strong>Name:</strong> {profile?.Owner_name || "N/A"}</p>
             <p className="text-gray-300"><strong>Email:</strong> {profile?.E_mail || "N/A"}</p>
             <p className="text-gray-300"><strong>Phone Number:</strong> {profile?.Phone_number || "N/A"}</p>
@@ -91,23 +92,21 @@ function Profile() {
 
           <div>
             <h2 className="text-lg font-semibold">Pet Information</h2>
-            {profile?.pet ? (
+      
               <div className="flex items-center gap-4 mt-4">
                 <img
-                  src={profile.pet.profilePic}
+                  src={dp || "N/A"}
                   alt="Pet"
                   className="w-24 h-24 rounded-full border border-gray-400"
                 />
                 <div>
-                  <p className="text-gray-300"><strong>Pet Name:</strong> {profile.pet.name}</p>
-                  <p className="text-gray-300"><strong>Age:</strong> {profile.pet.age}</p>
-                  <p className="text-gray-300"><strong>Type:</strong> {profile.pet.type}</p>
-                  <p className="text-gray-300"><strong>Medical Records:</strong></p>
+                  <p className="text-gray-300"><strong>Pet Name:</strong> {profile?.Pet_name || " N/A"}</p>
+                  <p className="text-gray-300"><strong>Type:</strong> {profile?.Pet_type || " N/A"}</p>
+                  <p className="text-gray-300"><strong>Date of Birth:</strong> {profile?.Pet_dob ? new Date(profile.Pet_dob).toLocaleDateString() : " N/A"}</p>
+                  <p className="text-gray-300"><strong>Medical Records:</strong>{profile?.medicals || " No medical recoards to show"}</p>
                 </div>
               </div>
-            ) : (
-              <p className="text-gray-300">No pet information available.</p>
-            )}
+            
           </div>
         </div>
       </main>
