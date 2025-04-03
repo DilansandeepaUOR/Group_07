@@ -44,15 +44,15 @@ function Profilearea() {
           className="w-10 h-10 rounded-full border border-gray-300"
         />
         {/* User Name */}
-        <span className="text-sm font-medium">{user?.name || "Guest"}</span>
+        <span className="text-sm font-medium">{user?.name}</span>
       </button>
 
       {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg">
           <div className="px-4 py-3">
-            <span className="block text-sm font-semibold text-gray-900">{user?.name || "Guest"}</span>
-            <span className="block text-sm text-gray-500 truncate">{user?.email || "No email"}</span>
+            <span className="block text-sm font-semibold text-gray-900">{user?.name}</span>
+            <span className="block text-sm text-gray-500 truncate">{user?.email}</span>
           </div>
           <ul className="py-2">
             <Link to={'/profile'}><li className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</li></Link>
