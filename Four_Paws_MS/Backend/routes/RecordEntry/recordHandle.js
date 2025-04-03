@@ -16,20 +16,20 @@ router.use((req, res, next) => {
   next();
 });
 // MySQL connection
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'fourpaws',
-  password: '1234',
-  database: 'fourpaws'
-});
+// const db = mysql.createConnection({
+//   host: 'localhost',
+//   user: 'fourpaws',
+//   password: '1234',
+//   database: 'fourpaws'
+// });
 
-db.connect(err => {
-  if (err) {
-    console.error('Database connection failed:', err.stack);
-    return;
-  }
-  console.log('Connected to database.');
-});
+// db.connect(err => {
+//   if (err) {
+//     console.error('Database connection failed:', err.stack);
+//     return;
+//   }
+//   console.log('Connected to database.');
+// });
 
 // Test route to check server running
 router.get('/', (req, res) => {
