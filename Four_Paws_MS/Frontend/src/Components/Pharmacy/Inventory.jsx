@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react"
 
 export default function ProductsSection() {
+  const API_BASE_URL = "http://localhost:3001/pharmacy/api/medicines";
   const [searchTerm, setSearchTerm] = useState("")
   const [medicines, setMedicines] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
   const [editingMedicine, setEditingMedicine] = useState(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [addFormData, setAddFormData] = useState({
@@ -24,36 +26,44 @@ export default function ProductsSection() {
     stock: '',
     status: 'In Stock'
   })
-  const itemsPerPage = 20
+  const itemsPerPage = 5
 
-// Helper function to determine status based on stock count-------------------------------------------------------
-const getStockStatus = (stock) => {
-  const stockCount = parseInt(stock);
-  if (stockCount === 0) return "Out of Stock";
-  if (stockCount > 0 && stockCount <= 15) return "Low Stock";
-  return "In Stock";
-};
+  const getStockStatus = (stock) => {
+    const stockCount = parseInt(stock);
+    if (stockCount === 0) return "Out of Stock";
+    if (stockCount > 0 && stockCount <= 15) return "Low Stock";
+    return "In Stock";
+  };
 
-  // Fetch medicines from backend---------------------------------------------------------------------------------
+  // Pagination handlers
+  const handleFirstPage = () => setCurrentPage(1)
+  const handleLastPage = () => setCurrentPage(totalPages)
+  const handlePrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1))
+  const handleNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages))
+  const handlePageChange = (page) => setCurrentPage(Math.max(1, Math.min(page, totalPages)))
+
+  // Fetch medicines from backend
   useEffect(() => {
     const fetchMedicines = async () => {
       try {
         setLoading(true);
         const response = await fetch(
-          `http://localhost:5000/api/medicines?search=${searchTerm}&page=${currentPage}&limit=${itemsPerPage}`
+          `${API_BASE_URL}?search=${searchTerm}&page=${currentPage}&limit=${itemsPerPage}`
         );
         if (!response.ok) throw new Error('Failed to fetch medicines');
         
         const data = await response.json();
         const medicinesData = data.data || data;
+        const totalCount = data.totalCount || medicinesData.length;
         
-        // Ensure status is calculated based on stock
+        setTotalPages(Math.ceil(totalCount / itemsPerPage));
+        
         const processedMedicines = medicinesData.map(medicine => ({
           ...medicine,
           status: getStockStatus(medicine.stock)
         }));
         
-        setMedicines(processedMedicines);// Store fetched medicines in state
+        setMedicines(processedMedicines);
         setError(null);
       } catch (err) {
         setError(err.message);
@@ -66,14 +76,14 @@ const getStockStatus = (stock) => {
     fetchMedicines();
   }, [searchTerm, currentPage]);
 
-  // Handle delete------------------------------------------------------------------------------------------------
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this medicine?')) {
       return
     }
     
     try {
-      const response = await fetch(`http://localhost:5000/api/medicines/${id}`, {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/${id}`, {
         method: 'DELETE'
       })
       
@@ -81,16 +91,16 @@ const getStockStatus = (stock) => {
         throw new Error('Failed to delete medicine')
       }
       
-      // Refresh the medicines list after deletion
       setMedicines(medicines.filter(medicine => medicine.id !== id))
       setError(null)
     } catch (err) {
       setError(err.message)
       console.error("Error deleting medicine:", err)
+    } finally {
+      setLoading(false);
     }
   }
 
-  // Handle edit click--------------------------------------------------------------------------------------------
   const handleEditClick = (medicine) => {
     setEditingMedicine(medicine.id)
     setEditFormData({
@@ -98,18 +108,15 @@ const getStockStatus = (stock) => {
       category: medicine.category,
       price: medicine.price.toString().replace('$', ''),
       stock: medicine.stock.toString(),
-      status: medicine.status
+      status: getStockStatus(medicine.stock)
     })
   }
 
-  // Handle form changes (for both add and edit)
   const handleFormChange = (e, formType) => {
     const { name, value } = e.target
     
-    // Special handling for stock and price fields
     let processedValue = value
     if (name === 'stock' || name === 'price') {
-      // Prevent negative numbers
       processedValue = Math.max(0, parseFloat(value) || 0).toString()
       if (isNaN(processedValue)) processedValue = '0'
     }
@@ -127,23 +134,22 @@ const getStockStatus = (stock) => {
     }
   }
 
-  // Handle edit form submit------------------------------------------------------------------------------------
   const handleEditSubmit = async (id) => {
-    // Final validation for stock and price can't be negative value
     if (parseFloat(editFormData.stock) < 0 || parseFloat(editFormData.price) < 0) {
       setError('Stock and price cannot be negative');
       return;
     }
     
     try {
+      setLoading(true);
       const updatedData = {
         ...editFormData,
         price: parseFloat(editFormData.price),
         stock: parseInt(editFormData.stock),
-        status: getStockStatus(editFormData.stock) // Auto-set status
+        status: getStockStatus(editFormData.stock)
       };
   
-      const response = await fetch(`http://localhost:5000/api/medicines/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedData)
@@ -161,26 +167,32 @@ const getStockStatus = (stock) => {
     } catch (err) {
       setError(err.message);
       console.error("Error updating medicine:", err);
+    } finally {
+      setLoading(false);
     }
   }
 
-  // Handle add form submit
   const handleAddSubmit = async () => {
-    // Final validation
+    if (!addFormData.name || !addFormData.category) {
+      setError('Name and category are required');
+      return;
+    }
+    
     if (parseFloat(addFormData.stock) < 0 || parseFloat(addFormData.price) < 0) {
       setError('Stock and price cannot be negative');
       return;
     }
     
     try {
+      setLoading(true);
       const newMedicine = {
         ...addFormData,
         price: parseFloat(addFormData.price),
         stock: parseInt(addFormData.stock),
-        status: getStockStatus(addFormData.stock) // Auto-set status
+        status: getStockStatus(addFormData.stock)
       };
   
-      const response = await fetch('http://localhost:5000/api/medicines', {
+      const response = await fetch(API_BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newMedicine)
@@ -196,22 +208,22 @@ const getStockStatus = (stock) => {
         category: '',
         price: '',
         stock: '',
-        status: 'In Stock' // Reset to default
+        status: 'In Stock'
       });
       setShowAddForm(false);
       setError(null);
     } catch (err) {
       setError(err.message);
       console.error("Error adding medicine:", err);
+    } finally {
+      setLoading(false);
     }
   }
 
-  // Cancel edit
   const handleCancelEdit = () => {
     setEditingMedicine(null)
   }
 
-  // Cancel add
   const handleCancelAdd = () => {
     setShowAddForm(false)
     setAddFormData({
@@ -223,16 +235,24 @@ const getStockStatus = (stock) => {
     })
   }
 
-  // Calculate pagination
-  const totalPages = Math.ceil(medicines.length / itemsPerPage)
-  const paginatedMedicines = medicines.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  )
+  // Fixed pagination handlers
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
 
-  const handlePageChange = (newPage) => {
-    setCurrentPage(newPage)
-  }
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
+  const goToPage = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
 
   return (
     <div className="container">
@@ -270,6 +290,7 @@ const getStockStatus = (stock) => {
               className="formInput"
               value={addFormData.name}
               onChange={(e) => handleFormChange(e, 'add')}
+              required
             />
           </div>
           <div className="formGroup">
@@ -280,6 +301,7 @@ const getStockStatus = (stock) => {
               className="formInput"
               value={addFormData.category}
               onChange={(e) => handleFormChange(e, 'add')}
+              required
             />
           </div>
           <div className="formGroup">
@@ -292,6 +314,7 @@ const getStockStatus = (stock) => {
               onChange={(e) => handleFormChange(e, 'add')}
               step="0.01"
               min="0"
+              required
               onKeyDown={(e) => {
                 if (e.key === '-' || e.key === 'e' || e.key === 'E') {
                   e.preventDefault()
@@ -308,6 +331,7 @@ const getStockStatus = (stock) => {
               value={addFormData.stock}
               onChange={(e) => handleFormChange(e, 'add')}
               min="0"
+              required
               onKeyDown={(e) => {
                 if (e.key === '-' || e.key === 'e' || e.key === 'E') {
                   e.preventDefault()
@@ -332,12 +356,14 @@ const getStockStatus = (stock) => {
             <button 
               className="primaryButton"
               onClick={handleAddSubmit}
+              disabled={loading}
             >
-              Save
+              {loading ? 'Saving...' : 'Save'}
             </button>
             <button 
               className="actionButton deleteButton"
               onClick={handleCancelAdd}
+              disabled={loading}
             >
               Cancel
             </button>
@@ -363,8 +389,8 @@ const getStockStatus = (stock) => {
                 </tr>
               </thead>
               <tbody>
-                {paginatedMedicines.length > 0 ? (
-                  paginatedMedicines.map((medicine) => (
+                {medicines.length > 0 ? (
+                  medicines.map((medicine) => (
                     <tr key={medicine.id}>
                       <td>{medicine.id}</td>
                       <td>
@@ -375,6 +401,7 @@ const getStockStatus = (stock) => {
                             value={editFormData.name}
                             onChange={(e) => handleFormChange(e, 'edit')}
                             className="formInput"
+                            required
                           />
                         ) : (
                           medicine.name
@@ -388,6 +415,7 @@ const getStockStatus = (stock) => {
                             value={editFormData.category}
                             onChange={(e) => handleFormChange(e, 'edit')}
                             className="formInput"
+                            required
                           />
                         ) : (
                           medicine.category
@@ -403,6 +431,7 @@ const getStockStatus = (stock) => {
                             step="0.01"
                             className="formInput"
                             min="0"
+                            required
                             onKeyDown={(e) => {
                               if (e.key === '-' || e.key === 'e' || e.key === 'E') {
                                 e.preventDefault()
@@ -422,6 +451,7 @@ const getStockStatus = (stock) => {
                             onChange={(e) => handleFormChange(e, 'edit')}
                             className="formInput"
                             min="0"
+                            required
                             onKeyDown={(e) => {
                               if (e.key === '-' || e.key === 'e' || e.key === 'E') {
                                 e.preventDefault()
@@ -433,40 +463,41 @@ const getStockStatus = (stock) => {
                         )}
                       </td>
                       <td>
-                      {editingMedicine === medicine.id ? (
-                        <select
-                          name="status"
-                          value={editFormData.status}
-                          onChange={(e) => handleFormChange(e, 'edit')}
-                          className="formSelect"
-                          disabled // Disable manual selection since we auto-calculate
-                        >
-                          <option value="In Stock">In Stock</option>
-                          <option value="Low Stock">Low Stock</option>
-                          <option value="Out of Stock">Out of Stock</option>
-                        </select>
-                      ) : (
-                        <span className={`statusBadge ${
-                          medicine.status === "In Stock" ? 'inStock' :
-                          medicine.status === "Low Stock" ? 'lowStock' :
-                          'outOfStock'
-                        }`}>
-                          {getStockStatus(medicine.stock)} {/* Always show calculated status */}
-                        </span>
-                      )}
-                    </td>
+                        {editingMedicine === medicine.id ? (
+                          <select
+                            name="status"
+                            value={editFormData.status}
+                            onChange={(e) => handleFormChange(e, 'edit')}
+                            className="formSelect"
+                          >
+                            <option value="In Stock">In Stock</option>
+                            <option value="Low Stock">Low Stock</option>
+                            <option value="Out of Stock">Out of Stock</option>
+                          </select>
+                        ) : (
+                          <span className={`statusBadge ${
+                            medicine.status === "In Stock" ? 'inStock' :
+                            medicine.status === "Low Stock" ? 'lowStock' :
+                            'outOfStock'
+                          }`}>
+                            {medicine.status}
+                          </span>
+                        )}
+                      </td>
                       <td>
                         {editingMedicine === medicine.id ? (
                           <div className="editFormButtons">
                             <button 
                               className="actionButton editButton"
                               onClick={() => handleEditSubmit(medicine.id)}
+                              disabled={loading}
                             >
-                              Save
+                              {loading ? 'Saving...' : 'Save'}
                             </button>
                             <button 
                               className="actionButton deleteButton"
                               onClick={handleCancelEdit}
+                              disabled={loading}
                             >
                               Cancel
                             </button>
@@ -476,12 +507,14 @@ const getStockStatus = (stock) => {
                             <button 
                               className="actionButton editButton"
                               onClick={() => handleEditClick(medicine)}
+                              disabled={loading}
                             >
                               Edit
                             </button>
                             <button 
                               className="actionButton deleteButton"
                               onClick={() => handleDelete(medicine.id)}
+                              disabled={loading}
                             >
                               Delete
                             </button>
@@ -501,13 +534,41 @@ const getStockStatus = (stock) => {
             </table>
           </div>
 
-          
+          {/* Pagination controls */}
+          <div className="paginationControls">
+            <button
+              className={`paginationButton ${currentPage === 1 ? 'disabled' : ''}`}
+              onClick={goToPrevPage}
+              disabled={currentPage === 1 || loading}
+            >
+              Previous
+            </button>
+            
+            <div className="pageNumbers">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  className={`pageNumber ${currentPage === page ? 'active' : ''}`}
+                  onClick={() => goToPage(page)}
+                  disabled={loading}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+            
+            <button
+              className={`paginationButton ${currentPage === totalPages ? 'disabled' : ''}`}
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages || loading}
+            >
+              Next
+            </button>
+          </div>
         </>
-
-
-      // css for page        
       )}
-         <style jsx>{`
+
+      <style jsx>{`
         .container {
           padding: 1.5rem;
           background-color: #f9fafb;
@@ -546,12 +607,6 @@ const getStockStatus = (stock) => {
         
         .primaryButton:hover {
           background-color: #4338ca;
-        }
-        
-        .primaryButton:disabled {
-          background-color: #c7d2fe;
-          cursor: not-allowed;
-          opacity: 0.7;
         }
         
         .tableWrapper {
@@ -622,38 +677,6 @@ const getStockStatus = (stock) => {
           color: #b91c1c;
         }
         
-        .paginationContainer {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-top: 1.25rem;
-          color: #3b79cf;
-        }
-        
-        .paginationButtons {
-          display: flex;
-          gap: 0.5rem;
-        }
-
-        .paginationButton {
-          background-color: #4f46e5;
-          color: white;
-          padding: 8px 16px;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-        
-        .paginationButton:hover {
-          background-color: #4338ca;
-        }
-        
-        .paginationButton:disabled {
-          background-color: #c7d2fe;
-          cursor: not-allowed;
-        }
-        
         .loading {
           text-align: center;
           padding: 2rem;
@@ -707,9 +730,66 @@ const getStockStatus = (stock) => {
           gap: 0.5rem;
           margin-top: 1rem;
         }
-      `}</style>
 
+        .paginationControls {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-top: 1.5rem;
+          padding: 1rem;
+          background-color: white;
+          border-radius: 0.5rem;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          gap: 1rem;
+        }
+        
+        .paginationButton {
+          background-color: #4f46e5;
+          color: white;
+          padding: 0.5rem 1rem;
+          border: none;
+          border-radius: 0.375rem;
+          font-size: 0.875rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          min-width: 100px;
+        }
+        
+        .paginationButton:hover:not(.disabled) {
+          background-color: #4338ca;
+        }
+        
+        .paginationButton.disabled {
+          background-color: #e2e8f0;
+          color: #94a3b8;
+          cursor: not-allowed;
+        }
+        
+        .pageNumbers {
+          display: flex;
+          gap: 0.5rem;
+        }
+        
+        .pageNumber {
+          padding: 0.5rem 0.75rem;
+          border: 1px solid #e2e8f0;
+          border-radius: 0.375rem;
+          background-color: white;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        
+        .pageNumber:hover {
+          background-color: #f1f5f9;
+        }
+        
+        .pageNumber.active {
+          background-color: #4f46e5;
+          color: white;
+          border-color: #4f46e5;
+        }
+      `}</style>
     </div>
-    
   )
 }

@@ -21,7 +21,7 @@ const loginRoutes =require('./routes/Userinformations/petownerlogin');
 app.use('/api/loginform/', loginRoutes);
 
 const pharmacy =require('./routes/Pharmacy/pharmacy');
-app.use('pharmacy', pharmacy);
+app.use('/pharmacy', pharmacy);
 
 //Sample code
 // app.get('/', (req, res) => {
