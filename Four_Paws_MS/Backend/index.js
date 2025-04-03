@@ -18,8 +18,8 @@ app.use('/appointments', appointmentRoutes);
 
 //user authentications
 
-const recordEntryRoutes = require('./routes/RecordEntry/recordHandle');  // Import router correctly
-app.use('/record', recordEntryRoutes);  // Correctly register the endpoint
+const recordEntryRoutes = require('./routes/RecordEntry/recordHandle');
+app.use('/record', recordEntryRoutes);
 
 
 const registerRoutes =require('./routes/Userinformations/petownerregister');

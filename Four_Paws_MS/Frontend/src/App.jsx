@@ -14,6 +14,8 @@ import AppointmentDetails from './Pages/ap'
 import RecordsEntry from './Pages/RecordsEntry'
 import Adlogin from './Admin/Pages/adlogin'
 import Addashboard from './Admin/Pages/Addashboard'
+import EditRecords from './Pages/EditRecords'
+import SearchRecords from './Pages/SearchRecords'
 
 const App = () => {
   return (
@@ -32,6 +34,9 @@ const App = () => {
         <Route path="/appointment" element={<Appointment/>}/>
         <Route path="/RecordsEntry" element={<RecordsEntry/>}/>
         <Route path="/test" element={<AppointmentDetails/>}/>
+        <Route path="/records" element={<RecordsEntry />} />
+        <Route path="/edit/:id" element={<EditRecords />} />
+        <Route path="/search" element={<SearchRecords />} />
         
 
         {/* Admin logins  */}

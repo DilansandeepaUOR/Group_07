@@ -2,6 +2,7 @@ const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 
+
 const router = express.Router();
 router.use(cors());
 router.use(express.json());
@@ -32,8 +33,85 @@ db.connect(err => {
 });
 
 // Test route to check server running
+// router.get('/', (req, res) => {
+//   res.send('Welcome to the Pet Services API!');
+// });
+// Endpoint to fetch all records from pet_services table
 router.get('/', (req, res) => {
-  res.send('Welcome to the Pet Services API!');
+  const query = 'SELECT * FROM pet_services';
+  
+  db.query(query, (err, results) => {
+      if (err) {
+          console.error('Database Error:', err);
+          return res.status(500).json({ error: 'Database error', details: err.message });
+      }
+      res.json(results); // Send records as JSON response
+  });
+});
+
+
+// Add these new endpoints to your Express router:
+
+// Search records by owner name
+// In your recordHandle.js
+// Add this route before module.exports
+router.get('/search', (req, res) => {
+  const owner = req.query.owner;
+  if (!owner) {
+    return res.status(400).json({ error: 'Owner name required' });
+  }
+
+  const query = 'SELECT * FROM pet_services WHERE owner_name LIKE ?';
+  db.query(query, [`%${owner}%`], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(results);
+  });
+});
+
+// Get single record
+router.get('/:id', (req, res) => {
+  const query = 'SELECT * FROM pet_services WHERE id = ?';
+  db.query(query, [req.params.id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length === 0) return res.status(404).json({ error: 'Record not found' });
+    res.json(results[0]);
+  });
+});
+// Update record
+router.put('/:id', (req, res) => {
+  const { owner_name, pet_name, date, surgery, vaccination, other } = req.body;
+  const query = `
+    UPDATE pet_services 
+    SET owner_name = ?, pet_name = ?, date = ?, 
+        surgery = ?, vaccination = ?, other = ?
+    WHERE id = ?
+  `;
+  db.query(query, 
+    [owner_name, pet_name, date, surgery, vaccination, other, req.params.id], 
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ message: 'Record updated successfully' });
+    }
+  );
+});
+
+// In your backend routes file (e.g., recordRoutes.js)
+router.delete('/:id', async (req, res) => {
+
+  const query = 'DELETE FROM pet_services WHERE id = ?';
+  db.query(query, [req.params.id], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Record not found' });
+    }
+    res.status(204).send(); // Successful deletion (no content)
+  });
 });
 
 // Endpoint to handle form submissions
