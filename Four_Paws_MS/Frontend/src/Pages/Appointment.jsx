@@ -1,366 +1,462 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/Components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/Components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
+import axios from "axios";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import { Textarea } from "@/Components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/Components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
+import { Plus, ArrowLeft, Calendar, Clock, CheckCircle, Filter } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+//import { toast } from "react-hot-toast";
 import { Badge } from "@/Components/ui/badge";
-import { Calendar, Clock, CheckCircle, AlertCircle } from "lucide-react";
-import { Separator } from "@/Components/ui/separator";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/Components/ui/dialog";
-//import { useToast } from "@/components/ui/use-toast";
-//import { Toaster } from "@/components/ui/toaster"
+//import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
-// Mock data for existing appointments
-const initialAppointments = [
-  {
-    id: 1,
-    petName: "Max",
-    petType: "dog",
-    date: "2025-04-05",
-    time: "10:00 AM",
-    reason: "checkup",
-    status: "scheduled",
-    notes: "Annual wellness exam",
-  },
-  {
-    id: 2,
-    petName: "Bella",
-    petType: "cat",
-    date: "2025-04-03",
-    time: "2:30 PM",
-    reason: "vaccination",
-    status: "completed",
-    notes: "Rabies vaccination",
-  },
-  {
-    id: 3,
-    petName: "Charlie",
-    petType: "dog",
-    date: "2025-04-10",
-    time: "11:30 AM",
-    reason: "illness",
-    status: "cancelled",
-    notes: "Limping on front paw",
-  },
-];
+const uId = 22;
 
-const uId=201;
-
-export default function AppointmentsPage() {
-  const [appointments, setAppointments] = useState(initialAppointments);
-  const [appointments2, setAppointments2] = useState([]);
-  const [activeTab, setActiveTab] = useState("existing");
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [newAppointment, setNewAppointment] = useState(null);
-  const [appointmentToCancel, setAppointmentToCancel] = useState(null);
-  const [showCancelDialog, setShowCancelDialog] = useState(false);
-  //const { toast } = useToast();
-
-  // Form state
-  const [petName, setPetName] = useState("");
+const AppointmentDetails = () => {
+  const navigate = useNavigate();
+  const [appointments, setAppointments] = useState([]);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [formData, setFormData] = useState({ 
+    reason: "", 
+    additional_note: "" 
+  });
   const [petType, setPetType] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [reason, setReason] = useState("");
-  const [notes, setNotes] = useState("");
+  const [activeTab, setActiveTab] = useState("appointments");
+  const [timeSlots, setTimeSlots] = useState([]);
+  const [availability, setAvailability] = useState({});
+  const [reasons, setReasons] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [completedAppointment, setCompletedAppointment] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [noAppointments, setNoAppointments] = useState(false);
+  const [hasNoAppointmentsMsg, setHasNoAppointmentsMsg] = useState(false);
+  const [cancellingAppointmentId, setCancellingAppointmentId] = useState(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const appointment = {
-      id: appointments.length + 1,
-      petName,
-      petType,
-      date,
-      time,
-      reason,
-      notes,
-      status: "scheduled",
-    };
-
-    setAppointments([...appointments, appointment]);
-    setNewAppointment(appointment);
-    setShowConfirmation(true);
-
-    // Reset form
-    setPetName("");
-    setPetType("");
-    setDate("");
-    setTime("");
-    setReason("");
-    setNotes("");
+  const convertTimeFormat = (time) => {
+    if (!time) return "";
+    const [hour, minute] = time.split(":").map(Number);
+    const period = hour >= 12 ? "PM" : "AM";
+    const formattedHour = hour % 12 || 12;
+    return `${formattedHour}:${minute.toString().padStart(2, "0")} ${period}`;
   };
 
-  const handleCancel = () => {
-    setActiveTab("existing");
-    setPetName("");
-    setPetType("");
-    setDate("");
-    setTime("");
-    setReason("");
-    setNotes("");
-  };
-
-  const openCancelDialog = (appointment) => {
-    if (appointment.status === "scheduled") {
-      setAppointmentToCancel(appointment);
-      setShowCancelDialog(true);
-    }
-  };
-
-  const handleCancelAppointment = () => {
-    const updatedAppointments = appointments.map(appointment => 
-      appointment.id === appointmentToCancel.id 
-        ? { ...appointment, status: "cancelled" } 
-        : appointment
-    );
-    
-    setAppointments(updatedAppointments);
-    setShowCancelDialog(false);
-    
-    toast({
-      title: "Appointment Cancelled",
-      description: `The appointment for ${appointmentToCancel.petName} on ${new Date(appointmentToCancel.date).toLocaleDateString()} has been cancelled.`,
-      variant: "default",
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
     });
   };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "scheduled":
-        return (
-          <Badge variant="outline" className="text-blue-500 border-blue-200 bg-blue-50">
-            Scheduled
-          </Badge>
-        );
-      case "completed":
-        return (
-          <Badge variant="outline" className="text-green-500 border-green-200 bg-green-50">
-            Completed
-          </Badge>
-        );
-      case "cancelled":
-        return (
-          <Badge variant="outline" className="text-red-500 border-red-200 bg-red-50">
-            Cancelled
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="outline" className="text-gray-500">
-            Unknown
-          </Badge>
-        );
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch appointment details
+        const appointmentRes = await axios.get(`http://localhost:3001/appointments?id=${uId}`);
+        
+        // Check if response indicates no appointments found
+        if (appointmentRes.data && appointmentRes.data.msg === false) {
+          setNoAppointments(true);
+          setAppointments([]);
+        } else if (appointmentRes.data && appointmentRes.data.msg === false) {
+          // Handle the specific case where msg is false
+          setHasNoAppointmentsMsg(true);
+          setNoAppointments(true);
+          setAppointments([]);
+          setActiveTab("actions");
+        } else {
+          setAppointments(appointmentRes.data);
+        }
+
+        // Fetch time slots
+        const slotsRes = await axios.get("http://localhost:3001/appointments/timeslots");
+        const formattedSlots = slotsRes.data.map(slot => ({
+          display: convertTimeFormat(slot.time_slot),
+          value: slot.time_slot,
+          rawTime: slot.time_slot
+        }));
+        setTimeSlots(formattedSlots);
+
+        // Initialize availability
+        const initialAvailability = {};
+        formattedSlots.forEach(slot => {
+          initialAvailability[slot.rawTime] = null;
+        });
+        setAvailability(initialAvailability);
+
+        // Fetch reasons
+        const reasonsRes = await axios.get("http://localhost:3001/appointments/reasons");
+        setReasons(reasonsRes.data);
+
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to fetch data. Please try again later.");
+        setLoading(false);
+        toast.error("Failed to fetch data. Please try again later.");
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (date) {
+      timeSlots.forEach(slot => {
+        checkSlotAvailability(date, slot.rawTime);
+      });
+    }
+  }, [date, timeSlots]);
+
+  const checkSlotAvailability = async (date, time) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3001/appointments/checkdatetime?date=${date}&time=${time}`
+      );
+      setAvailability(prev => ({
+        ...prev,
+        [time]: response.data.available
+      }));
+    } catch (error) {
+      console.error("Error checking availability:", error);
+      setAvailability(prev => ({
+        ...prev,
+        [time]: false
+      }));
     }
   };
 
-  const getReasonText = (reason) => {
-    const reasons = {
-      checkup: "Regular Check-up",
-      vaccination: "Vaccination",
-      illness: "Illness/Injury",
-      dental: "Dental Care",
-      grooming: "Grooming",
-      other: "Other",
-    };
-    return reasons[reason] || reason;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    if (!availability[time]) {
+      toast.error("Please select an available time slot");
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const appointmentData = {
+        petType,
+        time,
+        date,
+        reason: formData.reason,
+        user_id: uId,
+        additional_note: formData.additional_note || null,
+      };
+
+      const response = await axios.post("http://localhost:3001/appointments/appointment", appointmentData);
+      setCompletedAppointment(response.data);
+      setSuccess(true);
+      setActiveTab("completed");
+      toast.success("Appointment booked successfully!");
+      
+      // Reset form
+      setPetType("");
+      setTime("");
+      setDate("");
+      setFormData({ reason: "", additional_note: "" });
+      
+      // Update appointment status
+      setHasNoAppointmentsMsg(false);
+      setNoAppointments(false);
+      
+      // Refresh appointments after booking
+      try {
+        const appointmentRes = await axios.get(`http://localhost:3001/appointments?id=${uId}`);
+        if (appointmentRes.data && !appointmentRes.data.msg) {
+          setAppointments(appointmentRes.data);
+        }
+      } catch (refreshError) {
+        console.error("Error refreshing appointments:", refreshError);
+      }
+    } catch (error) {
+      console.error("Error updating appointment:", error);
+      toast.error(error.response?.data?.message || "Failed to book appointment. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Generate available time slots
-  const timeSlots = [];
-  for (let hour = 9; hour <= 17; hour++) {
-    const hourFormatted = hour > 12 ? hour - 12 : hour;
-    const period = hour >= 12 ? "PM" : "AM";
-    timeSlots.push(`${hourFormatted}:00 ${period}`);
-    timeSlots.push(`${hourFormatted}:30 ${period}`);
-  }
+  const handleBack = () => {
+    if (selectedAppointment || success) {
+      setSelectedAppointment(null);
+      setSuccess(false);
+      setActiveTab("appointments");
+    } else {
+      navigate(-1); // Go back to previous page
+    }
+  };
 
-  if (showConfirmation) {
-    return (
-      <div className="container max-w-md mx-auto px-4 py-10">
-        <Card className="w-full border-0 shadow-lg overflow-hidden">
-          <CardHeader className="text-center space-y-1 pt-8 bg-gradient-to-b from-green-50 to-white">
-            <div className="bg-green-100 h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-2">
-              <CheckCircle className="w-8 h-8 text-green-500" />
-            </div>
-            <CardTitle className="text-xl">Appointment Confirmed</CardTitle>
-            <CardDescription>Your pet's appointment has been scheduled</CardDescription>
-          </CardHeader>
-          <CardContent className="px-6 pt-6">
-            <div className="space-y-4 text-sm">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-500">Pet</span>
-                <span className="font-medium">
-                  {newAppointment.petName} ({newAppointment.petType})
-                </span>
-              </div>
-              <Separator />
-              <div className="flex justify-between items-center">
-                <span className="text-gray-500">Date</span>
-                <span className="font-medium">{new Date(newAppointment.date).toLocaleDateString()}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between items-center">
-                <span className="text-gray-500">Time</span>
-                <span className="font-medium">{newAppointment.time}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between items-center">
-                <span className="text-gray-500">Reason</span>
-                <span className="font-medium">{getReasonText(newAppointment.reason)}</span>
-              </div>
-              {newAppointment.notes && (
-                <>
-                  <Separator />
-                  <div>
-                    <span className="text-gray-500 block mb-1">Notes</span>
-                    <span className="text-sm">{newAppointment.notes}</span>
-                  </div>
-                </>
-              )}
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-center py-8">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowConfirmation(false);
-                setActiveTab("existing");
-              }}
-              className="rounded-full px-6"
-            >
-              View All Appointments
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
-    );
-  }
+  const handleCancelAppointment = async (appointmentId) => {
+    try {
+      setIsCancelling(true);
+      setCancellingAppointmentId(appointmentId);
+      
+      await axios.put(`http://localhost:3001/appointments/cancel/${appointmentId}`);
+      
+      // Update the local state to reflect the cancellation
+      setAppointments(prev => 
+        prev.map(app => 
+          app.appointment_id === appointmentId 
+            ? {...app, status: "Cancelled"} 
+            : app
+        )
+      );
+      
+      toast.success("Appointment cancelled successfully");
+    } catch (error) {
+      console.error("Error cancelling appointment:", error);
+      toast.error(error.response?.data?.error || "Failed to cancel appointment. Please try again.");
+    } finally {
+      setIsCancelling(false);
+      setCancellingAppointmentId(null);
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Scheduled":
+        return "bg-blue-100 text-blue-800";
+      case "Completed":
+        return "bg-green-100 text-green-800";
+      case "Cancelled":
+        return "bg-red-100 text-red-800";
+      case "Pending":
+        return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getFilteredAppointments = () => {
+    if (statusFilter === "all") {
+      return appointments;
+    }
+    return appointments.filter(app => app.status === statusFilter);
+  };
+
+  // If no appointments found, automatically set active tab to "actions"
+  useEffect(() => {
+    if (noAppointments && !loading) {
+      setActiveTab("actions");
+    }
+  }, [noAppointments, loading]);
+
+  if (loading) return (
+    <div className="flex justify-center items-center h-64">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="flex justify-center items-center h-64">
+      <p className="text-red-500 font-medium">{error}</p>
+    </div>
+  );
 
   return (
-    <div className="container max-w-3xl mx-auto px-4 py-10">
-      <Card className="w-full border-0 shadow-lg overflow-hidden">
-        <CardHeader className="px-6 pt-6 pb-3 bg-gradient-to-b from-blue-50 to-white">
-          <CardTitle className="text-xl font-medium">Pet Appointments</CardTitle>
-          <CardDescription>Manage your pet's healthcare schedule</CardDescription>
-        </CardHeader>
-        <CardContent className="px-6 pt-3">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="existing">Appointments</TabsTrigger>
-              <TabsTrigger value="new">New Booking</TabsTrigger>
-            </TabsList>
+    <div className="container mx-auto p-4 max-w-6xl">
+      <Button 
+        variant="outline" 
+        onClick={handleBack}
+        className="mb-6 hover:bg-slate-100"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        {selectedAppointment || success ? 'Back to Appointments' : 'Back to Dashboard'}
+      </Button>
 
-            <TabsContent value="existing" className="space-y-4 mt-2">
-              {appointments.length === 0 ? (
-                <div className="text-center py-10">
-                  <p className="text-gray-500 text-sm">No appointments found</p>
-                  <Button variant="outline" className="mt-4 rounded-full" onClick={() => setActiveTab("new")}>
-                    Book Your First Appointment
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  {appointments.map((appointment) => (
-                    <div 
-                      key={appointment.id} 
-                      className={`py-4 first:pt-0 ${appointment.status === "scheduled" ? "cursor-pointer hover:bg-gray-50 -mx-4 px-4 rounded-md transition-colors" : ""}`}
-                      onClick={() => openCancelDialog(appointment)}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h3 className="font-medium">{appointment.petName}</h3>
-                          <p className="text-sm text-gray-500 capitalize">{appointment.petType}</p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          {getStatusBadge(appointment.status)}
-                        </div>
-                      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="appointments">
+            All Appointments
+          </TabsTrigger>
+          <TabsTrigger value="actions">
+            Book New Appointment
+          </TabsTrigger>
+        </TabsList>
 
-                      <div className="flex gap-6 mt-3 text-sm">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="h-3.5 w-3.5 text-gray-400" />
-                          <span>{new Date(appointment.date).toLocaleDateString()}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="h-3.5 w-3.5 text-gray-400" />
-                          <span>{appointment.time}</span>
-                        </div>
-                      </div>
-
-                      <div className="mt-2 text-sm">
-                        <span className="text-gray-500">Reason: </span>
-                        <span>{getReasonText(appointment.reason)}</span>
-                      </div>
-
-                      {appointment.notes && (
-                        <div className="mt-1 text-sm text-gray-600">
-                          <span className="text-gray-500">Notes: </span>
-                          <span>{appointment.notes}</span>
-                        </div>
-                      )}
-
-                      {appointment.status === "scheduled" && (
-                        <div className="mt-3">
-                          <p className="text-xs text-blue-500 italic">Click to manage this appointment</p>
-                        </div>
-                      )}
-
-                      {appointment !== appointments[appointments.length - 1] && <Separator className="mt-4" />}
-                    </div>
-                  ))}
-
-                  <div className="flex justify-center mt-6">
-                    <Button onClick={() => setActiveTab("new")} className="rounded-full bg-blue-600 hover:bg-blue-700 text-white">
-                      Book New Appointment
-                    </Button>
-                  </div>
-                </>
-              )}
-            </TabsContent>
-
-            <TabsContent value="new">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="pet-name" className="text-sm">
-                      Pet Name
-                    </Label>
-                    <Input
-                      id="pet-name"
-                      value={petName}
-                      onChange={(e) => setPetName(e.target.value)}
-                      required
-                      className="h-9"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label htmlFor="pet-type" className="text-sm">
-                      Pet Type
-                    </Label>
-                    <Select value={petType} onValueChange={setPetType} required>
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Select type" />
+        <TabsContent value="appointments">
+          {hasNoAppointmentsMsg ? (
+            <Card className="shadow-lg mb-6">
+              <CardHeader className="bg-slate-50 border-b pb-4">
+                <CardTitle className="text-xl">My Appointments</CardTitle>
+                <CardDescription>View and manage your pet appointments</CardDescription>
+              </CardHeader>
+              <CardContent className="py-12 text-center">
+                <Button 
+                  onClick={() => setActiveTab("actions")}
+                  className="flex items-center mx-auto"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Book New Appointment
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="shadow-lg mb-6">
+              <CardHeader className="bg-slate-50 border-b pb-4">
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-xl">
+                    My Appointments
+                  </CardTitle>
+                  <div className="flex items-center space-x-2">
+                    <Filter className="h-4 w-4 text-gray-500" />
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="h-8 w-36">
+                        <SelectValue placeholder="Filter by status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="dog">Dog</SelectItem>
-                        <SelectItem value="cat">Cat</SelectItem>
-                        <SelectItem value="bird">Bird</SelectItem>
-                        <SelectItem value="rabbit">Rabbit</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="Scheduled">Scheduled</SelectItem>
+                        <SelectItem value="Completed">Completed</SelectItem>
+                        <SelectItem value="Cancelled">Cancelled</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
+                <CardDescription>View and manage your pet appointments</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                {noAppointments ? (
+                  <div className="py-12 text-center space-y-4">
+                    <p className="text-gray-500">No appointments found</p>
+                    
+                  </div>
+                ) : getFilteredAppointments().length === 0 ? (
+                  <div className="py-12 text-center">
+                    <p className="text-gray-500">No appointments found with the selected filter</p>
+                  </div>
+                ) : (
+                  <div className="divide-y">
+                    {getFilteredAppointments().map(appointment => (
+                      <div key={appointment.appointment_id} className="p-4 hover:bg-slate-50">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h3 className="font-medium">Appointment ID: #{appointment.appointment_id}</h3>
+                            <p className="text-sm text-gray-500">Pet Type: #{appointment.pet_id}</p>
+                          </div>
+                          <Badge className={getStatusColor(appointment.status)}>
+                            {appointment.status}
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          <div>
+                            <p className="text-sm text-gray-500">Date</p>
+                            <p className="font-medium">{formatDate(appointment.appointment_date)}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500">Time</p>
+                            <p className="font-medium">{convertTimeFormat(appointment.appointment_time)}</p>
+                          </div>
+                        </div>
+                        <div className="mb-3">
+                          <p className="text-sm text-gray-500">Reason</p>
+                          <p className="font-medium">{appointment.reason}</p>
+                        </div>
+                        {appointment.additional_note && (
+                          <div className="mb-3">
+                            <p className="text-sm text-gray-500">Note</p>
+                            <p className="text-sm">{appointment.additional_note}</p>
+                          </div>
+                        )}
+                        {appointment.status === "Scheduled" && (
+                          <div className="flex justify-end">
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="flex items-center text-red-600 border-red-200 bg-red-50 hover:bg-red-100 hover:text-red-700"
+                                >
+                                  Cancel
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to cancel this appointment? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Go Back</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleCancelAppointment(appointment.appointment_id)}
+                                    disabled={isCancelling && cancellingAppointmentId === appointment.appointment_id}
+                                    className="bg-red-600 hover:bg-red-700 text-white"
+                                  >
+                                    {isCancelling && cancellingAppointmentId === appointment.appointment_id 
+                                      ? "Cancelling..." 
+                                      : "Yes, Cancel Appointment"
+                                    }
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter className="bg-slate-50 border-t p-4">
+                <Button 
+                  onClick={() => setActiveTab("actions")}
+                  className="flex items-center ml-auto"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  New Appointment
+                </Button>
+              </CardFooter>
+            </Card>
+          )}
+        </TabsContent>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="date" className="text-sm">
-                      Date
-                    </Label>
+        <TabsContent value="actions">
+          <Card className="shadow-lg border-t-4 border-t-indigo-500">
+            <CardHeader className="bg-slate-50 border-b">
+              <CardTitle className="text-xl flex items-center">
+                <Clock className="mr-2 h-5 w-5 text-indigo-500" />
+                Book New Appointment
+              </CardTitle>
+              <CardDescription>Schedule your pet's visit</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <Label htmlFor="petType" className="text-sm font-medium">Pet</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Select value={petType} onValueChange={setPetType} required>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select Pet" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="100">Dog</SelectItem>
+                        <SelectItem value="101">Cat</SelectItem>
+                        <SelectItem value="102">Cow</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button variant="outline" size="icon" type="button" className="h-10 w-10">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="date" className="text-sm font-medium">Date</Label>
                     <Input
                       id="date"
                       type="date"
@@ -368,115 +464,154 @@ export default function AppointmentsPage() {
                       onChange={(e) => setDate(e.target.value)}
                       min={new Date().toISOString().split("T")[0]}
                       required
-                      className="h-9"
+                      className="h-10 mt-1"
                     />
                   </div>
-
-                  <div className="space-y-1.5">
-                    <Label htmlFor="time" className="text-sm">
-                      Time
-                    </Label>
+                  <div>
+                    <Label htmlFor="time" className="text-sm font-medium">Time</Label>
                     <Select value={time} onValueChange={setTime} required>
-                      <SelectTrigger className="h-9">
+                      <SelectTrigger className="h-10 mt-1">
                         <SelectValue placeholder="Select time" />
                       </SelectTrigger>
                       <SelectContent>
-                        {timeSlots.map((slot) => (
-                          <SelectItem key={slot} value={slot}>
-                            {slot}
-                          </SelectItem>
-                        ))}
+                        {timeSlots.map((slot, index) => {
+                          const isAvailable = availability[slot.rawTime];
+                          const isDisabled = isAvailable === false;
+                          
+                          return (
+                            <SelectItem 
+                              key={index} 
+                              value={slot.value}
+                              disabled={isDisabled}
+                              className={isDisabled ? "text-red-500" : ""}
+                            >
+                              {slot.display} {isDisabled && "(Unavailable)"}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="reason" className="text-sm">
-                    Reason for Visit
-                  </Label>
-                  <Select value={reason} onValueChange={setReason} required>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select reason" />
+                <div>
+                  <Label htmlFor="reason" className="text-sm font-medium">Reason *</Label>
+                  <Select 
+                    value={formData.reason} 
+                    onValueChange={(value) => setFormData({...formData, reason: value})} 
+                    required
+                  >
+                    <SelectTrigger className="h-10 mt-1">
+                      <SelectValue placeholder="Select Reason" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="checkup">Regular Check-up</SelectItem>
-                      <SelectItem value="vaccination">Vaccination</SelectItem>
-                      <SelectItem value="illness">Illness/Injury</SelectItem>
-                      <SelectItem value="dental">Dental Care</SelectItem>
-                      <SelectItem value="grooming">Grooming</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      {reasons.map((r) => (
+                        <SelectItem key={r.id} value={r.reason_name}>
+                          {r.reason_name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="notes" className="text-sm">
-                    Additional Notes
-                  </Label>
+                <div>
+                  <Label htmlFor="note" className="text-sm font-medium">Additional Note (Optional)</Label>
                   <Textarea
-                    id="notes"
-                    placeholder="Any specific concerns or information"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className="resize-none min-h-[80px]"
+                    id="note"
+                    value={formData.additional_note}
+                    onChange={(e) => setFormData({ ...formData, additional_note: e.target.value })}
+                    placeholder="Enter any additional notes (optional)"
+                    className="h-24 mt-1"
                   />
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4">
-                  <Button type="button" variant="ghost" onClick={handleCancel} className="h-9">
-                    Cancel
-                  </Button>
-                  <Button type="submit" className="h-9 px-4 bg-blue-600 hover:bg-blue-700">
-                    Book Appointment
-                  </Button>
-                </div>
+                <Button 
+                  type="submit" 
+                  variant="default"
+                  disabled={!time || availability[time] === false || isSubmitting}
+                  className="w-full h-10"
+                >
+                  {isSubmitting ? "Booking..." : "Book Appointment"}
+                </Button>
               </form>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Cancel Appointment Dialog */}
-      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-red-500" />
-              Cancel Appointment
-            </DialogTitle>
-            <DialogDescription>
-              Are you sure you want to cancel the appointment for {appointmentToCancel?.petName}?
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-3">
-            {appointmentToCancel && (
-              <div className="space-y-3 text-sm border rounded-md p-3 bg-gray-50">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Pet:</span>
-                  <span>{appointmentToCancel.petName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Date:</span>
-                  <span>{new Date(appointmentToCancel.date).toLocaleDateString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Time:</span>
-                  <span>{appointmentToCancel.time}</span>
-                </div>
-              </div>
+        {success && (
+          <TabsContent value="completed">
+            {completedAppointment && (
+              <Card className="shadow-lg border-t-4 border-t-green-500">
+                <CardHeader className="bg-slate-50 border-b">
+                  <div className="flex items-center justify-center mb-2">
+                    <CheckCircle className="h-12 w-12 text-green-500" />
+                  </div>
+                  <CardTitle className="text-xl text-center">Appointment Booked Successfully!</CardTitle>
+                  <CardDescription className="text-center">Your appointment has been confirmed</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="space-y-6">
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-100 mb-6">
+                      <p className="text-center text-green-700">
+                        Your appointment has been scheduled successfully. Please arrive 10 minutes before your appointment time.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium text-gray-500">Appointment ID</Label>
+                        <p className="font-medium">{completedAppointment.appointment_id}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium text-gray-500">Status</Label>
+                        <p className="font-medium">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            {completedAppointment.status || "Confirmed"}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium text-gray-500">Pet Type</Label>
+                        <p className="font-medium">{completedAppointment.petType}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium text-gray-500">Reason</Label>
+                        <p className="font-medium">{completedAppointment.reason}</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium text-gray-500">Date</Label>
+                        <p className="font-medium">{new Date(completedAppointment.date).toLocaleDateString()}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium text-gray-500">Time</Label>
+                        <p className="font-medium">{convertTimeFormat(completedAppointment.time)}</p>
+                      </div>
+                    </div>
+                    {completedAppointment.additional_note && (
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium text-gray-500">Additional Notes</Label>
+                        <p className="font-medium">{completedAppointment.additional_note}</p>
+                      </div>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      className="w-full mt-4"
+                      onClick={() => setActiveTab("appointments")}
+                    >
+                      Return to Appointments
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCancelDialog(false)}>
-              Keep Appointment
-            </Button>
-            <Button variant="destructive" onClick={handleCancelAppointment}>
-              Cancel Appointment
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </TabsContent>
+        )}
+      </Tabs>
     </div>
   );
-}
+};
+
+export default AppointmentDetails;

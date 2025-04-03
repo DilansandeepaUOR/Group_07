@@ -1,15 +1,14 @@
 import React, { useState } from "react";
 import {
-  FaTimes,
   FaEye,
   FaEyeSlash,
   FaExclamationCircle,
 } from "react-icons/fa";
-import paw from "../assets/paw_vector.png";
-import "../Styles/Fonts/Fonts.css";
+import paw from "../../assets/paw_vector.png";
+import "../../Styles/Fonts/Fonts.css";
 import axios from "axios";
 
-function Login({ onClose }) {
+function Adlogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -29,14 +28,14 @@ function Login({ onClose }) {
     try {
       axios
         .post(
-          "http://localhost:3001/api/loginform/login",
+          "http://localhost:3001/api/adloginform/adlogin",
           { email, password },
           { withCredentials: true }
         )
         .then((response) => {
           storeSession(response.data.session);
           alert("Login successful!");
-          window.location.href = "/"; // Redirect to profile
+          window.location.href = "/Addashboard"; // Redirect to admin login
         })
         .catch((error) => {
           alert("Login failed: " + error.response.data.error);
@@ -61,18 +60,12 @@ function Login({ onClose }) {
 
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-transparent bg-opacity-50 backdrop-blur-md z-50 ">
-      <div className="bg-gradient-to-b from-[#182020] to-[#394a46] items-center p-8 rounded-lg shadow-lg w-96 relative border-2 border-gray-800">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 text-white hover:text-gray-200 text-lg cursor-pointer"
-        >
-          <FaTimes size={22} />
-        </button>
+      <div className="bg-gradient-to-b from-[#69cac2] to-[#cbfffb] items-center p-8 rounded-lg shadow-lg w-96 relative border-2 border-gray-800">
+        
 
         {/* Title */}
-        <h2 className="text-2xl font-bold text-center text-white mb-4 Poppins">
-          Log in to Your Faw Paws Account
+        <h2 className="text-2xl font-bold text-center text-[#182020] mb-4 Poppins">
+          Four Paws Admin
         </h2>
         <span>
           <img
@@ -95,7 +88,7 @@ function Login({ onClose }) {
           placeholder="Your E-mail"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 mb-3 border border-[#46dfd0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#028478] text-[#ffffff]"
+          className="w-full p-3 mb-3 border border-[#182020] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#028478] text-[#182020]"
         />
 
         {/* Password Input with Toggle */}
@@ -105,10 +98,10 @@ function Login({ onClose }) {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 pr-10 border border-[#46dfd0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#028478] text-[#ffffff]"
+            className="w-full p-3 pr-10 border border-[#182020] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#028478] text-[#182020]"
           />
           <button
-            className="absolute right-3 top-3 text-[#ffffff] hover:text-[#69cac2] cursor-pointer"
+            className="absolute right-3 top-3 text-[#182020] hover:text-[#69cac2] cursor-pointer"
             onClick={() => setShowPassword(!showPassword)}
           >
             {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
@@ -118,7 +111,7 @@ function Login({ onClose }) {
         {/* Forgot Password */}
         <div className="text-right mt-2 mb-4">
           <button
-            className="text-sm text-white hover:underline underline-offset-4 hover:text-[#69cac2] cursor-pointer"
+            className="text-sm text-[#182020] hover:underline underline-offset-4 cursor-pointer"
             onClick={() => alert("Forgot Password functionality coming soon!")}
           >
             Forgot Password?
@@ -128,7 +121,6 @@ function Login({ onClose }) {
         {/* Buttons */}
         <div className="flex justify-between items-center">
           <button
-            onClick={onClose}
             className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-400 transition cursor-pointer"
           >
             Cancel
@@ -147,21 +139,9 @@ function Login({ onClose }) {
         {/* Divider */}
         <div className="my-6 border-t border-[#46dfd0]"></div>
 
-        {/* Sign Up */}
-        <div className="text-center">
-          <p className="text-sm text-white">
-            Don't have an account?{" "}
-            <button
-              className="text-red-500 font-bold hover:underline underline-offset-4 cursor-pointer"
-              onClick={() => alert("Sign Up functionality coming soon!")}
-            >
-              Register
-            </button>
-          </p>
-        </div>
       </div>
     </div>
   );
 }
 
-export default Login;
+export default Adlogin;

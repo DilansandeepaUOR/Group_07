@@ -15,6 +15,7 @@ router.use((req,res,next) => {
 router.post("/register",validRegister, async (req, res) => {
 
     const {name, address, phone, email, confirmPassword} =req.body;
+    
     try {
         //existance of email
         db.query('SELECT * FROM pet_owner WHERE E_mail = ?', [email], async (err, results) => {
@@ -38,10 +39,10 @@ router.post("/register",validRegister, async (req, res) => {
 
                 const ownerid=ownerResult.insertId;
 
-                const {petName, petAge, petType} = req.body;
-                const petsql= "INSERT INTO pet (Owner_id, Pet_name, Pet_type, Pet_age) VALUES (?, ?, ?, ?)";
+                const {petName, petDob, petType} = req.body;
+                const petsql= "INSERT INTO pet (Owner_id, Pet_name, Pet_type, Pet_dob) VALUES (?, ?, ?, ?)";
 
-                db.query(petsql,[ownerid,petName,petType,petAge], (err) => {
+                db.query(petsql,[ownerid,petName,petType,petDob], (err) => {
                     if(err) {
                         console.error("Error inserting pet", err);
                         return res.status(500).json({ error: "Error inserting pet" });

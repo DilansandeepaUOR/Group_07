@@ -1,8 +1,10 @@
 const { z } = require("zod");
 
-const userRegisterValidator = z.object({
+const empRegisterValidator = z.object({
 
-  name: z.string().min(2, "Your name must be at least 2 characters"),
+    fname: z.string().min(2, "Your first name must be at least 2 characters"),
+
+    lname: z.string().min(2, "Your last name must be at least 2 characters"),
 
   address: z.string().min(5, "Your address must be at least 5 characters"),
 
@@ -10,17 +12,17 @@ const userRegisterValidator = z.object({
 
   email: z.string().email("Invalid Email format"),
 
-  petName: z.string().max(50, "Pet name must be at most 50 characters").regex(/^[A-Za-z\s]+$/, "Pet name must only contain letters and spaces"),
-
-  petDob: z.string()
+  dob: z.string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Date of Birth must be in YYYY-MM-DD format")
   .transform((str) => new Date(str)) 
   .refine(date => !isNaN(date.getTime()), "Invalid date")
   .refine(date => date <= new Date(), "Date of Birth cannot be in the future"),
 
-  petType: z.enum(["dog", "cat", "cow","other"], "Invalid pet type"),
+  gender: z.enum(["Male","Female","Other"], "Invalid gender"),
 
-  confirmPassword: z.string().min(8, "Password must be at least 8 characters")
+  role: z.enum(["Admin","Doctor","Assistant Doctor","Pharmacist","Pet Shopper"], "Invalid role"),
+
+    password: z.string().min(8, "Password must be at least 8 characters")
   .max(30, "Password must be at most 30 characters")
   .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
   .regex(/[a-z]/, "Password must contain at least one lowercase letter")
@@ -29,8 +31,8 @@ const userRegisterValidator = z.object({
 
 });
 
-const validRegister= (req,res,next) => {
-    const validationresult =userRegisterValidator.safeParse(req.body);
+const validEMPRegister= (req,res,next) => {
+    const validationresult =empRegisterValidator.safeParse(req.body);
 
     if(!validationresult.success) {
         return res.status(400).json({error: validationresult.error.errors});
@@ -38,6 +40,6 @@ const validRegister= (req,res,next) => {
     next();
   }
 
-module.exports = validRegister;
+module.exports = validEMPRegister;
 
 
