@@ -9,7 +9,7 @@ import {
 import axios from "axios";
 import dp from "../assets/paw_vector.png"
 
-function Profile() {
+function pharmprofile() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
 
@@ -114,4 +114,4 @@ function Profile() {
   );
 }
 
-export default Profile;
+export default pharmprofile;
