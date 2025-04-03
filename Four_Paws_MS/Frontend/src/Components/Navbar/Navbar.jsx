@@ -15,7 +15,7 @@ import {
 import Regandsignbtn from "./regandsignbtn";
 import Login from "../../Pages/Login";
 import Register from "../../Pages/Register";
-import Profilearea from "../Profilearea/profilearea";
+import Profilearea from "../Profilearea/Profilearea";
 import axios from "axios";
 
 function Navbar() {
