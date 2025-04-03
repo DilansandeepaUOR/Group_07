@@ -10,7 +10,6 @@ import Profile from './Pages/Profile'
 import Login from './Pages/Login'
 import Register from './Pages/Register'
 import Appointment from './Pages/Appointment'
-import AppointmentDetails from './Pages/ap'
 import RecordsEntry from './Pages/RecordsEntry'
 import Adlogin from './Admin/Pages/adlogin'
 import Addashboard from './Admin/Pages/Addashboard'
@@ -31,7 +30,6 @@ const App = () => {
         <Route path="/Profile" element={<Profile/>}/>
         <Route path="/appointment" element={<Appointment/>}/>
         <Route path="/RecordsEntry" element={<RecordsEntry/>}/>
-        <Route path="/test" element={<AppointmentDetails/>}/>
         
 
         {/* Admin logins  */}
