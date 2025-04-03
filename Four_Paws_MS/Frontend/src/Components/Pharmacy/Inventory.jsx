@@ -118,7 +118,7 @@ export default function ProductsSection() {
     setEditFormData({
       name: medicine.name,
       category: medicine.category,
-      price: medicine.price.toString().replace('$', ''),
+      price: medicine.price.toString().replace('Rs ', ''),
       stock: medicine.stock.toString(),
       status: getStockStatus(medicine.stock)
     })
@@ -298,7 +298,7 @@ export default function ProductsSection() {
             />
           </div>
           <div className="formGroup">
-            <label className="formLabel">Price:</label>
+            <label className="formLabel">Price (Rs):</label>
             <input
               type="number"
               name="price"
@@ -432,7 +432,7 @@ export default function ProductsSection() {
                             }}
                           />
                         ) : (
-                          `$${medicine.price}`
+                          `Rs ${medicine.price}`
                         )}
                       </td>
                       <td>

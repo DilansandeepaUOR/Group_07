@@ -3,6 +3,7 @@
 import { useContext, createContext, useState, useEffect } from "react"
 import { MoreVertical, ChevronLast, ChevronFirst, Menu, X, ChevronDown } from "lucide-react"
 
+
 const SidebarContext = createContext({ 
   expanded: true, 
   isMobile: false,
@@ -108,7 +109,7 @@ export default function Sidebar({ children }) {
             }}
           >
             <img
-              src="https://img.logoipsum.com/243.svg"
+              src="https://img.logoipsum.com/338.svg"
               style={{
                 overflow: "hidden",
                 transition: "all 300ms",
