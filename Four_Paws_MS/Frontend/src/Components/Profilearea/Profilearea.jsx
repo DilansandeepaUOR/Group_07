@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import dp from "../../assets/paw_vector.png";
 
 function Profilearea() {
   const [user, setUser] = useState(null);
@@ -35,11 +36,11 @@ function Profilearea() {
       {/* Profile Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-3 p-2 bg-gray-800 text-white rounded-full hover:bg-gray-700 transition duration-300"
+        className="flex items-center space-x-3 p-2 bg-gray-800 text-white rounded-full hover:bg-[#69cac2] hover:text-gray-900 transition duration-300 cursor-pointer"
       >
         {/* Profile Picture */}
         <img 
-          src={user?.profilePic || "https://via.placeholder.com/50"} 
+          src={user?.profilePic || dp} 
           alt="Profile" 
           className="w-10 h-10 rounded-full border border-gray-300"
         />
@@ -49,15 +50,15 @@ function Profilearea() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg">
+        <div className="absolute right-0 mt-2 w-48 bg-[#313940] border rounded-lg shadow-lg">
           <div className="px-4 py-3">
-            <span className="block text-sm font-semibold text-gray-900">{user?.name}</span>
-            <span className="block text-sm text-gray-500 truncate">{user?.email}</span>
+            <span className="block text-sm font-semibold text-gray-100">{user?.name}</span>
+            <span className="block text-sm text-gray-100 truncate">{user?.email}</span>
           </div>
           <ul className="py-2">
-            <Link to={'/profile'}><li className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</li></Link>
-            <li className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</li>
-            <li className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><a href="/"  onClick={handleLogout}>Sign out</a></li>
+            <Link to={'/profile'}><li className="block px-4 py-2 text-sm text-gray-100 hover:bg-[#69cac2]">Profile</li></Link>
+            <li className="block px-4 py-2 text-sm text-gray-100 hover:bg-[#69cac2]">Settings</li>
+            <li className="block px-4 py-2 text-sm text-gray-100 hover:bg-[#69cac2]"><a href="/"  onClick={handleLogout}>Sign out</a></li>
           </ul>
         </div>
       )}

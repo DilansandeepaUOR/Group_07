@@ -8,6 +8,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import dp from "../../../src/assets/paw_vector.png";
+import { Link } from "react-router-dom";
 
 const DoctorDashboard = () => {
   const [activeTab, setActiveTab] = useState("home");
@@ -83,7 +84,7 @@ const DoctorDashboard = () => {
           <li>
             <button
               onClick={() => setActiveTab("appointments")}
-              className="flex items-center gap-2 w-full text-left hover:text-gray-700"
+              className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
             >
               <FaCalendarAlt /> Appointments
             </button>
@@ -91,7 +92,7 @@ const DoctorDashboard = () => {
           <li>
             <button
               onClick={() => setActiveTab("patients")}
-              className="flex items-center gap-2 w-full text-left hover:text-gray-700"
+              className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
             >
               <FaUser /> Patients
             </button>
@@ -99,12 +100,12 @@ const DoctorDashboard = () => {
           <li>
             <button
               onClick={() => setActiveTab("medications")}
-              className="flex items-center gap-2 w-full text-left hover:text-gray-700"
+              className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
             >
               <FaPills /> Medications
             </button>
           </li>
-          <li className="hover:text-red-400 items-center gap-2 w-full text-left">
+          <li className="hover:text-red-400 items-center gap-2 w-full text-left cursor-pointer">
             <a href="/Adlogin" onClick={handleLogout}>
               <FaSignOutAlt className="mr-2" /> Logout
             </a>
@@ -137,7 +138,12 @@ const PatientsSection = () => (
 const MedicationsSection = () => (
   <div>
     <h2 className="text-2xl font-semibold text-[#028478]">Medications</h2>
-    <p className="mt-4">Medications area</p>
+    <Link 
+      to="/RecordsEntry" 
+      className="mt-4 inline-block px-4 py-2 bg-[#028478] text-white rounded hover:bg-[#71C9CE] transition"
+    >
+      Go to Records Entry
+    </Link>
   </div>
 );
 
