@@ -1,9 +1,5 @@
 import React, { useState } from "react";
-import {
-  FaEye,
-  FaEyeSlash,
-  FaExclamationCircle,
-} from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaExclamationCircle } from "react-icons/fa";
 import paw from "../../assets/paw_vector.png";
 import "../../Styles/Fonts/Fonts.css";
 import axios from "axios";
@@ -17,6 +13,7 @@ function Adlogin() {
   const storeSession = (sessionData) => {
     sessionStorage.setItem("authToken", sessionData);
   };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -33,9 +30,34 @@ function Adlogin() {
           { withCredentials: true }
         )
         .then((response) => {
-          storeSession(response.data.session);
-          alert("Login successful!");
-          window.location.href = "/Addashboard"; // Redirect to admin login
+          console.log(response.data);
+          if (response?.data?.user?.role == "Admin") {
+            storeSession(response.data.session);
+            alert("Admin Login Successful!");
+            window.location.href = "/Addashboard"; 
+          } else if (response?.data?.user?.role == "Doctor") {   
+            storeSession(response.data.session);                              
+            alert("Doctor Login Successful!");
+            window.location.href = "/docprofile"; 
+          } 
+          
+          else if (response?.data?.user?.role == "Assistant Doctor") {  
+            storeSession(response.data.session);                              
+            alert("Assistant Doctor Login Successful!");
+            window.location.href = "/assistprofile"; 
+          }
+          else if (response?.data?.user?.role == "Pharmacist") { 
+            storeSession(response.data.session);                               
+            alert("Pharmacist Login Successful!");
+            window.location.href = "/Pharmacy"; 
+          }
+          else if (response?.data?.user?.role == "Pet Shopper") { 
+            storeSession(response.data.session);                                
+            alert("Pet Shopper Login Successful!");
+            window.location.href = "/psprofile"; 
+          }else {
+            alert("Unauthorized Role!");
+          }
         })
         .catch((error) => {
           alert("Login failed: " + error.response.data.error);
@@ -61,15 +83,13 @@ function Adlogin() {
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-transparent bg-opacity-50 backdrop-blur-md z-50 ">
       <div className="bg-gradient-to-b from-[#69cac2] to-[#cbfffb] items-center p-8 rounded-lg shadow-lg w-96 relative border-2 border-gray-800">
-        
-
         {/* Title */}
         <h2 className="text-2xl font-bold text-center text-[#182020] mb-4 Poppins">
           Four Paws Administrative login
         </h2>
         <span>
           <img
-            src={paw}
+            src={paw || "Admin"}
             alt="paw"
             className="absolute justify-center w-16 h-16 top-[-15px] left-[50%] translate-x-[-50%]"
           />
@@ -120,9 +140,7 @@ function Adlogin() {
 
         {/* Buttons */}
         <div className="flex justify-between items-center">
-          <button
-            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-400 transition cursor-pointer"
-          >
+          <button className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-400 transition cursor-pointer">
             Cancel
           </button>
 
@@ -138,7 +156,6 @@ function Adlogin() {
 
         {/* Divider */}
         <div className="my-6 border-t border-[#46dfd0]"></div>
-
       </div>
     </div>
   );

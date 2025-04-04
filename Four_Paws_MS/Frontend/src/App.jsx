@@ -13,6 +13,9 @@ import Appointment from './Pages/Appointment'
 import RecordsEntry from './Pages/RecordsEntry'
 import Adlogin from './Admin/Pages/Adlogin'
 import Addashboard from './Admin/Pages/Addashboard'
+import Psprofile from './Otherusers/Petshopper/psprofile'
+import Docprofile from './Otherusers/Doctor/docprofile'
+import Assistprofile from './Otherusers/Assitdoctor/assistprofile'
 
 const App = () => {
   return (
@@ -35,7 +38,9 @@ const App = () => {
         {/* Admin logins  */}
         <Route path="/Adlogin" element={<Adlogin/>}/>
         <Route path="/Addashboard" element={<Addashboard/>}/>
-
+        <Route path="/psprofile" element={<Psprofile/>}/>
+        <Route path="/docprofile" element={<Docprofile/>}/>
+        <Route path="/assistprofile" element={<Assistprofile/>}/>
 
 
         <Route path="*" element={<h1>404 Not Found</h1>} />
