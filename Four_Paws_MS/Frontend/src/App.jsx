@@ -16,6 +16,9 @@ import Addashboard from './Admin/Pages/Addashboard'
 import Psprofile from './Otherusers/Petshopper/psprofile'
 import Docprofile from './Otherusers/Doctor/docprofile'
 import Assistprofile from './Otherusers/Assitdoctor/assistprofile'
+import EditRecords from './Pages/EditRecords'
+import SearchRecords from './Pages/SearchRecords'
+
 
 const App = () => {
   return (
@@ -33,6 +36,9 @@ const App = () => {
         <Route path="/Profile" element={<Profile/>}/>
         <Route path="/appointment" element={<Appointment/>}/>
         <Route path="/RecordsEntry" element={<RecordsEntry/>}/>
+        <Route path="/records" element={<RecordsEntry />} />
+        <Route path="/edit/:id" element={<EditRecords />} />
+        <Route path="/search" element={<SearchRecords />} />
         
 
         {/* Admin logins  */}

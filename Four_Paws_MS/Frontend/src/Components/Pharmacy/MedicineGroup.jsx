@@ -697,7 +697,6 @@ export default function MedicineGroupSection() {
                       </th>
                       <th>ID</th>
                       <th>Name</th>
-                      <th>Dosage</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -714,7 +713,6 @@ export default function MedicineGroupSection() {
                         </td>
                         <td>{medicine.id}</td>
                         <td>{medicine.name}</td>
-                        <td>{medicine.dosage}</td>
                         <td>
                           <button
                             className="primaryButton deleteButton"

@@ -24,6 +24,8 @@
     "clsx": "^2.1.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.485.0",
     "mysql2": "^3.14.0",
     "react": "^19.0.0",
