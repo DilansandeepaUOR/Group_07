@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "../../../src/assets/paw_vector.png"
+import dp from "../../../src/assets/paw_vector.png"
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("users");
@@ -18,7 +18,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3001/api/auth/user", { withCredentials: true })
+      .get("http://localhost:3001/api/auth/admins", { withCredentials: true })
       .then((response) => {
         setUser(response.data);
       })
@@ -47,15 +47,15 @@ const AdminDashboard = () => {
 
         <div className="items-center gap-4 mt-4">
           <img
-            src={user?.profilePic || "paw_vector.png"} // Use optional chaining and default image
+            src={dp || "Admin"} // Use optional chaining and default image
             alt="Admin"
             className="w-24 h-24 rounded-full border border-gray-400"
           />
           <div>
-            <p className="text-gray-300">
-              <strong>Admin Name:</strong> {user?.fname || "Unknown Admin"}
+            <p className="text-black-300">
+              <strong>Admin Name:</strong> {user?.fname} {user?.lname}
             </p>
-            <p className="text-gray-300">
+            <p className="text-black-300">
               <strong>E mail:</strong> {user?.email}
             </p>
           </div>
@@ -245,7 +245,7 @@ const EmployeeRegistrationForm = ({ closeForm }) => {
         >
           <option>Admin</option>
           <option>Doctor</option>
-          <option>Doctor Assistant</option>
+          <option>Assistant Doctor</option>
           <option>Pharmacist</option>
           <option>Pet Shopper</option>
         </select>

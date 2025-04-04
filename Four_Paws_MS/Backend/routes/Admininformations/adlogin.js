@@ -42,7 +42,7 @@ router.post("/adlogin", validADLogin, async (req,res) => {
             }
             
 
-            const token = jwt.sign({ id: user.employee_id, fname: user.first_name, lname: user.last_name , email: user.email }, SECRET_KEY, { expiresIn: "3h" });
+            const token = jwt.sign({ id: user.employee_id, fname: user.first_name, lname: user.last_name , email: user.email, role: user.role }, SECRET_KEY, { expiresIn: "3h" });
 
             res.cookie("token", token, {
                 httpOnly: true,
@@ -51,7 +51,7 @@ router.post("/adlogin", validADLogin, async (req,res) => {
                 maxAge: 3* 60* 60* 1000,
             });
 
-            res.status(200).json({ message: "Login successful", user: { fname: user.first_name, lname: user.last_name , email: user.email} });
+            res.status(200).json({ message: "Login successful", user: { fname: user.first_name, lname: user.last_name , email: user.email, role: user.role} });
 
             
         });
