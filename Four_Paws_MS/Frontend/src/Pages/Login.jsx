@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import {
   FaTimes,
   FaEye,
@@ -9,6 +8,8 @@ import paw from "../assets/paw_vector.png";
 import "../Styles/Fonts/Fonts.css";
 import axios from "axios";
 
+import React, { useState} from "react";
+
 function Login({ onClose }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,6 +19,8 @@ function Login({ onClose }) {
   const storeSession = (sessionData) => {
     sessionStorage.setItem("authToken", sessionData);
   };
+
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
