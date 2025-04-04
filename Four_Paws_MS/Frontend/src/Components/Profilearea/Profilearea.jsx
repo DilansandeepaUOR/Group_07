@@ -57,8 +57,8 @@ function Profilearea() {
           </div>
           <ul className="py-2">
             <Link to={'/profile'}><li className="block px-4 py-2 text-sm text-gray-100 hover:bg-[#69cac2]">Profile</li></Link>
-            <li className="block px-4 py-2 text-sm text-gray-100 hover:bg-[#69cac2]">Settings</li>
-            <li className="block px-4 py-2 text-sm text-gray-100 hover:bg-[#69cac2]"><a href="/"  onClick={handleLogout}>Sign out</a></li>
+            <li className="block px-4 py-2 text-sm text-gray-100 hover:bg-[#69cac2] cursor-pointer">Settings</li>
+          <a href="/"><li className="block px-4 py-2 text-sm text-gray-100 hover:bg-[#69cac2] " onClick={handleLogout}>Sign out</li></a>  
           </ul>
         </div>
       )}
