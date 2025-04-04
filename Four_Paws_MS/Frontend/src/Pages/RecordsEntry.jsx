@@ -251,7 +251,7 @@ const PetServiceForm = () => {
 
 
     const cancelMe = () => {
-        navigate('/');
+        navigate('/Docprofile'); 
       };
 
 
