@@ -250,9 +250,9 @@ const PetServiceForm = () => {
 
 
 
-const cancelMe=()=>{
-    window.history.back();
-};
+    const cancelMe = () => {
+        navigate('/');
+      };
 
 
 
@@ -282,13 +282,22 @@ const cancelMe=()=>{
     >
       Search Records
     </button>
-    <button 
-      type="button" 
-      onClick={cancelMe} 
-      className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition"
-    >
-      Close
-    </button>
+    <button
+  type="button"
+  onClick={cancelMe}
+  className="
+    px-5 py-2.5
+    bg-gradient-to-r from-red-500 to-red-400
+    text-white font-medium
+    rounded-lg
+    hover:from-red-600 hover:to-red-500
+    transition-all duration-300
+    active:scale-[0.98]
+    focus:outline-none focus:ring-2 focus:ring-red-300
+  "
+>
+  Close
+</button>
   </div>
 
   <form onSubmit={handleSubmit} className="space-y-6">

@@ -160,160 +160,173 @@ const SearchRecords = () => {
   };
 
   return (
-    <div className="search-page">
-      <div className="search-card">
-        <h2 className="search-title">Search Pet Records</h2>
-        
-        <div className="search-controls">
-          <div className="search-input-group">
-            <input
-              type="text"
-              value={ownerName}
-              onChange={(e) => setOwnerName(e.target.value)}
-              placeholder="Enter owner name..."
-              className="search-input"
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            />
-            <button 
-              onClick={handleSearch} 
-              className="search-button"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Searching...' : (
-                <>
-                  <i className="search-icon">🔍</i> Search
-                </>
-              )}
-            </button>
-          </div>
-        </div>
+    <div className="max-w-7xl mx-auto p-6 bg-white rounded-lg shadow-md mt-10">
+  <h2 className="text-2xl font-bold text-gray-800 mb-6">Search Pet Records</h2>
+  
+  <div className="flex flex-wrap gap-3 mb-6">
+    <button 
+      onClick={() => navigate('/records')} 
+      className="px-5 py-2.5 bg-gradient-to-r from-red-500 to-red-400 text-white font-medium rounded-lg hover:from-red-600 hover:to-red-500 transition-all duration-300 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-red-300"
+    >
+      ← Back to All Records
+    </button>
+  </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="error-message">
-            Error: {error}
-          </div>
-        )}
-
-        {/* Debug Output */}
-        <div className="debug-info">
-          <small>Searching for: "{ownerName}"</small>
-          <small>Found {results.length} records</small>
-        </div>
-
-        {results.length > 0 ? (
-          <div className="results-container">
-            <table className="results-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Owner</th>
-                  <th>Pet</th>
-                  <th>Date</th>
-                  <th>Surgery</th>
-                  <th>Vaccination</th>
-                  <th>Other</th>
-                </tr>
-              </thead>
-              <tbody>
-                {results.map((record) => (
-                  <tr key={record.id} className="record-row">
-                    <td>{record.id}</td>
-                    <td>{record.owner_name || 'N/A'}</td>
-                    <td>{record.pet_name || 'N/A'}</td>
-                    <td>{record.date ? new Date(record.date).toLocaleDateString() : 'N/A'}</td>
-                    <td>{record.surgery || 'N/A'}</td>
-                    <td>{record.vaccination || 'N/A'}</td>
-                    <td>{record.other || 'N/A'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+  <div className="space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+      <div className="space-y-2">
+        <label className="block text-gray-700">Owner Name:</label>
+        <input
+          type="text"
+          value={ownerName}
+          onChange={(e) => setOwnerName(e.target.value)}
+          placeholder="Enter owner name..."
+          className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+        />
+      </div>
+      
+      <button 
+        onClick={handleSearch} 
+        className={`px-4 py-2 text-white rounded transition flex items-center gap-2 justify-center ${
+          isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+        }`}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          'Searching...'
         ) : (
-          <div className="no-results">
-            {ownerName 
-              ? (isLoading ? 'Searching...' : 'No records found') 
-              : 'Enter an owner name to search'}
-          </div>
+          <>
+            <span>🔍</span> Search Records
+          </>
         )}
+      </button>
+      
+      <button 
+        onClick={handleGeneratePDF} 
+        className={`px-4 py-2 rounded transition flex items-center gap-2 justify-center ${
+          results.length === 0 
+            ? 'bg-gray-400 cursor-not-allowed' 
+            : 'bg-green-500 hover:bg-green-600 text-white'
+        }`}
+        disabled={results.length === 0}
+      >
+        Generate PDF Report
+      </button>
+    </div>
 
-        <div className="action-buttons">
-          <button 
-            onClick={() => navigate('/records')} 
-            className="back-button"
-          >
-            ← Back to All Records
-          </button>
-          <button 
-            onClick={handleGeneratePDF} 
-            className="pdf-button"
-            disabled={results.length === 0}
-          >
-            Generate PDF Report
-          </button>
+    {error && (
+      <div className="p-3 bg-red-100 text-red-700 rounded">
+        Error: {error}
+      </div>
+    )}
 
+    <div className="text-sm text-gray-500">
+      <p>Searching for: "{ownerName}"</p>
+      <p>Found {results.length} records</p>
+    </div>
+
+    {results.length > 0 ? (
+      <div className="overflow-x-auto">
+        <table className="min-w-full border-collapse">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="p-2 border text-left">ID</th>
+              <th className="p-2 border text-left">Owner</th>
+              <th className="p-2 border text-left">Pet</th>
+              <th className="p-2 border text-left">Date</th>
+              <th className="p-2 border text-left">Surgery</th>
+              <th className="p-2 border text-left">Vaccination</th>
+              <th className="p-2 border text-left">Other</th>
+            </tr>
+          </thead>
+          <tbody>
+            {results.map((record) => (
+              <tr key={record.id} className="hover:bg-gray-50">
+                <td className="p-2 border">{record.id}</td>
+                <td className="p-2 border">{record.owner_name || 'N/A'}</td>
+                <td className="p-2 border">{record.pet_name || 'N/A'}</td>
+                <td className="p-2 border">{record.date ? new Date(record.date).toLocaleDateString() : 'N/A'}</td>
+                <td className="p-2 border">{record.surgery || 'N/A'}</td>
+                <td className="p-2 border">{record.vaccination || 'N/A'}</td>
+                <td className="p-2 border">{record.other || 'N/A'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ) : (
+      <div className="p-4 text-center text-gray-600">
+        {ownerName 
+          ? (isLoading ? 'Searching...' : 'No records found') 
+          : 'Enter an owner name to search'}
+      </div>
+    )}
+  </div>
+
+  {/* Owner Selection Modal */}
+  {showOwnerSelection && (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <h3 className="text-xl font-bold mb-4">Select Owner</h3>
+        <div className="max-h-60 overflow-y-auto mb-4">
+          {Object.keys(groupedData).map(owner => (
+            <div 
+              key={owner} 
+              className={`p-3 mb-2 cursor-pointer rounded ${
+                selectedOwner === owner ? 'bg-blue-100 border border-blue-300' : 'hover:bg-gray-100'
+              }`}
+              onClick={() => handleOwnerSelect(owner)}
+            >
+              {owner}
+            </div>
+          ))}
         </div>
-        {/* Owner Selection Modal */}
-        {showOwnerSelection && (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <h3>Select Owner</h3>
-              <div className="owner-list">
-                {Object.keys(groupedData).map(owner => (
-                  <div 
-                    key={owner} 
-                    className={`owner-item ${selectedOwner === owner ? 'selected' : ''}`}
-                    onClick={() => handleOwnerSelect(owner)}
-                  >
-                    {owner}
-                  </div>
-                ))}
-              </div>
-              <div className="modal-actions">
-                <button 
-                  onClick={() => setShowOwnerSelection(false)}
-                  className="modal-cancel"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Pet Selection Modal */}
-        {showPetSelection && (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <h3>Select Pet for {selectedOwner}</h3>
-              <div className="pet-list">
-                {Object.keys(groupedData[selectedOwner] || {}).map(pet => (
-                  <div 
-                    key={pet} 
-                    className={`pet-item ${selectedPet === pet ? 'selected' : ''}`}
-                    onClick={() => {
-                      setSelectedPet(pet);
-                      generatePDF(selectedOwner, pet);
-                    }}
-                  >
-                    {pet}
-                  </div>
-                ))}
-              </div>
-              <div className="modal-actions">
-                <button 
-                  onClick={() => setShowPetSelection(false)}
-                  className="modal-cancel"
-                >
-                  Back
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <div className="flex justify-end">
+          <button 
+            onClick={() => setShowOwnerSelection(false)}
+            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
+  )}
+
+  {/* Pet Selection Modal */}
+  {showPetSelection && (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <h3 className="text-xl font-bold mb-4">Select Pet for {selectedOwner}</h3>
+        <div className="max-h-60 overflow-y-auto mb-4">
+          {Object.keys(groupedData[selectedOwner] || {}).map(pet => (
+            <div 
+              key={pet} 
+              className={`p-3 mb-2 cursor-pointer rounded ${
+                selectedPet === pet ? 'bg-blue-100 border border-blue-300' : 'hover:bg-gray-100'
+              }`}
+              onClick={() => {
+                setSelectedPet(pet);
+                generatePDF(selectedOwner, pet);
+              }}
+            >
+              {pet}
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-end">
+          <button 
+            onClick={() => setShowPetSelection(false)}
+            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition"
+          >
+            Back
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
   );
 };
 
