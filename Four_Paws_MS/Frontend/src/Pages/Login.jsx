@@ -155,12 +155,14 @@ function Login() {
           </div>
 
           <div>
+            <p className="text-sm text-white justify-center flex items-center pb-3">
+              New to Four Paws?{" "}
+            </p>
             <Link to="/Register">
-            <button
-              className="px-4 py-2 rounded-lg transition flex items-center justify-center gap-2 w-[300px] bg-red-500 border-[1px] hover:bg-red-400 text-white font-bold cursor-pointer"
-            >
-              Register
-            </button></Link>
+              <button className="px-4 py-2 rounded-lg transition flex items-center justify-center gap-2 w-[300px] border-1 hover:bg-red-500 text-white font-bold cursor-pointer">
+                Register
+              </button>
+            </Link>
           </div>
         </div>
       </div>

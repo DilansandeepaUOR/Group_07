@@ -61,6 +61,9 @@ function Home() {
               className="w-96 lg:w-150 transform transition duration-300 hover:scale-105"
             />
           </div>
+          
+          {/* Divider */}
+          <div className="w-full my-6 border-t border-[#46dfd0]"></div>
 
           <div className="top-0 right-0 justify-center items-center xl:hidden">
             <img
@@ -102,14 +105,14 @@ function Home() {
 
       {/* Testimonials from World-Renowned Veterinarians */}
       <div className="flex flex-col items-center pt-10 pb-20 bg-gradient-to-b from-[#A6E3E9] via-[#71C9CE] to-[#22292F]">
-            <h2 className="text-5xl font-bold text-center text-[#028478] mb-12 pt-10">
-            Wisdom from Veterinarians
-            </h2>
-            <img
-              src={paw}
-              alt="paw"
-              className="absolute justify-center w-16 h-16 opacity-50"
-            />
+        <h2 className="text-5xl font-bold text-center text-[#028478] mb-12 pt-10">
+          Wisdom from Veterinarians
+        </h2>
+        <img
+          src={paw}
+          alt="paw"
+          className="absolute justify-center w-16 h-16 opacity-50"
+        />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Dr. Jane Goodall */}
           <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border-l-4 border-[#FFD700]">
