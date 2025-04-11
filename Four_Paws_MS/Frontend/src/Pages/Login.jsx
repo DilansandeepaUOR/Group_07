@@ -3,14 +3,17 @@ import {
   FaEye,
   FaEyeSlash,
   FaExclamationCircle,
+  FaGoogle,
 } from "react-icons/fa";
 import paw from "../assets/paw_vector.png";
 import "../Styles/Fonts/Fonts.css";
 import axios from "axios";
+import logo from "../assets/logo.png";
+import { Link } from "react-router-dom";
 
-import React, { useState} from "react";
+import React, { useState } from "react";
 
-function Login({ onClose }) {
+function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -19,7 +22,6 @@ function Login({ onClose }) {
   const storeSession = (sessionData) => {
     sessionStorage.setItem("authToken", sessionData);
   };
-
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -63,11 +65,14 @@ function Login({ onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center bg-transparent bg-opacity-50 backdrop-blur-md z-50 ">
-      <div className="bg-gradient-to-b from-[#182020] to-[#394a46] items-center p-8 rounded-lg shadow-lg w-96 relative border-2 border-gray-800">
+    <div className="fixed inset-0 flex justify-center items-center bg-gradient-to-b from-[#E3FDFD] via-[#71C9CE] to-[#A6E3E9] z-50">
+      <div className="absolute top-5 left-5 object-cover w-[200px]">
+        <img src={logo} alt="logo" />
+      </div>
+      <div className="bg-gradient-to-b from-[#182020] to-[#394a46] items-center p-8 rounded-lg shadow-2xl w-96 relative border-2 border-gray-800">
         {/* Close Button */}
         <button
-          onClick={onClose}
+          onClick={() => window.history.back()}
           className="absolute top-3 right-3 text-white hover:text-gray-200 text-lg cursor-pointer"
         >
           <FaTimes size={22} />
@@ -129,38 +134,34 @@ function Login({ onClose }) {
         </div>
 
         {/* Buttons */}
-        <div className="flex justify-between items-center">
-          <button
-            onClick={onClose}
-            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-400 transition cursor-pointer"
-          >
-            Cancel
-          </button>
-
+        <div className="flex flex-col justify-center items-center gap-5">
           <div>
             <button
               onClick={handleLogin}
-              className="px-4 py-2 rounded-lg transition flex items-center gap-2 bg-[#028478] hover:bg-[#5ba29c] text-white cursor-pointer"
+              className="px-4 py-2 rounded-lg transition flex items-center justify-center gap-2 w-[300px] bg-[#028478] hover:bg-[#5ba29c] text-white font-bold cursor-pointer"
             >
               Login
             </button>
           </div>
-        </div>
 
-        {/* Divider */}
-        <div className="my-6 border-t border-[#46dfd0]"></div>
+          {/* Divider */}
+          <div className="relative w-[300px]">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full my-6 border-t border-[#46dfd0]"></div>
+            </div>
+            <div className="relative flex justify-center">
+              <span className="px-2 bg-[#394a46] text-white text-sm">OR</span>
+            </div>
+          </div>
 
-        {/* Sign Up */}
-        <div className="text-center">
-          <p className="text-sm text-white">
-            Don't have an account?{" "}
+          <div>
+            <Link to="/Register">
             <button
-              className="text-red-500 font-bold hover:underline underline-offset-4 cursor-pointer"
-              onClick={() => alert("Sign Up functionality coming soon!")}
+              className="px-4 py-2 rounded-lg transition flex items-center justify-center gap-2 w-[300px] bg-red-500 border-[1px] hover:bg-red-400 text-white font-bold cursor-pointer"
             >
               Register
-            </button>
-          </p>
+            </button></Link>
+          </div>
         </div>
       </div>
     </div>

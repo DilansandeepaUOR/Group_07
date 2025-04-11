@@ -17,13 +17,14 @@ import Login from "../../Pages/Login";
 import Register from "../../Pages/Register";
 import Profilearea from "../Profilearea/Profilearea";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+
+
 
 function Navbar() {
   const [showMenu, setShowMenu] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const navigate= useNavigate();
 
   useEffect(() => {
     axios.get("http://localhost:3001/api/auth/user", { withCredentials: true })
@@ -105,10 +106,10 @@ function Navbar() {
                         Icon={item.icon}
                         onClick={() => {
                           if (item.name === "Sign in") {
-                            setShowLogin(true);
+                            navigate("/Login");
                           }
                           if (item.name === "Register") {
-                            setShowRegister(true);
+                            navigate("/Register");
                           }
                         }}
                       />
@@ -131,10 +132,10 @@ function Navbar() {
                         Icon={item.icon}
                         onClick={() => {
                           if (item.name === "Sign in") {
-                            setShowLogin(true);
+                            navigate("/Login");
                           }
                           if (item.name === "Register") {
-                            setShowRegister(true);
+                            navigate("/Register");
                           }
                         }}
                       />
@@ -165,10 +166,10 @@ function Navbar() {
                   Icon={item.icon}
                   onClick={() => {
                     if (item.name === "Sign in") {
-                      setShowLogin(true);
+                      navigate("/Login");
                     }
                     if (item.name === "Register") {
-                      setShowRegister(true);
+                      navigate("/Register");
                     }
                   }}
                 />
@@ -177,8 +178,7 @@ function Navbar() {
           )}
         </div>
       </div>
-      {showLogin && <Login onClose={() => setShowLogin(false)} />}
-      {showRegister && <Register onClose={() => setShowRegister(false)} />}
+      
     </nav>
   );
 }

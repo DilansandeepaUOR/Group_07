@@ -100,51 +100,71 @@ function Home() {
         </div>
       </div>
 
-      {/* Testimonials Section */}
-      <div className="container mx-auto px-4 pb-20 bg-gradient-to-b from-[#A6E3E9] via-[#71C9CE] to-[#22292F]">
-        <div className="flex flex-col items-center pt-10 pb-20]">
-          <div />
-          <h2 className="text-4xl font-bold text-center text-[#028478] p-10">
-            What Pet Owners Say
-          </h2>
-
-          <img
-            src={paw}
-            alt="paw"
-            className="absolute justify-center w-16 h-16 opacity-50"
-          />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                quote:
-                  "The care my dog received was exceptional. The staff truly loves animals!",
-                author: "Sarah J.",
-                pet: "Golden Retriever Owner",
-              },
-              {
-                quote:
-                  "Emergency service saved my cat's life. Forever grateful to 4Paws!",
-                author: "Michael T.",
-                pet: "Cat Owner",
-              },
-              {
-                quote:
-                  "Professional and compassionate care every time we visit. Highly recommend!",
-                author: "Emily R.",
-                pet: "Multiple Pet Owner",
-              },
-            ].map((testimonial, index) => (
-              <div
-                key={index}
-                className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border-l-4 border-[#FFD700]"
-              >
-                <p className="text-gray-600 italic mb-4">
-                  "{testimonial.quote}"
-                </p>
-                <p className="font-bold text-[#028478]">{testimonial.author}</p>
-                <p className="text-sm text-gray-500">{testimonial.pet}</p>
+      {/* Testimonials from World-Renowned Veterinarians */}
+      <div className="flex flex-col items-center pt-10 pb-20 bg-gradient-to-b from-[#A6E3E9] via-[#71C9CE] to-[#22292F]">
+            <h2 className="text-5xl font-bold text-center text-[#028478] mb-12 pt-10">
+            Wisdom from Veterinarians
+            </h2>
+            <img
+              src={paw}
+              alt="paw"
+              className="absolute justify-center w-16 h-16 opacity-50"
+            />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Dr. Jane Goodall */}
+          <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border-l-4 border-[#FFD700]">
+            <p className="text-gray-600 italic mb-4">
+              "The least I can do is speak for those who cannot speak for
+              themselves."
+            </p>
+            <div className="flex items-center">
+              <div className="bg-[#028478] text-white rounded-full w-10 h-10 flex items-center justify-center mr-3">
+                JG
               </div>
-            ))}
+              <div>
+                <p className="font-bold text-[#028478]">Dr. Jane Goodall</p>
+                <p className="text-sm text-gray-500">
+                  Primatologist & Animal Rights Advocate
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Dr. James Herriot */}
+          <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border-l-4 border-[#FFD700]">
+            <p className="text-gray-600 italic mb-4">
+              "If having a soul means being able to feel love and loyalty, then
+              animals are better off than a lot of humans."
+            </p>
+            <div className="flex items-center">
+              <div className="bg-[#028478] text-white rounded-full w-10 h-10 flex items-center justify-center mr-3">
+                JH
+              </div>
+              <div>
+                <p className="font-bold text-[#028478]">Dr. James Herriot</p>
+                <p className="text-sm text-gray-500">
+                  Author of <em>All Creatures Great and Small</em>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Dr. Marty Becker */}
+          <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border-l-4 border-[#FFD700]">
+            <p className="text-gray-600 italic mb-4">
+              "Pets are not our whole life, but they make our lives whole."
+            </p>
+            <div className="flex items-center">
+              <div className="bg-[#028478] text-white rounded-full w-10 h-10 flex items-center justify-center mr-3">
+                MB
+              </div>
+              <div>
+                <p className="font-bold text-[#028478]">Dr. Marty Becker</p>
+                <p className="text-sm text-gray-500">
+                  "America's Veterinarian"
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
