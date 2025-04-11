@@ -11,7 +11,6 @@ import s4 from "../assets/Mobile_service.jpeg";
 import Cards from "../Components/Cards/Cards.jsx";
 import Navbar from "@/Components/Navbar/Navbar";
 import Footer from "@/Components/Footer/Footer";
-import logo from "../assets/logo.png";
 
 function Home() {
   const service = [
@@ -36,7 +35,7 @@ function Home() {
                 compassionate care for every pet’s health and
               </h1>
 
-              <h1 className="text-4xl font-extrabold text-gray-200 mt-2 Poppins md:text-9xl">
+              <h1 className="text-4xl font-extrabold text-gray-200 mt-2 Poppins lg:text-9xl">
                 Happiness.
               </h1>
 
@@ -63,93 +62,99 @@ function Home() {
           alt="paw"
           className="absolute bottom-0 right-0 w-24 opacity-30 transform rotate-45"
         />
-
-        {/* Our Services Section */}
-        <div>
-          <div className="flex flex-col items-center">
-            <h2 className="text-5xl font-bold text-center text-[#028478] mb-12 pt-10">
-              Our services
-            </h2>
-            <img
-              src={paw}
-              alt="paw"
-              className="absolute justify-center w-16 h-16 opacity-50"
-            />
-            <div className="flex flex-wrap justify-center gap-12 pt-10">
-              {service.map((item) => (
-                <div className="shadow-[5px_5px_15px_rgba(0,0,0,0.3)] rounded-lg w-70 h-80 flex flex-col items-center justify-center">
-                  <Cards name={item.name} image={item.image} />
-                </div>
-              ))}
+        <div className="bg-gradient-to-b from-[#71C9CE] via-[#028478] to-[#22292F]">
+          {/* Our Services Section */}
+          <div className="">
+            <div className="flex flex-col items-center ">
+              <h2 className="text-5xl font-bold text-center text-[#22292F] mb-12 pt-10">
+                Our services
+              </h2>
+              <img
+                src={paw}
+                alt="paw"
+                className="absolute justify-center w-16 h-16 opacity-50"
+              />
+              <div className="flex flex-wrap justify-center gap-12 pt-10">
+                {service.map((item) => (
+                  <div className="shadow-[5px_5px_15px_rgba(0,0,0,0.3)] rounded-lg w-70 h-80 flex flex-col items-center justify-center">
+                    <Cards name={item.name} image={item.image} />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-        {/* Testimonials Section */}
-        <div className="py-50 px-10 bg-gradient-to-b from-[#A6E3E9] via-[#71C9CE] to-[#22292F]">
-          {/* Section Header */}
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-[#028478] mb-4">
-              Wisdom from Veterinarians
-            </h2>
-          </div>
+          {/* Testimonials Section */}
+          <div className="py-50 px-10">
+            {/* Section Header */}
+            <div className="text-center mb-20">
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-200 mb-4">
+                Wisdom from Veterinarians
+              </h2>
+            </div>
 
-          {/* Testimonial Cards */}
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Dr. Jane Goodall */}
-              <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:border-[#FFD700] border-l-4 border-transparent">
-                <p className="text-gray-600 italic mb-4">
-                  "The least I can do is speak for those who cannot speak for
-                  themselves."
-                </p>
-                <div className="flex items-center">
-                  <div className="bg-[#028478] text-white rounded-full w-10 h-10 flex items-center justify-center mr-3">
-                    JG
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#028478]">Dr. Jane Goodall</p>
-                    <p className="text-sm text-gray-500">
-                      Primatologist & Animal Rights Advocate
-                    </p>
+            {/* Testimonial Cards */}
+            <div className="container mx-auto px-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {/* Dr. Jane Goodall */}
+                <div className="bg-gradient-to-b from-[#A6E3E9] via-[#71C9CE] to-[#A6E3E9] p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:border-[#028478] border-l-4 border-transparent">
+                  <p className="text-gray-600 italic mb-4">
+                    "The least I can do is speak for those who cannot speak for
+                    themselves."
+                  </p>
+                  <div className="flex items-center">
+                    <div className="bg-[#028478] text-white rounded-full w-10 h-10 flex items-center justify-center mr-3">
+                      JG
+                    </div>
+                    <div>
+                      <p className="font-bold text-[#028478]">
+                        Dr. Jane Goodall
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Primatologist & Animal Rights Advocate
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Dr. James Herriot */}
-              <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:border-[#FFD700] border-l-4 border-transparent">
-                <p className="text-gray-600 italic mb-4">
-                  "If having a soul means being able to feel love and loyalty,
-                  then animals are better off than a lot of humans."
-                </p>
-                <div className="flex items-center">
-                  <div className="bg-[#028478] text-white rounded-full w-10 h-10 flex items-center justify-center mr-3">
-                    JH
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#028478]">
-                      Dr. James Herriot
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Author of <em>All Creatures Great and Small</em>
-                    </p>
+                {/* Dr. James Herriot */}
+                <div className="bg-gradient-to-b from-[#A6E3E9] via-[#71C9CE] to-[#A6E3E9] p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:border-[#028478] border-l-4 border-transparent">
+                  <p className="text-gray-600 italic mb-4">
+                    "If having a soul means being able to feel love and loyalty,
+                    then animals are better off than a lot of humans."
+                  </p>
+                  <div className="flex items-center">
+                    <div className="bg-[#028478] text-white rounded-full w-10 h-10 flex items-center justify-center mr-3">
+                      JH
+                    </div>
+                    <div>
+                      <p className="font-bold text-[#028478]">
+                        Dr. James Herriot
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Author of <em>All Creatures Great and Small</em>
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Dr. Marty Becker */}
-              <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:border-[#FFD700] border-l-4 border-transparent">
-                <p className="text-gray-600 italic mb-4">
-                  "Pets are not our whole life, but they make our lives whole."
-                </p>
-                <div className="flex items-center">
-                  <div className="bg-[#028478] text-white rounded-full w-10 h-10 flex items-center justify-center mr-3">
-                    MB
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#028478]">Dr. Marty Becker</p>
-                    <p className="text-sm text-gray-500">
-                      "America's Veterinarian"
-                    </p>
+                {/* Dr. Marty Becker */}
+                <div className="bg-gradient-to-b from-[#A6E3E9] via-[#71C9CE] to-[#A6E3E9] p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:border-[#028478] border-l-4 border-transparent">
+                  <p className="text-gray-600 italic mb-4">
+                    "Pets are not our whole life, but they make our lives
+                    whole."
+                  </p>
+                  <div className="flex items-center">
+                    <div className="bg-[#028478] text-white rounded-full w-10 h-10 flex items-center justify-center mr-3">
+                      MB
+                    </div>
+                    <div>
+                      <p className="font-bold text-[#028478]">
+                        Dr. Marty Becker
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        "America's Veterinarian"
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
