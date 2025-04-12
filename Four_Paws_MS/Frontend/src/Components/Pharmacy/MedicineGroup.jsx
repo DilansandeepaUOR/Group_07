@@ -29,43 +29,43 @@ export default function MedicineGroupSection() {
   const [selectedMedicines, setSelectedMedicines] = useState([]);
 
   // Function to fetch available medicines
-const fetchAvailableMedicines = async () => {
-  try {
-    const response = await fetch('http://localhost:3001/pharmacy/api/medicines');
-    const data = await response.json();
-    setAvailableMedicines(data);
-  } catch (err) {
-    console.error("Error fetching medicines:", err);
-  }
-};
+  const fetchAvailableMedicines = async () => {
+    try {
+      const response = await fetch(MEDICINES_API_URL);
+      const data = await response.json();
+      setAvailableMedicines(data);
+    } catch (err) {
+      console.error("Error fetching medicines:", err);
+    }
+  };
 
-// Function to add medicines to group
-const handleAddMedicines = async () => {
-  try {
-    setLoading(true);
-    await fetch(`${API_BASE_URL}/${selectedGroup.id}/medicines`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ medicineIds: selectedMedicines })
-    });
-    
-    // Refresh the group data
-    const response = await fetch(`${API_BASE_URL}/${selectedGroup.id}`);
-    const updatedGroup = await response.json();
-    
-    // Update in the groups list
-    setMedicineGroups(groups => 
-      groups.map(g => g.id === selectedGroup.id ? updatedGroup : g)
-    );
-    
-    setShowAddMedicineModal(false);
-    setSelectedMedicines([]);
-  } catch (err) {
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+  // Function to add medicines to group
+  const handleAddMedicines = async () => {
+    try {
+      setLoading(true);
+      await fetch(`${API_BASE_URL}/${selectedGroup.id}/medicines`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ medicineIds: selectedMedicines })
+      });
+      
+      // Refresh the group data
+      const response = await fetch(`${API_BASE_URL}/${selectedGroup.id}`);
+      const updatedGroup = await response.json();
+      
+      // Update in the groups list
+      setMedicineGroups(groups => 
+        groups.map(g => g.id === selectedGroup.id ? updatedGroup : g)
+      );
+      
+      setShowAddMedicineModal(false);
+      setSelectedMedicines([]);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Fetch medicine groups from backend
   useEffect(() => {
@@ -301,9 +301,22 @@ const handleAddMedicines = async () => {
     )
   }
 
-  const openViewGroup = (group) => {
-    setSelectedGroup(group)
-    setShowViewGroupModal(true)
+  const openViewGroup = async (group) => {
+    try {
+      setLoading(true);
+      // Fetch the full group details including medicines
+      const response = await fetch(`${API_BASE_URL}/${group.id}`);
+      if (!response.ok) throw new Error('Failed to fetch group details');
+      
+      const fullGroupDetails = await response.json();
+      setSelectedGroup(fullGroupDetails);
+      setShowViewGroupModal(true);
+    } catch (err) {
+      setError(err.message);
+      console.error("Error fetching group details:", err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const openEditGroup = (group) => {
@@ -916,7 +929,7 @@ const handleAddMedicines = async () => {
                     <tr>
                       <th>ID</th>
                       <th>Name</th>
-                      <th>Dosage</th>
+                      {/*<th>Dosage</th>*/}
                     </tr>
                   </thead>
                   <tbody>
@@ -925,7 +938,7 @@ const handleAddMedicines = async () => {
                         <tr key={medicine.id}>
                           <td>{medicine.id}</td>
                           <td>{medicine.name}</td>
-                          <td>{medicine.dosage || 'N/A'}</td>
+                          {/* <td>{medicine.dosage || 'N/A'}</td> */}
                         </tr>
                       ))
                     ) : (

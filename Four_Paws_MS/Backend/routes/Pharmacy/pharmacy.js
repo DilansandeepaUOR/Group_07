@@ -196,7 +196,6 @@ router.put('/api/medicines/:id', (req, res) => {
 router.delete('/api/medicines/:id', (req, res) => {
   try {
     const { id } = req.params;
-    console.log(id);
     
     db.query(
       'DELETE FROM medicines WHERE id = ?',
@@ -218,109 +217,6 @@ router.delete('/api/medicines/:id', (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'Failed to delete medicine' });
   }
-});
-
-// GET all medicine groups (with optional search and pagination)
-router.get('/api/medicine-groups', (req, res) => {
-  try {
-    const { search = '', page = 1, limit = 5 } = req.query;
-    const offset = (page - 1) * limit;
-
-    // Get total count
-    db.query(
-      'SELECT COUNT(*) as total FROM medicine_groups WHERE name LIKE ?',
-      [`%${search}%`],
-      (countErr, countRows) => {
-        if (countErr) {
-          console.error(countErr);
-          return res.status(500).json({ error: 'Failed to count medicine groups' });
-        }
-
-        const total = countRows[0].total;
-        const totalPages = Math.ceil(total / limit);
-
-        // Get paginated data
-        db.query(
-          `SELECT mg.*, COUNT(mgm.medicine_id) as medicine_count 
-           FROM medicine_groups mg
-           LEFT JOIN medicine_group_members mgm ON mg.id = mgm.group_id
-           WHERE mg.name LIKE ?
-           GROUP BY mg.id
-           ORDER BY mg.name ASC
-           LIMIT ? OFFSET ?`,
-          [`%${search}%`, parseInt(limit), parseInt(offset)],
-          (groupErr, groups) => {
-            if (groupErr) {
-              console.error(groupErr);
-              return res.status(500).json({ error: 'Failed to fetch medicine groups' });
-            }
-
-            res.json({
-              data: groups,
-              totalCount: total,
-              page: parseInt(page),
-              limit: parseInt(limit),
-              totalPages,
-            });
-          }
-        );
-      }
-    );
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch medicine groups' });
-  }
-});
-
-// GET single medicine group by ID with its medicines
-router.get('/api/medicine-groups/:id', (req, res) => {
-  const { id } = req.params;
-
-  // First get the group details
-  db.query('SELECT * FROM medicine_groups WHERE id = ?', [id], (groupErr, groupRows) => {
-    if (groupErr) {
-      console.error(groupErr);
-      return res.status(500).json({ error: 'Failed to fetch medicine group' });
-    }
-    
-    if (groupRows.length === 0) {
-      return res.status(404).json({ error: 'Medicine group not found' });
-    }
-
-    const group = groupRows[0];
-
-    // Then get all medicines in this group
-    db.query(
-      `SELECT m.* FROM medicines m
-       JOIN medicine_group_members mgm ON m.id = mgm.id
-       WHERE mgm.group_id = ?`,
-      [id],
-      (medErr, medicines) => {
-        if (medErr) {
-          console.error(medErr);
-          return res.status(500).json({ error: 'Failed to fetch group medicines' });
-        }
-
-        // Process medicines to include status based on stock
-        const processedMedicines = medicines.map(medicine => {
-          let status = 'In Stock';
-          const stock = parseInt(medicine.stock);
-          if (stock === 0) {
-            status = 'Out of Stock';
-          } else if (stock > 0 && stock <= 15) {
-            status = 'Low Stock';
-          }
-          return { ...medicine, status };
-        });
-
-        res.json({
-          ...group,
-          medicines: processedMedicines,
-          medicine_count: processedMedicines.length
-        });
-      }
-    );
-  });
 });
 
 // GET all medicine groups (with optional search and pagination)
@@ -432,8 +328,8 @@ router.get('/api/medicine-groups/:groupId/medicines', (req, res) => {
 
   db.query(
     `SELECT m.* FROM medicines m
-     JOIN group_medicines gm ON m.id = gm.medicine_id
-     WHERE gm.group_id = ?`,
+     JOIN medicine_group_members mgm ON m.id = mgm.medicine_id
+     WHERE mgm.group_id = ?`,
     [groupId],
     (err, medicines) => {
       if (err) {
@@ -622,41 +518,19 @@ router.post('/api/medicine-groups/:groupId/medicines', (req, res) => {
   const values = medicineIds.map(id => [groupId, id]);
   
   db.query(
-    `INSERT IGNORE INTO group_medicines (group_id, medicine_id) VALUES ?`,
+    `INSERT IGNORE INTO medicine_group_members (group_id, medicine_id) VALUES ?`,
     [values],
     (err, result) => {
       if (err) {
         console.error(err);
-        return res.status(500).json({ error: 'Failed to add medicines' });
+        return res.status(500).json({ error: 'Failed to add medicines to group' });
       }
 
-      // Return the updated group with medicines
-      db.query(
-        `SELECT mg.*, 
-                JSON_ARRAYAGG(
-                  JSON_OBJECT(
-                    'id', m.id,
-                    'name', m.name,
-                    'dosage', m.dosage
-                  )
-                ) as medicines
-         FROM medicine_groups mg
-         LEFT JOIN group_medicines gm ON mg.id = gm.group_id
-         LEFT JOIN medicines m ON gm.medicine_id = m.id
-         WHERE mg.id = ?
-         GROUP BY mg.id`,
-        [groupId],
-        (err, results) => {
-          if (err || results.length === 0) {
-            return res.status(500).json({ error: 'Failed to fetch updated group' });
-          }
-
-          res.json({
-            ...results[0],
-            medicines: results[0].medicines[0]?.id ? results[0].medicines : []
-          });
-        }
-      );
+      res.json({
+        success: true,
+        message: 'Medicines added to group successfully',
+        addedCount: result.affectedRows
+      });
     }
   );
 });
