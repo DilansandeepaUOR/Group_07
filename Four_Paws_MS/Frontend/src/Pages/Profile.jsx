@@ -388,8 +388,8 @@ function Profile() {
                   <div>
                     <label className="block text-gray-300 mb-1">Pet Type</label>
                     <select
-                      name="gender"
-                      value={editForm.gender}
+                      name="Pet_type"
+                      value={editForm.Pet_type}
                       onChange={handleEditChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
                     >

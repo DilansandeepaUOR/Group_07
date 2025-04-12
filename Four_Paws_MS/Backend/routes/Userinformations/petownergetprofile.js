@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../../db");
+const multer = require('multer');
+const upload = multer(); // No storage configured for memory-only processing
 
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
