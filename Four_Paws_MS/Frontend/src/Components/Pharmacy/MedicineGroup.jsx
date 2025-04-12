@@ -1,80 +1,222 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Plus, Edit, Trash2, X, Search, Eye, ChevronLeft, ChevronRight } from "lucide-react"
 
 export default function MedicineGroupSection() {
+  const API_BASE_URL = "http://localhost:3001/pharmacy/api/medicine-groups";
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false)
   const [showViewGroupModal, setShowViewGroupModal] = useState(false)
   const [showEditGroupModal, setShowEditGroupModal] = useState(false)
   const [showRemoveItemModal, setShowRemoveItemModal] = useState(false)
   const [newGroupName, setNewGroupName] = useState("")
+  const [newGroupDescription, setNewGroupDescription] = useState("")
   const [editGroupName, setEditGroupName] = useState("")
+  const [editGroupDescription, setEditGroupDescription] = useState("")
   const [selectedGroup, setSelectedGroup] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedItems, setSelectedItems] = useState([])
+  const [medicineGroups, setMedicineGroups] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const itemsPerPage = 5
 
-  // Sample data
-  const medicineGroups = [
-    {
-      id: 1,
-      name: "Pain Relief",
-      count: 2,
-      description: "Medications for pain management",
-      medicines: [
-        { id: 1, name: "Paracetamol", dosage: "500mg" },
-        { id: 2, name: "Ibuprofen", dosage: "400mg" },
-      ],
-    },
-    {
-      id: 2,
-      name: "Antibiotics",
-      count: 1,
-      description: "Medications that kill or stop the growth of bacteria",
-      medicines: [
-        { id: 3, name: "Amoxicillin", dosage: "500mg" },
-      ],
-    },
-    {
-      id: 3,
-      name: "Cardiovascular",
-      count: 3,
-      description: "Medications for heart conditions",
-      medicines: [
-        { id: 4, name: "Atorvastatin", dosage: "20mg" },
-        { id: 5, name: "Metoprolol", dosage: "50mg" },
-        { id: 6, name: "Lisinopril", dosage: "10mg" },
-      ],
-    },
-  ]
+  // Fetch medicine groups from backend
+  useEffect(() => {
+    const fetchMedicineGroups = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(
+          `${API_BASE_URL}?search=${searchTerm}&page=${currentPage}&limit=${itemsPerPage}`
+        )
+        
+        if (!response.ok) throw new Error('Failed to fetch medicine groups')
+        
+        const data = await response.json()
+        const groupsData = data.data || data
+        const totalCount = data.totalCount || groupsData.length
+        
+        setTotalPages(Math.ceil(totalCount / itemsPerPage))
+        setMedicineGroups(groupsData)
+        setError(null)
+      } catch (err) {
+        setError(err.message)
+        console.error("Error fetching medicine groups:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchMedicineGroups()
+  }, [searchTerm, currentPage, itemsPerPage])
 
-  const filteredGroups = medicineGroups.filter(group =>
-    group.name.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-
-  const handleCreateGroup = () => {
-    // In a real app, you would call an API here
-    console.log("Creating group:", newGroupName)
-    setShowCreateGroupModal(false)
-    setNewGroupName("")
+  // Pagination handlers
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1)
+    }
   }
 
-  const handleEditGroup = () => {
-    // In a real app, you would call an API here
-    console.log("Editing group:", editGroupName)
-    setShowEditGroupModal(false)
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1)
+    }
   }
 
-  const handleRemoveItem = (medicineId) => {
-    // In a real app, you would call an API here
-    console.log("Removing medicine:", medicineId)
+  const goToPage = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber)
+    }
   }
 
-  const handleRemoveSelected = () => {
-    // In a real app, you would call an API here
-    console.log("Removing selected items:", selectedItems)
-    setShowRemoveItemModal(false)
-    setSelectedItems([])
+  const handleCreateGroup = async () => {
+    if (!newGroupName) {
+      setError('Group name is required')
+      return
+    }
+    
+    try {
+      setLoading(true)
+      const newGroup = {
+        name: newGroupName,
+        description: newGroupDescription,
+        medicines: []
+      }
+
+      const response = await fetch(API_BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newGroup)
+      })
+      
+      if (!response.ok) throw new Error('Failed to create group')
+      
+      const data = await response.json()
+      setMedicineGroups([...medicineGroups, data])
+      
+      setNewGroupName("")
+      setNewGroupDescription("")
+      setShowCreateGroupModal(false)
+      setError(null)
+    } catch (err) {
+      setError(err.message)
+      console.error("Error creating group:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleEditGroup = async () => {
+    if (!editGroupName) {
+      setError('Group name is required')
+      return
+    }
+    
+    try {
+      setLoading(true)
+      const updatedGroup = {
+        ...selectedGroup,
+        name: editGroupName,
+        description: editGroupDescription
+      }
+
+      const response = await fetch(`${API_BASE_URL}/${selectedGroup.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedGroup)
+      })
+      
+      if (!response.ok) throw new Error('Failed to update group')
+      
+      const updatedGroups = medicineGroups.map(group => 
+        group.id === selectedGroup.id ? updatedGroup : group
+      )
+      
+      setMedicineGroups(updatedGroups)
+      setShowEditGroupModal(false)
+      setError(null)
+    } catch (err) {
+      setError(err.message)
+      console.error("Error updating group:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRemoveItem = async (groupId, medicineId) => {
+    if (!window.confirm('Are you sure you want to remove this medicine from the group?')) {
+      return
+    }
+    
+    try {
+      setLoading(true)
+      const response = await fetch(`${API_BASE_URL}/${groupId}/medicines/${medicineId}`, {
+        method: 'DELETE'
+      })
+      
+      if (!response.ok) throw new Error('Failed to remove medicine from group')
+      
+      const updatedGroups = medicineGroups.map(group => {
+        if (group.id === groupId) {
+          return {
+            ...group,
+            medicines: group.medicines.filter(med => med.id !== medicineId),
+            count: group.count - 1
+          }
+        }
+        return group
+      })
+      
+      setMedicineGroups(updatedGroups)
+      setSelectedItems(selectedItems.filter(id => id !== medicineId))
+      setError(null)
+    } catch (err) {
+      setError(err.message)
+      console.error("Error removing medicine from group:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRemoveSelected = async () => {
+    if (!window.confirm(`Are you sure you want to remove ${selectedItems.length} medicines from this group?`)) {
+      return
+    }
+    
+    try {
+      setLoading(true)
+      const groupId = selectedGroup.id
+      
+      // In a real API, you might have a bulk delete endpoint
+      await Promise.all(selectedItems.map(medicineId => 
+        fetch(`${API_BASE_URL}/${groupId}/medicines/${medicineId}`, {
+          method: 'DELETE'
+        })
+      ))
+      
+      const updatedGroups = medicineGroups.map(group => {
+        if (group.id === groupId) {
+          return {
+            ...group,
+            medicines: group.medicines.filter(med => !selectedItems.includes(med.id)),
+            count: group.count - selectedItems.length
+          }
+        }
+        return group
+      })
+      
+      setMedicineGroups(updatedGroups)
+      setShowRemoveItemModal(false)
+      setSelectedItems([])
+      setError(null)
+    } catch (err) {
+      setError(err.message)
+      console.error("Error removing selected medicines:", err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const toggleSelectItem = (medicineId) => {
@@ -93,13 +235,19 @@ export default function MedicineGroupSection() {
   const openEditGroup = (group) => {
     setSelectedGroup(group)
     setEditGroupName(group.name)
+    setEditGroupDescription(group.description || '')
     setShowEditGroupModal(true)
   }
 
   const openRemoveItemModal = (group) => {
     setSelectedGroup(group)
+    setSelectedItems([])
     setShowRemoveItemModal(true)
   }
+
+  const filteredGroups = medicineGroups.filter(group =>
+    group.name.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   return (
     <>
@@ -431,6 +579,20 @@ export default function MedicineGroupSection() {
           border: 1px solid #d1d5db;
           accent-color: #6366f1;
         }
+
+        .error {
+          color: #ef4444;
+          padding: 1rem;
+          background-color: #fee2e2;
+          border-radius: 0.375rem;
+          margin-bottom: 1rem;
+        }
+
+        .loading {
+          text-align: center;
+          padding: 2rem;
+          color: #64748b;
+        }
       `}</style>
 
       <div className="container">
@@ -438,81 +600,122 @@ export default function MedicineGroupSection() {
           <h1 className="sectionTitle">Medicine Groups</h1>
         </div>
 
+        {error && <div className="error">Error: {error}</div>}
+
         <div className="searchAddContainer">
           <input
             type="text"
             placeholder="Search group..."
             className="searchInput"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value)
+              setCurrentPage(1)
+            }}
           />
           <button 
             className="primaryButton"
             onClick={() => setShowCreateGroupModal(true)}
+            disabled={loading}
           >
             <Plus size={16} className="buttonIcon" />
             Create Group
           </button>
         </div>
 
-        <div className="tableContainer">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Group Name</th>
-                <th>Medicines</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredGroups.map((group) => (
-                <tr key={group.id}>
-                  <td className="font-medium">{group.name}</td>
-                  <td>
-                    <span className="countBadge">{group.count} items</span>
-                  </td>
-                  <td>
-                    <div className="actionButtons">
-                      <button
-                        className="primaryButton viewButton"
-                        onClick={() => openViewGroup(group)}
-                      >
-                        <Eye size={16} className="buttonIcon" />
-                        View
-                      </button>
-                      <button
-                        className="primaryButton editButton"
-                        onClick={() => openEditGroup(group)}
-                      >
-                        <Edit size={16} className="buttonIcon" />
-                        Edit
-                      </button>
-                      <button
-                        className="primaryButton deleteButton"
-                        onClick={() => openRemoveItemModal(group)}
-                      >
-                        <Trash2 size={16} className="buttonIcon" />
-                        Remove
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {loading ? (
+          <div className="loading">Loading medicine groups...</div>
+        ) : (
+          <>
+            <div className="tableContainer">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Group Name</th>
+                    <th>Medicines</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredGroups.length > 0 ? (
+                    filteredGroups.map((group) => (
+                      <tr key={group.id}>
+                        <td className="font-medium">{group.name}</td>
+                        <td>
+                          <span className="countBadge">{group.count || 0} items</span>
+                        </td>
+                        <td>
+                          <div className="actionButtons">
+                            <button
+                              className="primaryButton viewButton"
+                              onClick={() => openViewGroup(group)}
+                              disabled={loading}
+                            >
+                              <Eye size={16} className="buttonIcon" />
+                              View
+                            </button>
+                            <button
+                              className="primaryButton editButton"
+                              onClick={() => openEditGroup(group)}
+                              disabled={loading}
+                            >
+                              <Edit size={16} className="buttonIcon" />
+                              Edit
+                            </button>
+                            <button
+                              className="primaryButton deleteButton"
+                              onClick={() => openRemoveItemModal(group)}
+                              disabled={loading || group.count === 0}
+                            >
+                              <Trash2 size={16} className="buttonIcon" />
+                              Remove
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="3" style={{ textAlign: 'center', padding: '2rem' }}>
+                        No medicine groups found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-        <div className="paginationContainer">
-          <div>Showing 1 to {filteredGroups.length} of {filteredGroups.length} groups</div>
-          <div className="paginationButtons">
-            <button className="paginationButton" disabled>
-              <ChevronLeft size={16} />
-            </button>
-            <button className="paginationButton" disabled>
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
+            <div className="paginationContainer">
+              <div>Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredGroups.length)} of {filteredGroups.length} groups</div>
+              <div className="paginationButtons">
+                <button 
+                  className="paginationButton" 
+                  onClick={goToPrevPage}
+                  disabled={currentPage === 1 || loading}
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    className={`paginationButton ${currentPage === page ? 'active' : ''}`}
+                    onClick={() => goToPage(page)}
+                    disabled={loading}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button 
+                  className="paginationButton" 
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages || loading}
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Create Group Modal */}
@@ -524,6 +727,7 @@ export default function MedicineGroupSection() {
               <button 
                 className="modalCloseButton"
                 onClick={() => setShowCreateGroupModal(false)}
+                disabled={loading}
               >
                 <X size={20} />
               </button>
@@ -536,20 +740,32 @@ export default function MedicineGroupSection() {
                 placeholder="Enter group name"
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
+                disabled={loading}
+              />
+              <label className="modalLabel">Description</label>
+              <textarea
+                className="modalInput"
+                placeholder="Enter group description (optional)"
+                rows={3}
+                value={newGroupDescription}
+                onChange={(e) => setNewGroupDescription(e.target.value)}
+                disabled={loading}
               />
             </div>
             <div className="modalFooter">
               <button
                 className="secondaryButton"
                 onClick={() => setShowCreateGroupModal(false)}
+                disabled={loading}
               >
                 Cancel
               </button>
               <button
                 className="primaryButton"
                 onClick={handleCreateGroup}
+                disabled={loading}
               >
-                Create Group
+                {loading ? 'Creating...' : 'Create Group'}
               </button>
             </div>
           </div>
@@ -565,13 +781,14 @@ export default function MedicineGroupSection() {
               <button 
                 className="modalCloseButton"
                 onClick={() => setShowViewGroupModal(false)}
+                disabled={loading}
               >
                 <X size={20} />
               </button>
             </div>
             <div className="modalBody">
-              <p className="text-gray-600 mb-4">{selectedGroup.description}</p>
-              <span className="countBadge">{selectedGroup.count} medicines</span>
+              <p className="text-gray-600 mb-4">{selectedGroup.description || 'No description available'}</p>
+              <span className="countBadge">{selectedGroup.count || 0} medicines</span>
               
               <h3 className="font-semibold mt-6 mb-4">Medicines in this group</h3>
               <div className="tableContainer">
@@ -584,13 +801,21 @@ export default function MedicineGroupSection() {
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedGroup.medicines.map((medicine) => (
-                      <tr key={medicine.id}>
-                        <td>{medicine.id}</td>
-                        <td>{medicine.name}</td>
-                        <td>{medicine.dosage}</td>
+                    {selectedGroup.medicines && selectedGroup.medicines.length > 0 ? (
+                      selectedGroup.medicines.map((medicine) => (
+                        <tr key={medicine.id}>
+                          <td>{medicine.id}</td>
+                          <td>{medicine.name}</td>
+                          <td>{medicine.dosage || 'N/A'}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="3" style={{ textAlign: 'center', padding: '1rem' }}>
+                          No medicines in this group
+                        </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -599,6 +824,7 @@ export default function MedicineGroupSection() {
               <button
                 className="primaryButton"
                 onClick={() => setShowViewGroupModal(false)}
+                disabled={loading}
               >
                 Close
               </button>
@@ -616,6 +842,7 @@ export default function MedicineGroupSection() {
               <button 
                 className="modalCloseButton"
                 onClick={() => setShowEditGroupModal(false)}
+                disabled={loading}
               >
                 <X size={20} />
               </button>
@@ -627,27 +854,32 @@ export default function MedicineGroupSection() {
                 className="modalInput"
                 value={editGroupName}
                 onChange={(e) => setEditGroupName(e.target.value)}
+                disabled={loading}
               />
               
               <label className="modalLabel">Description</label>
               <textarea
                 className="modalInput"
                 rows={3}
-                defaultValue={selectedGroup.description}
+                value={editGroupDescription}
+                onChange={(e) => setEditGroupDescription(e.target.value)}
+                disabled={loading}
               />
             </div>
             <div className="modalFooter">
               <button
                 className="secondaryButton"
                 onClick={() => setShowEditGroupModal(false)}
+                disabled={loading}
               >
                 Cancel
               </button>
               <button
                 className="primaryButton"
                 onClick={handleEditGroup}
+                disabled={loading}
               >
-                Save Changes
+                {loading ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
@@ -663,6 +895,7 @@ export default function MedicineGroupSection() {
               <button 
                 className="modalCloseButton"
                 onClick={() => setShowRemoveItemModal(false)}
+                disabled={loading}
               >
                 <X size={20} />
               </button>
@@ -674,6 +907,7 @@ export default function MedicineGroupSection() {
                   type="text"
                   className="searchField"
                   placeholder="Search medicines..."
+                  disabled={loading}
                 />
               </div>
               
@@ -685,14 +919,15 @@ export default function MedicineGroupSection() {
                         <input 
                           type="checkbox" 
                           className="checkbox"
-                          checked={selectedItems.length === selectedGroup.medicines.length}
+                          checked={selectedItems.length === (selectedGroup.medicines?.length || 0)}
                           onChange={() => {
-                            if (selectedItems.length === selectedGroup.medicines.length) {
+                            if (selectedItems.length === (selectedGroup.medicines?.length || 0)) {
                               setSelectedItems([])
                             } else {
-                              setSelectedItems(selectedGroup.medicines.map(m => m.id))
+                              setSelectedItems(selectedGroup.medicines?.map(m => m.id) || [])
                             }
                           }}
+                          disabled={loading || !selectedGroup.medicines?.length}
                         />
                       </th>
                       <th>ID</th>
@@ -701,29 +936,39 @@ export default function MedicineGroupSection() {
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedGroup.medicines.map((medicine) => (
-                      <tr key={medicine.id}>
-                        <td>
-                          <input
-                            type="checkbox"
-                            className="checkbox"
-                            checked={selectedItems.includes(medicine.id)}
-                            onChange={() => toggleSelectItem(medicine.id)}
-                          />
-                        </td>
-                        <td>{medicine.id}</td>
-                        <td>{medicine.name}</td>
-                        <td>
-                          <button
-                            className="primaryButton deleteButton"
-                            onClick={() => handleRemoveItem(medicine.id)}
-                          >
-                            <Trash2 size={16} className="buttonIcon" />
-                            Remove
-                          </button>
+                    {selectedGroup.medicines && selectedGroup.medicines.length > 0 ? (
+                      selectedGroup.medicines.map((medicine) => (
+                        <tr key={medicine.id}>
+                          <td>
+                            <input
+                              type="checkbox"
+                              className="checkbox"
+                              checked={selectedItems.includes(medicine.id)}
+                              onChange={() => toggleSelectItem(medicine.id)}
+                              disabled={loading}
+                            />
+                          </td>
+                          <td>{medicine.id}</td>
+                          <td>{medicine.name}</td>
+                          <td>
+                            <button
+                              className="primaryButton deleteButton"
+                              onClick={() => handleRemoveItem(selectedGroup.id, medicine.id)}
+                              disabled={loading}
+                            >
+                              <Trash2 size={16} className="buttonIcon" />
+                              Remove
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="4" style={{ textAlign: 'center', padding: '1rem' }}>
+                          No medicines in this group
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -732,13 +977,14 @@ export default function MedicineGroupSection() {
               <button
                 className="secondaryButton"
                 onClick={() => setShowRemoveItemModal(false)}
+                disabled={loading}
               >
                 Cancel
               </button>
               <button
                 className="primaryButton dangerButton"
                 onClick={handleRemoveSelected}
-                disabled={selectedItems.length === 0}
+                disabled={loading || selectedItems.length === 0}
               >
                 <Trash2 size={16} className="buttonIcon" />
                 Remove Selected ({selectedItems.length})
