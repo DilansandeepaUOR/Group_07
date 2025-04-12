@@ -65,8 +65,7 @@ function Register() {
       );
       alert(res.data.message);
       if (res.data.message === "pet and pet owner added successfully") {
-        onClose();
-        navigate("/");
+        navigate("/login");
       }
     } catch (error) {
       if (error.response && error.response.data) {
