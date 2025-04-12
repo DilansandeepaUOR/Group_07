@@ -39,10 +39,10 @@ router.post("/register",validRegister, async (req, res) => {
 
                 const ownerid=ownerResult.insertId;
 
-                const {petName, petDob, petType} = req.body;
-                const petsql= "INSERT INTO pet (Owner_id, Pet_name, Pet_type, Pet_dob) VALUES (?, ?, ?, ?)";
+                const {petName, petDob, petType, petGender} = req.body;
+                const petsql= "INSERT INTO pet (Owner_id, Pet_name, Pet_type, Pet_dob, Pet_gender) VALUES (?, ?, ?, ?, ?)";
 
-                db.query(petsql,[ownerid,petName,petType,petDob], (err) => {
+                db.query(petsql,[ownerid,petName,petType,petDob,petGender], (err) => {
                     if(err) {
                         console.error("Error inserting pet", err);
                         return res.status(500).json({ error: "Error inserting pet" });
