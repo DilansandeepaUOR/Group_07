@@ -127,7 +127,7 @@ function Profile() {
       }
 
       const response = await axios.put(
-        `http://localhost:3001/api/profile/?id=${user.id}`,
+        `http://localhost:3001/api/update/?id=${user.id}`,
         formData,
         {
           headers: {

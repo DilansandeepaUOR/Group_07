@@ -35,6 +35,47 @@ router.get('/profile', async (req, res) => {
     }
   });
 
+  router.put("/update", async (req, res) => {
+    const { id } = req.query;
+
+    if (!id) {
+      return res.status(400).json({ error: 'ID query parameter is required' });
+    }
+
+    try {
+
+      const { Owner_name, E_mail, Phone_number, Owner_address } = req.body;
+      const [results] = await db.promise().query(
+        'UPDATE pet_owner SET Owner_name = ?, E_mail = ?, Phone_number = ?, Owner_address = ? WHERE Owner_id = ?',
+        [Owner_name, E_mail, Phone_number, Owner_address, id]
+      );
+
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const {Pet_name, Pet_type, Pet_dob, gender} = req.body;
+      const [presults] = await db.promise().query(
+        'UPDATE pet SET Pet_name = ?, Pet_type = ?, Pet_dob = ?, Pet_gender =? WHERE Owner_id = ?',
+        [Pet_name, Pet_type, Pet_dob, id]
+      );
+
+      if (presults.affectedRows === 0) {
+        return res.status(404).json({ error: 'Pet not found' });
+      }
+
+      res.json({ message: 'User updated successfully' });
+      
+    } catch (error) {
+      console.error('Database error:', error);
+      res.status(500).json({ error: 'Error updating user' });
+    }
+
+
+
+  });
+
+
 
   module.exports = router;
 
