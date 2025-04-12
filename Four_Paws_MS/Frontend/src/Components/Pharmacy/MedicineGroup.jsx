@@ -5,10 +5,12 @@ import { Plus, Edit, Trash2, X, Search, Eye, ChevronLeft, ChevronRight } from "l
 
 export default function MedicineGroupSection() {
   const API_BASE_URL = "http://localhost:3001/pharmacy/api/medicine-groups";
+  const MEDICINES_API_URL = "http://localhost:3001/pharmacy/api/medicines";
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false)
   const [showViewGroupModal, setShowViewGroupModal] = useState(false)
   const [showEditGroupModal, setShowEditGroupModal] = useState(false)
   const [showRemoveItemModal, setShowRemoveItemModal] = useState(false)
+  const [showDeleteGroupModal, setShowDeleteGroupModal] = useState(false)
   const [newGroupName, setNewGroupName] = useState("")
   const [newGroupDescription, setNewGroupDescription] = useState("")
   const [editGroupName, setEditGroupName] = useState("")
@@ -22,6 +24,48 @@ export default function MedicineGroupSection() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const itemsPerPage = 5
+  const [showAddMedicineModal, setShowAddMedicineModal] = useState(false);
+  const [availableMedicines, setAvailableMedicines] = useState([]);
+  const [selectedMedicines, setSelectedMedicines] = useState([]);
+
+  // Function to fetch available medicines
+const fetchAvailableMedicines = async () => {
+  try {
+    const response = await fetch('http://localhost:3001/pharmacy/api/medicines');
+    const data = await response.json();
+    setAvailableMedicines(data);
+  } catch (err) {
+    console.error("Error fetching medicines:", err);
+  }
+};
+
+// Function to add medicines to group
+const handleAddMedicines = async () => {
+  try {
+    setLoading(true);
+    await fetch(`${API_BASE_URL}/${selectedGroup.id}/medicines`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ medicineIds: selectedMedicines })
+    });
+    
+    // Refresh the group data
+    const response = await fetch(`${API_BASE_URL}/${selectedGroup.id}`);
+    const updatedGroup = await response.json();
+    
+    // Update in the groups list
+    setMedicineGroups(groups => 
+      groups.map(g => g.id === selectedGroup.id ? updatedGroup : g)
+    );
+    
+    setShowAddMedicineModal(false);
+    setSelectedMedicines([]);
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Fetch medicine groups from backend
   useEffect(() => {
@@ -73,38 +117,48 @@ export default function MedicineGroupSection() {
 
   const handleCreateGroup = async () => {
     if (!newGroupName) {
-      setError('Group name is required')
-      return
+      setError('Group name is required');
+      return;
     }
     
     try {
-      setLoading(true)
+      setLoading(true);
       const newGroup = {
         name: newGroupName,
         description: newGroupDescription,
         medicines: []
-      }
-
+      };
+  
       const response = await fetch(API_BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newGroup)
-      })
+      });
       
-      if (!response.ok) throw new Error('Failed to create group')
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create group');
+      }
+  
+      const data = await response.json();
       
-      const data = await response.json()
-      setMedicineGroups([...medicineGroups, data])
+      // Refresh the groups list
+      const fetchResponse = await fetch(
+        `${API_BASE_URL}?search=${searchTerm}&page=${currentPage}&limit=${itemsPerPage}`
+      );
+      const fetchData = await fetchResponse.json();
+      setMedicineGroups(fetchData.data || fetchData);
       
-      setNewGroupName("")
-      setNewGroupDescription("")
-      setShowCreateGroupModal(false)
-      setError(null)
+      // Reset form and close modal
+      setNewGroupName("");
+      setNewGroupDescription("");
+      setShowCreateGroupModal(false);
+      setError(null);
     } catch (err) {
-      setError(err.message)
-      console.error("Error creating group:", err)
+      setError(err.message);
+      console.error("Error creating group:", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -214,6 +268,26 @@ export default function MedicineGroupSection() {
     } catch (err) {
       setError(err.message)
       console.error("Error removing selected medicines:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDeleteGroup = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch(`${API_BASE_URL}/${selectedGroup.id}`, {
+        method: 'DELETE'
+      })
+      
+      if (!response.ok) throw new Error('Failed to delete group')
+      
+      setMedicineGroups(medicineGroups.filter(group => group.id !== selectedGroup.id))
+      setShowDeleteGroupModal(false)
+      setError(null)
+    } catch (err) {
+      setError(err.message)
+      console.error("Error deleting group:", err)
     } finally {
       setLoading(false)
     }
@@ -463,6 +537,12 @@ export default function MedicineGroupSection() {
           cursor: not-allowed;
         }
         
+        .active {
+          background-color: #4f46e5;
+          color: white;
+          border-color: #4f46e5;
+        }
+        
         /* Modal Styles */
         .modalOverlay {
           position: fixed;
@@ -593,6 +673,38 @@ export default function MedicineGroupSection() {
           padding: 2rem;
           color: #64748b;
         }
+
+        .text-gray-600 {
+          color: #4b5563;
+        }
+
+        .text-red-500 {
+          color: #ef4444;
+        }
+
+        .mt-2 {
+          margin-top: 0.5rem;
+        }
+
+        .mt-4 {
+          margin-top: 1rem;
+        }
+
+        .mt-6 {
+          margin-top: 1.5rem;
+        }
+
+        .mb-4 {
+          margin-bottom: 1rem;
+        }
+
+        .font-medium {
+          font-weight: 500;
+        }
+
+        .font-semibold {
+          font-weight: 600;
+        }
       `}</style>
 
       <div className="container">
@@ -664,11 +776,18 @@ export default function MedicineGroupSection() {
                             </button>
                             <button
                               className="primaryButton deleteButton"
-                              onClick={() => openRemoveItemModal(group)}
-                              disabled={loading || group.count === 0}
+                              onClick={() => {
+                                if (group.count > 0) {
+                                  openRemoveItemModal(group)
+                                } else {
+                                  setSelectedGroup(group)
+                                  setShowDeleteGroupModal(true)
+                                }
+                              }}
+                              disabled={loading}
                             >
                               <Trash2 size={16} className="buttonIcon" />
-                              Remove
+                              {group.count > 0 ? 'Remove Items' : 'Delete Group'}
                             </button>
                           </div>
                         </td>
@@ -981,6 +1100,19 @@ export default function MedicineGroupSection() {
               >
                 Cancel
               </button>
+              {selectedGroup.count === 0 && (
+                <button
+                  className="primaryButton dangerButton"
+                  onClick={() => {
+                    setShowRemoveItemModal(false)
+                    setShowDeleteGroupModal(true)
+                  }}
+                  disabled={loading}
+                >
+                  <Trash2 size={16} className="buttonIcon" />
+                  Delete Empty Group
+                </button>
+              )}
               <button
                 className="primaryButton dangerButton"
                 onClick={handleRemoveSelected}
@@ -988,6 +1120,44 @@ export default function MedicineGroupSection() {
               >
                 <Trash2 size={16} className="buttonIcon" />
                 Remove Selected ({selectedItems.length})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Group Modal */}
+      {showDeleteGroupModal && selectedGroup && (
+        <div className="modalOverlay">
+          <div className="modalContent">
+            <div className="modalHeader">
+              <h2 className="modalTitle">Delete Group</h2>
+              <button 
+                className="modalCloseButton"
+                onClick={() => setShowDeleteGroupModal(false)}
+                disabled={loading}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modalBody">
+              <p>Are you sure you want to permanently delete the group "{selectedGroup.name}"?</p>
+              <p className="text-red-500 mt-2">This action cannot be undone.</p>
+            </div>
+            <div className="modalFooter">
+              <button
+                className="secondaryButton"
+                onClick={() => setShowDeleteGroupModal(false)}
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button
+                className="primaryButton dangerButton"
+                onClick={handleDeleteGroup}
+                disabled={loading}
+              >
+                {loading ? 'Deleting...' : 'Delete Group'}
               </button>
             </div>
           </div>
