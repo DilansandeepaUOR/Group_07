@@ -9,7 +9,7 @@ import {
   FaSave,
   FaEye,
   FaEyeSlash,
-  FaCamera
+  FaCamera,
 } from "react-icons/fa";
 import axios from "axios";
 import dp from "../assets/paw_vector.png";
@@ -26,17 +26,17 @@ function Profile() {
     Pet_name: "",
     Pet_type: "",
     Pet_dob: "",
-    gender: ""
+    gender: "",
   });
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState({
     current: false,
     new: false,
-    confirm: false
+    confirm: false,
   });
   const [imagePreview, setImagePreview] = useState(dp);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -65,12 +65,15 @@ function Profile() {
             Owner_address: response.data.Owner_address || "",
             Pet_name: response.data.Pet_name || "",
             Pet_type: response.data.Pet_type || "",
-            Pet_dob: response.data.Pet_dob ? 
-              new Date(response.data.Pet_dob).toISOString().split('T')[0] : "",
-            gender: response.data.gender || ""
+            Pet_dob: response.data.Pet_dob
+              ? new Date(response.data.Pet_dob).toISOString().split("T")[0]
+              : "",
+            gender: response.data.gender || "",
           });
           if (response.data.profileImage) {
-            setImagePreview(`http://localhost:3001/uploads/${response.data.profileImage}`);
+            setImagePreview(
+              `http://localhost:3001/uploads/${response.data.profileImage}`
+            );
           }
         })
         .catch(console.error);
@@ -91,16 +94,16 @@ function Profile() {
 
   const handleEditChange = (e) => {
     const { name, value } = e.target;
-    setEditForm(prev => ({ ...prev, [name]: value }));
+    setEditForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
-    setPasswordForm(prev => ({ ...prev, [name]: value }));
+    setPasswordForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const togglePasswordVisibility = (field) => {
-    setShowPassword(prev => ({ ...prev, [field]: !prev[field] }));
+    setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
   const handleImageChange = (e) => {
@@ -119,11 +122,20 @@ function Profile() {
     e.preventDefault();
     try {
       const formData = new FormData();
+
+      // Append only non-empty fields from editForm
       Object.entries(editForm).forEach(([key, value]) => {
-        formData.append(key, value);
+        formData.append(key, value || ""); // Send empty string if value is falsy
       });
+
+      // Append the selected image if it exists
       if (selectedImage) {
-        formData.append('profileImage', selectedImage);
+        formData.append("profileImage", selectedImage);
+      }
+
+      // Debug: Log what's being sent
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value);
       }
 
       const response = await axios.put(
@@ -131,14 +143,14 @@ function Profile() {
         formData,
         {
           headers: {
-            'Content-Type': 'multipart/form-data'
+            "Content-Type": "multipart/form-data",
           },
-          withCredentials: true
+          withCredentials: true,
         }
       );
 
       setProfile(response.data);
-      alert("Profile updated successfully!");
+      alert(response.data.message || "Profile updated successfully!");
     } catch (err) {
       console.error("Error updating profile:", err);
       alert("Failed to update profile");
@@ -157,7 +169,7 @@ function Profile() {
         "http://localhost:3001/api/auth/change-password",
         {
           currentPassword: passwordForm.currentPassword,
-          newPassword: passwordForm.newPassword
+          newPassword: passwordForm.newPassword,
         },
         { withCredentials: true }
       );
@@ -165,7 +177,7 @@ function Profile() {
       setPasswordForm({
         currentPassword: "",
         newPassword: "",
-        confirmPassword: ""
+        confirmPassword: "",
       });
     } catch (err) {
       console.error("Error changing password:", err);
@@ -230,7 +242,6 @@ function Profile() {
       {/* Main Content */}
       <main className="flex-1 p-6 md:p-10 bg-gradient-to-b from-[#A6E3E9] via-[#028478] to-[#A6E3E9] flex justify-center items-center">
         <div className="bg-[#1f2937] p-8 rounded-2xl shadow-2xl max-w-4xl w-full text-white">
-
           {/* Profile View Tab */}
           {activeTab === "profile" && (
             <>
@@ -255,10 +266,19 @@ function Profile() {
                   Owner Information
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <p><strong>Name:</strong> {profile?.Owner_name || "N/A"}</p>
-                  <p><strong>Email:</strong> {profile?.E_mail || "N/A"}</p>
-                  <p><strong>Phone Number:</strong> {profile?.Phone_number || "N/A"}</p>
-                  <p><strong>Address:</strong> {profile?.Owner_address || "N/A"}</p>
+                  <p>
+                    <strong>Name:</strong> {profile?.Owner_name || "N/A"}
+                  </p>
+                  <p>
+                    <strong>Email:</strong> {profile?.E_mail || "N/A"}
+                  </p>
+                  <p>
+                    <strong>Phone Number:</strong>{" "}
+                    {profile?.Phone_number || "N/A"}
+                  </p>
+                  <p>
+                    <strong>Address:</strong> {profile?.Owner_address || "N/A"}
+                  </p>
                 </div>
               </div>
 
@@ -267,8 +287,15 @@ function Profile() {
                   Pet Information
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <p><strong>Type:</strong> {profile?.Pet_type || "N/A"}</p>
-                  <p><strong>Date of Birth:</strong> {profile?.Pet_dob ? new Date(profile.Pet_dob).toLocaleDateString() : "N/A"}</p>
+                  <p>
+                    <strong>Type:</strong> {profile?.Pet_type || "N/A"}
+                  </p>
+                  <p>
+                    <strong>Date of Birth:</strong>{" "}
+                    {profile?.Pet_dob
+                      ? new Date(profile.Pet_dob).toLocaleDateString()
+                      : "N/A"}
+                  </p>
                   <p className="md:col-span-2">
                     <strong>Gender:</strong> {profile?.gender || "N/A"}
                   </p>
@@ -281,7 +308,7 @@ function Profile() {
           {activeTab === "edit" && (
             <form onSubmit={handleProfileSubmit}>
               <h2 className="text-2xl font-bold mb-6">Edit Your Profile</h2>
-              
+
               <div className="flex flex-col md:flex-row gap-8 mb-8">
                 <div className="flex flex-col items-center">
                   <div className="relative mb-4">
@@ -305,7 +332,9 @@ function Profile() {
 
                 <div className="flex-1 space-y-4">
                   <div>
-                    <label className="block text-gray-300 mb-1">Owner Name</label>
+                    <label className="block text-gray-300 mb-1">
+                      Owner Name
+                    </label>
                     <input
                       type="text"
                       name="Owner_name"
@@ -327,7 +356,9 @@ function Profile() {
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-300 mb-1">Phone Number</label>
+                    <label className="block text-gray-300 mb-1">
+                      Phone Number
+                    </label>
                     <input
                       type="tel"
                       name="Phone_number"
@@ -362,7 +393,6 @@ function Profile() {
                       onChange={handleEditChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
                     >
-                      <option value="">Select</option>
                       <option value="Dog">Dog</option>
                       <option value="Cat">Cat</option>
                       <option value="Cow">Cow</option>
@@ -370,7 +400,9 @@ function Profile() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-gray-300 mb-1">Date of Birth</label>
+                    <label className="block text-gray-300 mb-1">
+                      Date of Birth
+                    </label>
                     <input
                       type="date"
                       name="Pet_dob"
@@ -387,7 +419,6 @@ function Profile() {
                       onChange={handleEditChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
                     >
-                      <option value="">Select</option>
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
                     </select>
@@ -420,10 +451,12 @@ function Profile() {
           {activeTab === "password" && (
             <form onSubmit={handlePasswordSubmit}>
               <h2 className="text-2xl font-bold mb-6">Change Password</h2>
-              
+
               <div className="space-y-4 mb-6">
                 <div>
-                  <label className="block text-gray-300 mb-1">Current Password</label>
+                  <label className="block text-gray-300 mb-1">
+                    Current Password
+                  </label>
                   <div className="relative">
                     <input
                       type={showPassword.current ? "text" : "password"}
@@ -444,7 +477,9 @@ function Profile() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 mb-1">New Password</label>
+                  <label className="block text-gray-300 mb-1">
+                    New Password
+                  </label>
                   <div className="relative">
                     <input
                       type={showPassword.new ? "text" : "password"}
@@ -466,7 +501,9 @@ function Profile() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 mb-1">Confirm New Password</label>
+                  <label className="block text-gray-300 mb-1">
+                    Confirm New Password
+                  </label>
                   <div className="relative">
                     <input
                       type={showPassword.confirm ? "text" : "password"}
