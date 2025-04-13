@@ -34,5 +34,5 @@ export const useDeleteRecord = (refreshData) => {
     }
   };
 
-  return { handleDelete, isDeleting, error };
+  return {handleDelete, isDeleting, error };
 };

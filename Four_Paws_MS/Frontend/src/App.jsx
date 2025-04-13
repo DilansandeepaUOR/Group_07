@@ -36,9 +36,12 @@ const App = () => {
         <Route path="/Profile" element={<Profile/>}/>
         <Route path="/appointment" element={<Appointment/>}/>
         <Route path="/RecordsEntry" element={<RecordsEntry/>}/>
+
+        {/* Records  */}
         <Route path="/records" element={<RecordsEntry />} />
         <Route path="/edit/:id" element={<EditRecords />} />
         <Route path="/search" element={<SearchRecords />} />
+        <Route path="/delete" element={<useDeleteRecord />} />
         
 
         {/* Admin logins  */}
