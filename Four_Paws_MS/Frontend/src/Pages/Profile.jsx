@@ -27,7 +27,7 @@ function Profile() {
     Pet_name: "",
     Pet_type: "",
     Pet_dob: "",
-    gender: "",
+    Pet_gender: "",
   });
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -70,8 +70,11 @@ function Profile() {
             Pet_dob: response.data.Pet_dob
               ? new Date(response.data.Pet_dob).toISOString().split("T")[0]
               : "",
+            Pet_gender: response.data.Pet_gender || "",
           });
 
+          console.log(response.data.Pet_gender);
+          console.log(response.data.Pet_dob);
           if (response.data.profileImage) {
             setImagePreview(
               `http://localhost:3001/uploads/${response.data.profileImage}`
@@ -127,8 +130,7 @@ function Profile() {
 
       // Append only non-empty fields from editForm
       Object.entries(editForm).forEach(([key, value]) => {
-        formData.append(key, value); // Send empty string if value is falsy
-        
+        formData.append(key, value || ""); // Send empty string if value is falsy
       });
 
       // Append the selected image if it exists
@@ -149,7 +151,7 @@ function Profile() {
 
       setProfile(response.data);
       alert(response.data.message || "Profile updated successfully!");
-      navigate(0); // Refresh the page to see changes
+      navigate(0);
     } catch (err) {
       console.error("Error updating profile:", err);
       alert("Failed to update profile");
@@ -296,7 +298,7 @@ function Profile() {
                       : "N/A"}
                   </p>
                   <p className="md:col-span-2">
-                    <strong>Gender:</strong> {profile?.gender || "N/A"}
+                    <strong>Gender:</strong> {profile?.Pet_gender || "N/A"}
                   </p>
                 </div>
               </div>
@@ -409,6 +411,19 @@ function Profile() {
                       onChange={handleEditChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-gray-300 mb-1">Pet Type</label>
+                    <select
+                      name="Pet_gender"
+                      value={editForm.Pet_gender}
+                      onChange={handleEditChange}
+                      className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
+                    >
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
                   </div>
                 </div>
               </div>

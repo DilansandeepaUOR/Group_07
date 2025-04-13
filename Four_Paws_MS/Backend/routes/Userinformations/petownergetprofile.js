@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../../db");
+const multer = require('multer');
 
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
@@ -25,6 +26,8 @@ router.get("/profile", async (req, res) => {
         [id]
       );
 
+    //console.log("Database results:", results);
+
     if (results.length === 0) {
       return res.status(404).json({ error: "user not found" });
     }
@@ -39,8 +42,8 @@ router.get("/profile", async (req, res) => {
 router.put("/update", async (req, res) => {
   const { id } = req.query;
 
-  console.log("ID:", id); // Log the ID to check if it's being received correctly
-  console.log("Request Body:", req.body); // Log the request body to check the data being sent
+  //console.log("ID:", id); // Log the ID to check if it's being received correctly
+  //console.log("Request Body:", req.body); // Log the request body to check the data being sent
 
   if (!id) {
     return res.status(400).json({ error: "ID query parameter is required" });
@@ -62,10 +65,10 @@ router.put("/update", async (req, res) => {
           return res.status(404).json({ error: "User not found" });
         }
 
-        const { Pet_name, Pet_type, Pet_dob } = req.body;
+        const { Pet_name, Pet_type, Pet_dob, Pet_gender } = req.body;
         const petsql =
-          "UPDATE pet SET Pet_name = ?, Pet_type = ?, Pet_dob = ? WHERE Owner_id = ?";
-        db.query(petsql, [Pet_name, Pet_type, Pet_dob, id], (err, results) => {
+          "UPDATE pet SET Pet_name = ?, Pet_type = ?, Pet_dob = ?, Pet_gender =? WHERE Owner_id = ?";
+        db.query(petsql, [Pet_name, Pet_type, Pet_dob, Pet_gender, id], (err, results) => {
           if (err) {
             return res.status(500).json({ error: "Error inserting pet" });
           }

@@ -163,36 +163,41 @@ function Navbar() {
           </div>
         </div>
 
-        {/* <!-- register and signin buttons --> */}
-        <div className="hidden lg:flex items-center gap-8">
-          {isLoggedIn ? (
-            <Profilearea />
-          ) : (
-            menubuttons.map((item) => (
-              <div
-                key={item.name}
-                className={
-                  item.name === "Register"
-                    ? "bg-red-500 px-6 py-3 font-bold rounded-lg transition duration-300 hover:bg-red-600 transform hover:scale-105"
-                    : "px-6 py-3 border rounded-lg transition duration-300 transform hover:scale-105"
-                }
-              >
-                <Regandsignbtn
-                  name={item.name}
-                  Icon={item.icon}
-                  onClick={() => {
-                    if (item.name === "Sign in") {
-                      navigate("/Login");
-                    }
-                    if (item.name === "Register") {
-                      navigate("/Register");
-                    }
-                  }}
-                />
-              </div>
-            ))
-          )}
-        </div>
+        {/* <!-- profile area --> */}
+        {isLoggedIn ? (
+          <div className="flex items-center ml-10 lg:ml-0">
+            <Profilearea/>
+          </div>
+        ) : (
+          <div>
+            {/* <!-- register and signin buttons --> */}
+            <div className="hidden lg:flex items-center gap-8">
+              {menubuttons.map((item) => (
+                    <div
+                      key={item.name}
+                      className={
+                        item.name === "Register"
+                          ? "bg-red-500 px-6 py-3 font-bold rounded-lg transition duration-300 hover:bg-red-600 transform hover:scale-105"
+                          : "px-6 py-3 border rounded-lg transition duration-300 transform hover:scale-105"
+                      }
+                    >
+                      <Regandsignbtn
+                        name={item.name}
+                        Icon={item.icon}
+                        onClick={() => {
+                          if (item.name === "Sign in") {
+                            navigate("/Login");
+                          }
+                          if (item.name === "Register") {
+                            navigate("/Register");
+                          }
+                        }}
+                      />
+                    </div>
+                  ))}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );

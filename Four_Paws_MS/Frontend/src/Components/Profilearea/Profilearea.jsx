@@ -36,13 +36,13 @@ function Profilearea() {
       {/* Profile Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-3 p-2 bg-gray-800 text-white rounded-full hover:bg-[#69cac2] hover:text-gray-900 transition duration-300 cursor-pointer"
+        className="flex items-center space-x-3 p-2 bg-gray-800 border-1 text-white rounded-full hover:bg-[#028478] hover:text-gray-900 transition duration-300 cursor-pointer"
       >
         {/* Profile Picture */}
         <img 
           src={user?.profilePic || dp} 
           alt="Profile" 
-          className="w-10 h-10 rounded-full border border-gray-300"
+          className="w-10 h-10 rounded-full border border-[#028478] hover:border-gray-900"
         />
         {/* User Name */}
         <span className="text-sm font-medium">{user?.name}</span>
