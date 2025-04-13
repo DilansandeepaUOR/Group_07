@@ -219,7 +219,7 @@ router.delete('/api/medicines/:id', (req, res) => {
   }
 });
 
-// GET all medicine groups (with optional search and pagination)
+// GET all medicine groups (with accurate count)
 router.get('/api/medicine-groups', (req, res) => {
   try {
     const { search = '', page = 1, limit = 5 } = req.query;
@@ -238,13 +238,12 @@ router.get('/api/medicine-groups', (req, res) => {
         const total = countRows[0].total;
         const totalPages = Math.ceil(total / limit);
 
-        // Get paginated data
+        // Get paginated data with accurate medicine counts
         db.query(
-          `SELECT mg.*, COUNT(mgm.medicine_id) as medicine_count 
+          `SELECT mg.*, 
+           (SELECT COUNT(*) FROM medicine_group_members WHERE group_id = mg.id) as count
            FROM medicine_groups mg
-           LEFT JOIN medicine_group_members mgm ON mg.id = mgm.group_id
            WHERE mg.name LIKE ?
-           GROUP BY mg.id
            ORDER BY mg.name ASC
            LIMIT ? OFFSET ?`,
           [`%${search}%`, parseInt(limit), parseInt(offset)],
@@ -269,6 +268,131 @@ router.get('/api/medicine-groups', (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch medicine groups' });
   }
+});
+
+
+// POST endpoint to add medicines to group (improved)
+router.post('/api/medicine-groups/:groupId/medicines', async (req, res) => {
+  const { groupId } = req.params;
+  const { medicineIds } = req.body;
+
+  if (!Array.isArray(medicineIds)) {
+    return res.status(400).json({ error: 'Medicine IDs must be an array' });
+  }
+
+  try {
+    // Verify group exists
+    const [group] = await db.promise().query(
+      'SELECT id FROM medicine_groups WHERE id = ?', 
+      [groupId]
+    );
+    if (!group.length) {
+      return res.status(404).json({ error: 'Medicine group not found' });
+    }
+
+    // Verify medicines exist and aren't already in group
+    const [existingMedicines] = await db.promise().query(
+      `SELECT m.id FROM medicines m
+       LEFT JOIN medicine_group_members mgm ON 
+         m.id = mgm.medicine_id AND mgm.group_id = ?
+       WHERE m.id IN (?) AND mgm.medicine_id IS NULL`,
+      [groupId, medicineIds]
+    );
+
+    const validIds = existingMedicines.map(m => m.id);
+    if (validIds.length === 0) {
+      return res.status(400).json({ 
+        error: 'No valid medicines to add (may already be in group)' 
+      });
+    }
+
+    // Insert new members
+    const values = validIds.map(id => [groupId, id]);
+    const [result] = await db.promise().query(
+      `INSERT INTO medicine_group_members (group_id, medicine_id) VALUES ?`,
+      [values]
+    );
+
+    // Get updated count
+    const [[count]] = await db.promise().query(
+      `SELECT COUNT(*) as count FROM medicine_group_members WHERE group_id = ?`,
+      [groupId]
+    );
+
+    res.json({
+      success: true,
+      message: `${result.affectedRows} medicine(s) added to group`,
+      addedCount: result.affectedRows,
+      newCount: count.count
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to add medicines to group' });
+  }
+});
+
+// GET medicines in a specific group
+router.get('/api/medicine-groups/:groupId/medicines', (req, res) => {
+  const { groupId } = req.params;
+
+  db.query(
+    `SELECT m.* FROM medicines m
+     JOIN medicine_group_members mgm ON m.id = mgm.medicine_id
+     WHERE mgm.group_id = ?`,
+    [groupId],
+    (err, medicines) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Failed to fetch group medicines' });
+      }
+
+      // Process medicines to include status based on stock
+      const processedMedicines = medicines.map(medicine => {
+        let status = 'In Stock';
+        const stock = parseInt(medicine.stock);
+        if (stock === 0) {
+          status = 'Out of Stock';
+        } else if (stock > 0 && stock <= 15) {
+          status = 'Low Stock';
+        }
+        return { ...medicine, status };
+      });
+
+      res.json(processedMedicines);
+    }
+  );
+});
+
+// GET available medicines (not in group) with search
+router.get('/api/medicine-groups/:groupId/available-medicines', (req, res) => {
+  const { groupId } = req.params;
+  const { search = '' } = req.query;
+
+  db.query(
+    `SELECT m.* FROM medicines m
+     WHERE (m.name LIKE ? OR m.category LIKE ?)
+     AND m.id NOT IN (
+       SELECT medicine_id FROM medicine_group_members WHERE group_id = ?
+     )`,
+    [`%${search}%`, `%${search}%`, groupId],
+    (err, medicines) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Failed to fetch available medicines' });
+      }
+
+      const processedMedicines = medicines.map(medicine => {
+        let status = 'In Stock';
+        const stock = parseInt(medicine.stock);
+        if (stock === 0) status = 'Out of Stock';
+        else if (stock > 0 && stock <= 15) status = 'Low Stock';
+        return { ...medicine, status };
+      });
+
+      res.json(processedMedicines);
+    }
+  );
 });
 
 // GET single medicine group by ID with its medicines
@@ -322,34 +446,31 @@ router.get('/api/medicine-groups/:id', (req, res) => {
   });
 });
 
-// GET medicines in a specific group
-router.get('/api/medicine-groups/:groupId/medicines', (req, res) => {
+// POST endpoint to add medicines to group
+router.post('/api/medicine-groups/:groupId/medicines', (req, res) => {
   const { groupId } = req.params;
+  const { medicineIds } = req.body;
 
+  if (!Array.isArray(medicineIds) || medicineIds.length === 0) {
+    return res.status(400).json({ error: 'Medicine IDs array required' });
+  }
+
+  const values = medicineIds.map(id => [groupId, id]);
+  
   db.query(
-    `SELECT m.* FROM medicines m
-     JOIN medicine_group_members mgm ON m.id = mgm.medicine_id
-     WHERE mgm.group_id = ?`,
-    [groupId],
-    (err, medicines) => {
+    `INSERT IGNORE INTO medicine_group_members (group_id, medicine_id) VALUES ?`,
+    [values],
+    (err, result) => {
       if (err) {
         console.error(err);
-        return res.status(500).json({ error: 'Failed to fetch group medicines' });
+        return res.status(500).json({ error: 'Failed to add medicines to group' });
       }
 
-      // Process medicines to include status based on stock
-      const processedMedicines = medicines.map(medicine => {
-        let status = 'In Stock';
-        const stock = parseInt(medicine.stock);
-        if (stock === 0) {
-          status = 'Out of Stock';
-        } else if (stock > 0 && stock <= 15) {
-          status = 'Low Stock';
-        }
-        return { ...medicine, status };
+      res.json({
+        success: true,
+        message: 'Medicines added to group successfully',
+        addedCount: result.affectedRows
       });
-
-      res.json(processedMedicines);
     }
   );
 });
