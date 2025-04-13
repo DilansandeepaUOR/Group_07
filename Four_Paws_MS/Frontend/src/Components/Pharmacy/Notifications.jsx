@@ -1,88 +1,106 @@
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+
 export default function NotificationsSection() {
-    const notifications = [
-      {
-        id: 1,
-        title: "New Order Received",
-        description: "Order #12345 has been placed and is awaiting processing.",
-        time: "5 minutes ago",
-        read: false,
-      },
-      {
-        id: 2,
-        title: "Payment Successful",
-        description: "Payment for order #12342 has been successfully processed.",
-        time: "1 hour ago",
-        read: false,
-      },
-      {
-        id: 3,
-        title: "New User Registration",
-        description: "A new user has registered on your platform.",
-        time: "3 hours ago",
-        read: true,
-      },
-      {
-        id: 4,
-        title: "Low Stock Alert",
-        description: "Product 'Wireless Headphones' is running low on stock (5 remaining).",
-        time: "5 hours ago",
-        read: true,
-      },
-      {
-        id: 5,
-        title: "System Update",
-        description: "The system will undergo maintenance on Sunday at 2:00 AM.",
-        time: "1 day ago",
-        read: true,
-      },
-      {
-        id: 6,
-        title: "New Feature Available",
-        description: "Check out our new reporting dashboard with enhanced analytics.",
-        time: "2 days ago",
-        read: true,
-      },
-    ]
-  
-    return (
-      <>
-        <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "16px" }}>Notifications</h1>
-        <div
-          style={{
-            backgroundColor: "white",
-            padding: "16px",
-            borderRadius: "8px",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px", alignItems: "center" }}>
-            <h2 style={{ fontWeight: "600" }}>Recent Notifications</h2>
-            <button
-              style={{
-                backgroundColor: "#f3f4f6",
-                padding: "6px 12px",
-                borderRadius: "6px",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              Mark all as read
-            </button>
-          </div>
-          <div>
-            {notifications.map((notification) => (
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch notifications from API
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/pharmacy/api/notifications');
+        setNotifications(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
+    
+    // Optional: Set up polling for updates
+    const interval = setInterval(fetchNotifications, 60000); // Refresh every minute
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  const markAsRead = async (id) => {
+    try {
+      await axios.patch(
+        `http://localhost:3001/pharmacy/api/notifications/${id}/read`
+      );
+      setNotifications(notifications.map(notification => 
+        notification.id === id ? { ...notification, is_read: true } : notification
+      ));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      await axios.patch(
+        'http://localhost:3001/pharmacy/api/notifications/mark-all-read'
+      );
+      setNotifications(notifications.map(notification => 
+        ({ ...notification, is_read: true })
+      ));
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  };
+
+  if (loading) {
+    return <div>Loading notifications...</div>;
+  }
+
+  return (
+    <>
+      <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "16px" }}>Notifications</h1>
+      <div
+        style={{
+          backgroundColor: "white",
+          padding: "16px",
+          borderRadius: "8px",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px", alignItems: "center" }}>
+          <h2 style={{ fontWeight: "600" }}>Recent Notifications</h2>
+          <button
+            onClick={markAllAsRead}
+            style={{
+              backgroundColor: "#f3f4f6",
+              padding: "6px 12px",
+              borderRadius: "6px",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Mark all as read
+          </button>
+        </div>
+        <div>
+          {notifications.length === 0 ? (
+            <div style={{ padding: "16px", textAlign: "center" }}>No notifications available</div>
+          ) : (
+            notifications.map((notification) => (
               <div
                 key={notification.id}
                 style={{
                   padding: "12px",
                   borderBottom: "1px solid #e5e7eb",
-                  backgroundColor: notification.read ? "transparent" : "#f3f4f6",
-                  borderLeft: notification.read ? "none" : "3px solid #4f46e5",
+                  backgroundColor: notification.is_read ? "transparent" : "#f3f4f6",
+                  borderLeft: notification.is_read ? "none" : "3px solid #4f46e5",
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <h3 style={{ fontWeight: "600", marginBottom: "4px" }}>{notification.title}</h3>
-                  <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>{notification.time}</span>
+                  <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>
+                    {new Date(notification.created_at).toLocaleString()}
+                  </span>
                 </div>
                 <p style={{ color: "#4b5563", marginBottom: "8px" }}>{notification.description}</p>
                 <div style={{ display: "flex", gap: "8px" }}>
@@ -98,8 +116,9 @@ export default function NotificationsSection() {
                   >
                     View
                   </button>
-                  {!notification.read && (
+                  {!notification.is_read && (
                     <button
+                      onClick={() => markAsRead(notification.id)}
                       style={{
                         backgroundColor: "#f9fafb",
                         padding: "4px 8px",
@@ -114,8 +133,10 @@ export default function NotificationsSection() {
                   )}
                 </div>
               </div>
-            ))}
-          </div>
+            ))
+          )}
+        </div>
+        {notifications.length > 0 && (
           <div style={{ textAlign: "center", marginTop: "16px" }}>
             <button
               style={{
@@ -129,9 +150,8 @@ export default function NotificationsSection() {
               Load more
             </button>
           </div>
-        </div>
-      </>
-    )
-  }
-  
-  
+        )}
+      </div>
+    </>
+  );
+}
