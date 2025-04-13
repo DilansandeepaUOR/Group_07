@@ -125,7 +125,7 @@ function Profile() {
 
       // Append only non-empty fields from editForm
       Object.entries(editForm).forEach(([key, value]) => {
-        formData.append(key, value || ""); // Send empty string if value is falsy
+        formData.append(key, value); // Send empty string if value is falsy
       });
 
       // Append the selected image if it exists
@@ -133,17 +133,12 @@ function Profile() {
         formData.append("profileImage", selectedImage);
       }
 
-      // Debug: Log what's being sent
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
-
       const response = await axios.put(
         `http://localhost:3001/api/update/?id=${user.id}`,
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "application/json",
           },
           withCredentials: true,
         }
