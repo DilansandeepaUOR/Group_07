@@ -85,6 +85,7 @@ router.get('/:id', (req, res) => {
 // Update record
 router.put('/:id', (req, res) => {
   const { owner_name, pet_name, date, surgery, vaccination, other } = req.body;
+
   const query = `
     UPDATE pet_services 
     SET owner_name = ?, pet_name = ?, date = ?, 

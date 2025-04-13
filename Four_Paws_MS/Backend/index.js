@@ -49,6 +49,10 @@ app.use('/api/adloginform/', adminloginRoutes);
 const pharmacy =require('./routes/Pharmacy/pharmacy');
 app.use('/pharmacy', pharmacy);
 
+//Contact info routes
+const contactInfoRoutes = require('./routes/Contactinfo/contact');
+app.use('/contact', contactInfoRoutes);
+
 
 //Sample code
 // app.get('/', (req, res) => {
