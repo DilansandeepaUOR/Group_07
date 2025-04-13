@@ -5,6 +5,8 @@ import  logo from '../assets/logo.png';
 import {jsPDF} from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useDeleteRecord } from '../hooks/useDeleteRecord';
+import { FaTimes, FaExclamationCircle, FaEye, FaEyeSlash } from 'react-icons/fa';
+
 
 const PetServiceForm = () => {
     const [ownerName, setOwnerName] = useState('');
@@ -209,7 +211,7 @@ const PetServiceForm = () => {
             // Add title (after table to ensure proper positioning)
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(16);
-            doc.text('Pet Service Record', 14, 15);
+            doc.text('Service Record Details', 14, 15);
     
             // Add footer (optional)
         doc.setFontSize(10);
@@ -257,227 +259,231 @@ const PetServiceForm = () => {
 
 
     return (
-        <div className="max-w-7xl mx-auto p-6 bg-white rounded-lg shadow-md mt-10">
-  <h2 className="text-2xl font-bold text-gray-800 mb-6">Pet Service Form</h2>
-  
-  <div className="flex flex-wrap gap-3 mb-6">
-    <button 
-      type="button" 
-      onClick={handledata} 
-      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-    >
-      Recent Records
-    </button>
-    <button 
-      type="button" 
-      onClick={handleViewAll} 
-      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-    >
-      View All Records
-    </button>
-    <button 
-      type="button" 
-      onClick={handleSearch} 
-      className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
-    >
-      Search Records
-    </button>
-    <button
-  type="button"
-  onClick={cancelMe}
-  className="
-    px-5 py-2.5
-    bg-gradient-to-r from-red-500 to-red-400
-    text-white font-medium
-    rounded-lg
-    hover:from-red-600 hover:to-red-500
-    transition-all duration-300
-    active:scale-[0.98]
-    focus:outline-none focus:ring-2 focus:ring-red-300
-  "
->
-  Close
-</button>
-  </div>
-
-  <form onSubmit={handleSubmit} className="space-y-6">
-    {isLoading ? (
-      <div className="flex justify-center">
-        <p className="text-gray-600">Loading records...</p>
+      
+      <div className="fixed inset-0 flex justify-center items-center bg-gradient-to-b from-[#E3FDFD] via-[#71C9CE] to-[#A6E3E9] z-50 p-4 overflow-y-auto">
+        <div className="absolute top-5 left-5 object-cover w-[200px]">
+        <img src={logo} alt="logo" />
       </div>
-    ) : records.length > 0 ? (
-      <div className="overflow-x-auto">
-        <table className="min-w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="p-2 border text-left">ID</th>
-              <th className="p-2 border text-left">Owner Name</th>
-              <th className="p-2 border text-left">Pet Name</th>
-              <th className="p-2 border text-left">Date</th>
-              <th className="p-2 border text-left">Surgery</th>
-              <th className="p-2 border text-left">Vaccination</th>
-              <th className="p-2 border text-left">Other</th>
-              <th className="p-2 border text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {records.map((record) => (
-              <tr key={record.id} className="hover:bg-gray-50">
-                <td className="p-2 border">{record.id}</td>
-                <td className="p-2 border">{record.owner_name}</td>
-                <td className="p-2 border">{record.pet_name}</td>
-                <td className="p-2 border">{record.date}</td>
-                <td className="p-2 border">{record.surgery || 'N/A'}</td>
-                <td className="p-2 border">{record.vaccination || 'N/A'}</td>
-                <td className="p-2 border">{record.other || 'N/A'}</td>
-                <td className="p-2 border space-x-2">
-                  <button 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      generatePDF(record);
-                    }}
-                    className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition"
-                  >
-                    Download PDF
-                  </button>
-                  <button 
-                    onClick={() => handleEdit(record.id)}
-                    className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(record.id)}
-                    disabled={isDeleting}
-                    className={`px-3 py-1 rounded transition ${
-                      isDeleting 
-                        ? 'bg-red-300 cursor-not-allowed' 
-                        : 'bg-red-500 hover:bg-red-600 text-white'
-                    }`}
-                  >
-                    {isDeleting ? 'Deleting...' : 'Delete'}
-                  </button>
-                </td>
-              </tr>
+      <div className="bg-gradient-to-b from-[#182020] to-[#394a46] p-8 rounded-lg shadow-2xl w-full max-w-7xl relative border-2 border-gray-800">
+        {/* Close Button */}
+        <button
+          onClick={cancelMe}
+          className="absolute top-3 right-3 text-white hover:text-gray-200 text-lg cursor-pointer"
+        >
+          <FaTimes size={22} />
+        </button>
+    
+        {/* Title */}
+        <h2 className="text-2xl font-bold text-center text-white mb-6 Poppins">
+          Records Entry Section
+        </h2>
+        
+    
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-4 mb-6 justify-center">
+          <button 
+            type="button" 
+            onClick={handledata} 
+            className="px-4 py-2 bg-gradient-to-r from-[#028478] to-[#5ba29c] text-white rounded-lg hover:from-[#5ba29c] hover:to-[#028478] transition-all font-medium"
+          >
+            Recent Records
+          </button>
+          <button 
+            type="button" 
+            onClick={handleViewAll} 
+            className="px-4 py-2 bg-gradient-to-r from-[#028478] to-[#5ba29c] text-white rounded-lg hover:from-[#5ba29c] hover:to-[#028478] transition-all font-medium"
+          >
+            View All Records
+          </button>
+          <button 
+            type="button" 
+            onClick={handleSearch} 
+            className="px-4 py-2 bg-gradient-to-r from-[#46dfd0] to-[#028478] text-white rounded-lg hover:from-[#028478] hover:to-[#46dfd0] transition-all font-medium"
+          >
+            Search Records
+          </button>
+        </div>
+    
+        {/* Error Message */}
+        {error && (
+          <p className="text-red-700 bg-red-200 p-2 rounded text-center flex items-center gap-2 mb-4">
+            <FaExclamationCircle /> {error}
+          </p>
+        )}
+    
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {isLoading ? (
+            <div className="flex justify-center">
+              <p className="text-gray-300">Loading records...</p>
+            </div>
+          ) : records.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full border-collapse">
+                <thead>
+                  <tr className="bg-[#394a46]">
+                    <th className="p-3 border border-gray-600 text-left text-white">ID</th>
+                    <th className="p-3 border border-gray-600 text-left text-white">Owner Name</th>
+                    <th className="p-3 border border-gray-600 text-left text-white">Pet Name</th>
+                    <th className="p-3 border border-gray-600 text-left text-white">Date</th>
+                    <th className="p-3 border border-gray-600 text-left text-white">Surgery</th>
+                    <th className="p-3 border border-gray-600 text-left text-white">Vaccination</th>
+                    <th className="p-3 border border-gray-600 text-left text-white">Other</th>
+                    <th className="p-3 border border-gray-600 text-left text-white">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {records.map((record) => (
+                    <tr key={record.id} className="hover:bg-[#394a46]/50 text-gray-200">
+                      <td className="p-3 border border-gray-600">{record.id}</td>
+                      <td className="p-3 border border-gray-600">{record.owner_name}</td>
+                      <td className="p-3 border border-gray-600">{record.pet_name}</td>
+                      <td className="p-3 border border-gray-600">{record.date}</td>
+                      <td className="p-3 border border-gray-600">{record.surgery || 'N/A'}</td>
+                      <td className="p-3 border border-gray-600">{record.vaccination || 'N/A'}</td>
+                      <td className="p-3 border border-gray-600">{record.other || 'N/A'}</td>
+                      <td className="p-3 border border-gray-600 space-x-2">
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            generatePDF(record);
+                          }}
+                          className="px-3 py-1 bg-gradient-to-r from-[#46dfd0] to-[#028478] text-white rounded-lg hover:from-[#028478] hover:to-[#46dfd0] transition-all"
+                        >
+                          Download PDF
+                        </button>
+                        <button 
+                          onClick={() => handleEdit(record.id)}
+                          className="px-3 py-1 bg-gradient-to-r from-[#028478] to-[#5ba29c] text-white rounded-lg hover:from-[#5ba29c] hover:to-[#028478] transition-all"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(record.id)}
+                          disabled={isDeleting}
+                          className={`px-3 py-1 rounded-lg transition-all ${
+                            isDeleting 
+                              ? 'bg-red-300 cursor-not-allowed' 
+                              : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-500 text-white'
+                          }`}
+                        >
+                          {isDeleting ? 'Deleting...' : 'Delete'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-gray-300 text-center">No records found.</p>
+          )}
+    
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="block text-white">Owner Name:</label>
+              <input
+                type="text"
+                value={ownerName}
+                onChange={(e) => setOwnerName(e.target.value)}
+                required
+                className="w-full p-3 border border-[#46dfd0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#028478] text-white bg-[#394a46]/50"
+                placeholder="e.g. John Doe"
+              />
+              {errors.ownerName && <p className="text-red-400 text-sm flex items-center gap-1"><FaExclamationCircle /> {errors.ownerName}</p>}
+            </div>
+    
+            <div className="space-y-2">
+              <label className="block text-white">Pet Name:</label>
+              <input
+                type="text"
+                value={petName}
+                onChange={(e) => setPetName(e.target.value)}
+                required
+                className="w-full p-3 border border-[#46dfd0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#028478] text-white bg-[#394a46]/50"
+                placeholder="e.g. Bella"
+              />
+              {errors.petName && <p className="text-red-400 text-sm flex items-center gap-1"><FaExclamationCircle /> {errors.petName}</p>}
+            </div>
+    
+            <div className="space-y-2">
+              <label className="block text-white">Date:</label>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+                className="w-full p-3 border border-[#46dfd0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#028478] text-white bg-[#394a46]/50"
+              />
+              {errors.date && <p className="text-red-400 text-sm flex items-center gap-1"><FaExclamationCircle /> {errors.date}</p>}
+            </div>
+    
+            <div className="space-y-2">
+              <label className="block text-white">Services:</label>
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2 text-white">
+                  <input
+                    type="checkbox"
+                    checked={services.includes('Surgery')}
+                    onChange={() => handleServiceChange('Surgery')}
+                    className="rounded text-[#46dfd0] focus:ring-[#46dfd0]"
+                  />
+                  <span>Surgery</span>
+                </label>
+                <label className="flex items-center space-x-2 text-white">
+                  <input
+                    type="checkbox"
+                    checked={services.includes('Vaccination')}
+                    onChange={() => handleServiceChange('Vaccination')}
+                    className="rounded text-[#46dfd0] focus:ring-[#46dfd0]"
+                  />
+                  <span>Vaccination</span>
+                </label>
+                <label className="flex items-center space-x-2 text-white">
+                  <input
+                    type="checkbox"
+                    checked={services.includes('Other')}
+                    onChange={() => handleServiceChange('Other')}
+                    className="rounded text-[#46dfd0] focus:ring-[#46dfd0]"
+                  />
+                  <span>Other</span>
+                </label>
+              </div>
+              {errors.services && <p className="text-red-400 text-sm flex items-center gap-1"><FaExclamationCircle /> {errors.services}</p>}
+            </div>
+    
+            {services.map((service) => (
+              <div key={service} className="space-y-2">
+                <label className="block text-white">{service} Details:</label>
+                <input
+                  type="text"
+                  value={serviceDetails[service] || ''}
+                  onChange={(e) => handleDetailChange(service, e.target.value)}
+                  className="w-full p-3 border border-[#46dfd0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#028478] text-white bg-[#394a46]/50"
+                />
+                {errors[service] && <p className="text-red-400 text-sm flex items-center gap-1"><FaExclamationCircle /> {errors[service]}</p>}
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+    
+          <div className="flex justify-center gap-4 pt-4">
+            <button 
+              type="submit" 
+              className="px-6 py-2 bg-gradient-to-r from-[#028478] to-[#5ba29c] text-white rounded-lg hover:from-[#5ba29c] hover:to-[#028478] transition-all font-bold"
+            >
+              Save
+            </button>
+            <button 
+              type="button" 
+              onClick={handleCancel} 
+              className="px-6 py-2 bg-gradient-to-r from-gray-600 to-gray-500 text-white rounded-lg hover:from-gray-500 hover:to-gray-600 transition-all font-bold"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
-    ) : (
-      <p className="text-gray-600">No records found.</p>
-    )}
-
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="space-y-2">
-        <label className="block text-gray-700">Owner Name:</label>
-        <input
-          type="text"
-          value={ownerName}
-          onChange={(e) => setOwnerName(e.target.value)}
-          required
-          className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="e.g. John Doe"
-        />
-        {errors.ownerName && <p className="text-red-500 text-sm">{errors.ownerName}</p>}
-      </div>
-
-      <div className="space-y-2">
-        <label className="block text-gray-700">Pet Name:</label>
-        <input
-          type="text"
-          value={petName}
-          onChange={(e) => setPetName(e.target.value)}
-          required
-          className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="e.g. Bella"
-        />
-        {errors.petName && <p className="text-red-500 text-sm">{errors.petName}</p>}
-      </div>
-
-      <div className="space-y-2">
-        <label className="block text-gray-700">Date:</label>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          required
-          className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-        {errors.date && <p className="text-red-500 text-sm">{errors.date}</p>}
-      </div>
-
-      <div className="space-y-2">
-        <label className="block text-gray-700">Services:</label>
-        <div className="space-y-2">
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={services.includes('Surgery')}
-              onChange={() => handleServiceChange('Surgery')}
-              className="rounded text-blue-500"
-            />
-            <span>Surgery</span>
-          </label>
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={services.includes('Vaccination')}
-              onChange={() => handleServiceChange('Vaccination')}
-              className="rounded text-blue-500"
-            />
-            <span>Vaccination</span>
-          </label>
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={services.includes('Other')}
-              onChange={() => handleServiceChange('Other')}
-              className="rounded text-blue-500"
-            />
-            <span>Other</span>
-          </label>
-        </div>
-        {errors.services && <p className="text-red-500 text-sm">{errors.services}</p>}
-      </div>
-
-      {services.map((service) => (
-        <div key={service} className="space-y-2">
-          <label className="block text-gray-700">{service} Details:</label>
-          <input
-            type="text"
-            value={serviceDetails[service] || ''}
-            onChange={(e) => handleDetailChange(service, e.target.value)}
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          {errors[service] && <p className="text-red-500 text-sm">{errors[service]}</p>}
-        </div>
-      ))}
     </div>
-
-    <div className="flex space-x-4">
-      <button 
-        type="submit" 
-        className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
-      >
-        Save
-      </button>
-      <button 
-        type="button" 
-        onClick={handleCancel} 
-        className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition"
-      >
-        Cancel
-      </button>
-    </div>
-
-    {error && (
-      <div className="p-3 bg-red-100 text-red-700 rounded">
-        {error}
-      </div>
-    )}
-  </form>
-</div>
     );
 };
 
