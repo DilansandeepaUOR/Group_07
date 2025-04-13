@@ -62,10 +62,10 @@ router.put("/update", async (req, res) => {
           return res.status(404).json({ error: "User not found" });
         }
 
-        const { Pet_name, Pet_type, Pet_dob, gender } = req.body;
+        const { Pet_name, Pet_type, Pet_dob } = req.body;
         const petsql =
-          "UPDATE pet SET Pet_name = ?, Pet_type = ?, Pet_dob = ?, Pet_gender =? WHERE Owner_id = ?";
-        db.query(petsql, [Pet_name, Pet_type, Pet_dob, gender, id], (err, results) => {
+          "UPDATE pet SET Pet_name = ?, Pet_type = ?, Pet_dob = ? WHERE Owner_id = ?";
+        db.query(petsql, [Pet_name, Pet_type, Pet_dob, id], (err, results) => {
           if (err) {
             return res.status(500).json({ error: "Error inserting pet" });
           }

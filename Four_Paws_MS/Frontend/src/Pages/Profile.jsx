@@ -70,11 +70,8 @@ function Profile() {
             Pet_dob: response.data.Pet_dob
               ? new Date(response.data.Pet_dob).toISOString().split("T")[0]
               : "",
-            gender: response.data.gender || "",
           });
 
-          console.log(response.data.gender);
-          console.log(response.data.Pet_dob);
           if (response.data.profileImage) {
             setImagePreview(
               `http://localhost:3001/uploads/${response.data.profileImage}`
@@ -412,19 +409,6 @@ function Profile() {
                       onChange={handleEditChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-gray-300 mb-1">Pet Type</label>
-                    <select
-                      name="gender"
-                      value={editForm.gender}
-                      onChange={handleEditChange}
-                      className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
-                    >
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
                   </div>
                 </div>
               </div>
