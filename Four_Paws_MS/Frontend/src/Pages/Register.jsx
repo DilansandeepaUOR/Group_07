@@ -22,6 +22,7 @@ function Register() {
     petName: "",
     petDob: null,
     petType: "dog",
+    petGender:"male",
     password: "",
     confirmPassword: "",
   });
@@ -65,8 +66,7 @@ function Register() {
       );
       alert(res.data.message);
       if (res.data.message === "pet and pet owner added successfully") {
-        onClose();
-        navigate("/");
+        navigate("/login");
       }
     } catch (error) {
       if (error.response && error.response.data) {
@@ -215,8 +215,28 @@ function Register() {
                   </option>
                 </select>
               </div>
+              
             </div>
             {/* Add more pet fields here if needed */}
+            <div>
+                <label className="block text-sm text-gray-300 mb-1">
+                  Pet Gender
+                </label>
+                <select
+                  name="petGender"
+                  value={formData.petGender}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-[#46dfd0] rounded-lg text-white bg-[#182020] focus:ring-2 focus:ring-[#028478]"
+                >
+                  <option value="male" className="bg-[#182020]">
+                    Male
+                  </option>
+                  <option value="female" className="bg-[#182020]">
+                    Female
+                  </option>
+                  
+                </select>
+              </div>
           </div>
         </div>
 

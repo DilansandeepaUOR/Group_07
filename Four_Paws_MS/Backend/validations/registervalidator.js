@@ -20,6 +20,8 @@ const userRegisterValidator = z.object({
 
   petType: z.enum(["dog", "cat", "cow","other"], "Invalid pet type"),
 
+  petGender: z.enum(["male", "female"], "Invalid gender type"),
+
   confirmPassword: z.string().min(8, "Password must be at least 8 characters")
   .max(30, "Password must be at most 30 characters")
   .regex(/[A-Z]/, "Password must contain at least one uppercase letter")

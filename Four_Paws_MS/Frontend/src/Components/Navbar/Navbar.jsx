@@ -13,22 +13,19 @@ import {
   FaBars,
 } from "react-icons/fa";
 import Regandsignbtn from "./regandsignbtn";
-import Login from "../../Pages/Login";
-import Register from "../../Pages/Register";
 import Profilearea from "../Profilearea/Profilearea";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-
-
 function Navbar() {
   const [showMenu, setShowMenu] = useState(false);
   const [user, setUser] = useState(null);
-  const navigate= useNavigate();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get("http://localhost:3001/api/auth/user", { withCredentials: true })
-      .then(response => {
+    axios
+      .get("http://localhost:3001/api/auth/user", { withCredentials: true })
+      .then((response) => {
         setUser(response.data);
       })
       .catch(() => {
@@ -41,7 +38,9 @@ function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await axios.get("http://localhost:3001/api/auth/logout", { withCredentials: true });
+      await axios.get("http://localhost:3001/api/auth/logout", {
+        withCredentials: true,
+      });
       alert("Logged out!");
       setUser(null);
     } catch (err) {
@@ -80,11 +79,14 @@ function Navbar() {
           {/* <!-- nav bar buttons --> */}
           <div className="hidden lg:flex gap-8">
             {menu.map((item) => (
-              <Navbarmenu key={item.name} name={item.name} Icon={item.icon} to={item.to} />
+              <Navbarmenu
+                key={item.name}
+                name={item.name}
+                Icon={item.icon}
+                to={item.to}
+              />
             ))}
           </div>
-
-          
 
           {/* <!-- Responsive menu items --> */}
           <div className="lg:hidden" onClick={() => setShowMenu(!showMenu)}>
@@ -95,25 +97,32 @@ function Navbar() {
                   {menu.map(
                     (item, index) =>
                       index >= 1 && (
-                        <Navbarmenu key={item.name} name={item.name} Icon={item.icon} to={item.to} />
+                        <Navbarmenu
+                          key={item.name}
+                          name={item.name}
+                          Icon={item.icon}
+                          to={item.to}
+                        />
                       )
                   )}
                   <div>
-                    {menubuttons.map((item) => (
-                      <Regandsignbtn
-                        key={item.name}
-                        name={item.name}
-                        Icon={item.icon}
-                        onClick={() => {
-                          if (item.name === "Sign in") {
-                            navigate("/Login");
-                          }
-                          if (item.name === "Register") {
-                            navigate("/Register");
-                          }
-                        }}
-                      />
-                    ))}
+                    {isLoggedIn
+                      ? null
+                      : menubuttons.map((item) => (
+                          <Regandsignbtn
+                            key={item.name}
+                            name={item.name}
+                            Icon={item.icon}
+                            onClick={() => {
+                              if (item.name === "Sign in") {
+                                navigate("/Login");
+                              }
+                              if (item.name === "Register") {
+                                navigate("/Register");
+                              }
+                            }}
+                          />
+                        ))}
                   </div>
                 </div>
 
@@ -121,13 +130,58 @@ function Navbar() {
                   {menu.map(
                     (item, index) =>
                       index >= 1 && (
-                        <Navbarmenu key={item.name} name={item.name} Icon={item.icon} to={item.to} />
+                        <Navbarmenu
+                          key={item.name}
+                          name={item.name}
+                          Icon={item.icon}
+                          to={item.to}
+                        />
                       )
                   )}
                   <div>
-                    {menubuttons.map((item) => (
+                    {isLoggedIn
+                      ? null
+                      : menubuttons.map((item) => (
+                          <Regandsignbtn
+                            key={item.name}
+                            name={item.name}
+                            Icon={item.icon}
+                            onClick={() => {
+                              if (item.name === "Sign in") {
+                                navigate("/Login");
+                              }
+                              if (item.name === "Register") {
+                                navigate("/Register");
+                              }
+                            }}
+                          />
+                        ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* <!-- profile area --> */}
+        {isLoggedIn ? (
+          <div className="flex items-center ml-10 lg:ml-0">
+            <Profilearea/>
+          </div>
+        ) : (
+          <div>
+            {/* <!-- register and signin buttons --> */}
+            <div className="hidden lg:flex items-center gap-8">
+              {menubuttons.map((item) => (
+                    <div
+                      key={item.name}
+                      className={
+                        item.name === "Register"
+                          ? "bg-red-500 px-6 py-3 font-bold rounded-lg transition duration-300 hover:bg-red-600 transform hover:scale-105"
+                          : "px-6 py-3 border rounded-lg transition duration-300 transform hover:scale-105"
+                      }
+                    >
                       <Regandsignbtn
-                        key={item.name}
                         name={item.name}
                         Icon={item.icon}
                         onClick={() => {
@@ -139,46 +193,12 @@ function Navbar() {
                           }
                         }}
                       />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+                    </div>
+                  ))}
+            </div>
           </div>
-        </div>
-
-        {/* <!-- register and signin buttons --> */}
-        <div className="hidden lg:flex items-center gap-8">
-          {isLoggedIn ? (
-            <Profilearea />
-          ) : (
-            menubuttons.map((item) => (
-              <div
-                key={item.name}
-                className={
-                  item.name === "Register"
-                    ? "bg-red-500 px-6 py-3 font-bold rounded-lg transition duration-300 hover:bg-red-600 transform hover:scale-105"
-                    : "px-6 py-3 border rounded-lg transition duration-300 transform hover:scale-105"
-                }
-              >
-                <Regandsignbtn
-                  name={item.name}
-                  Icon={item.icon}
-                  onClick={() => {
-                    if (item.name === "Sign in") {
-                      navigate("/Login");
-                    }
-                    if (item.name === "Register") {
-                      navigate("/Register");
-                    }
-                  }}
-                />
-              </div>
-            ))
-          )}
-        </div>
+        )}
       </div>
-      
     </nav>
   );
 }
