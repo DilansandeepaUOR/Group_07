@@ -28,6 +28,15 @@ export default function ProductsSection() {
   })
   const itemsPerPage = 4
 
+  // Add this helper function to create notifications
+const createNotification = async (title, description, type, related_id = null) => {
+  await db.execute(
+    'INSERT INTO notifications (title, description, type, related_id) VALUES (?, ?, ?, ?)',
+    [title, description, type, related_id]
+  );
+};
+
+
   const getStockStatus = (stock) => {
     const stockCount = parseInt(stock);
     if (stockCount === 0) return "Out of Stock";
