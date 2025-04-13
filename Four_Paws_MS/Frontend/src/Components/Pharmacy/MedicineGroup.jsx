@@ -1,73 +1,48 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { Plus, Edit, Trash2, X, Search, Eye, ChevronLeft, ChevronRight } from "lucide-react"
 
 export default function MedicineGroupSection() {
   const API_BASE_URL = "http://localhost:3001/pharmacy/api/medicine-groups";
   const MEDICINES_API_URL = "http://localhost:3001/pharmacy/api/medicines";
+  
+  // State declarations
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false)
   const [showViewGroupModal, setShowViewGroupModal] = useState(false)
   const [showEditGroupModal, setShowEditGroupModal] = useState(false)
   const [showRemoveItemModal, setShowRemoveItemModal] = useState(false)
   const [showDeleteGroupModal, setShowDeleteGroupModal] = useState(false)
+  const [showAddMedicineModal, setShowAddMedicineModal] = useState(false)
+  
   const [newGroupName, setNewGroupName] = useState("")
   const [newGroupDescription, setNewGroupDescription] = useState("")
   const [editGroupName, setEditGroupName] = useState("")
   const [editGroupDescription, setEditGroupDescription] = useState("")
+  
   const [selectedGroup, setSelectedGroup] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedItems, setSelectedItems] = useState([])
+  const [selectedMedicines, setSelectedMedicines] = useState([])
+  
   const [medicineGroups, setMedicineGroups] = useState([])
+  const [availableMedicines, setAvailableMedicines] = useState([])
+  
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const itemsPerPage = 5
-  const [showAddMedicineModal, setShowAddMedicineModal] = useState(false);
-  const [availableMedicines, setAvailableMedicines] = useState([]);
-  const [selectedMedicines, setSelectedMedicines] = useState([]);
 
-  // Function to fetch available medicines
-  const fetchAvailableMedicines = async () => {
-    try {
-      const response = await fetch(MEDICINES_API_URL);
-      const data = await response.json();
-      setAvailableMedicines(data);
-    } catch (err) {
-      console.error("Error fetching medicines:", err);
-    }
-  };
+  // Memoized filtered groups
+  const filteredGroups = useMemo(() => {
+    return medicineGroups.filter(group =>
+      group.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  }, [medicineGroups, searchTerm])
 
-  // Function to add medicines to group
-  const handleAddMedicines = async () => {
-    try {
-      setLoading(true);
-      await fetch(`${API_BASE_URL}/${selectedGroup.id}/medicines`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ medicineIds: selectedMedicines })
-      });
-      
-      // Refresh the group data
-      const response = await fetch(`${API_BASE_URL}/${selectedGroup.id}`);
-      const updatedGroup = await response.json();
-      
-      // Update in the groups list
-      setMedicineGroups(groups => 
-        groups.map(g => g.id === selectedGroup.id ? updatedGroup : g)
-      );
-      
-      setShowAddMedicineModal(false);
-      setSelectedMedicines([]);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch medicine groups from backend
+  // Fetch medicine groups
   useEffect(() => {
     const fetchMedicineGroups = async () => {
       try {
@@ -79,11 +54,8 @@ export default function MedicineGroupSection() {
         if (!response.ok) throw new Error('Failed to fetch medicine groups')
         
         const data = await response.json()
-        const groupsData = data.data || data
-        const totalCount = data.totalCount || groupsData.length
-        
-        setTotalPages(Math.ceil(totalCount / itemsPerPage))
-        setMedicineGroups(groupsData)
+        setTotalPages(Math.ceil(data.totalCount / itemsPerPage))
+        setMedicineGroups(data.data)
         setError(null)
       } catch (err) {
         setError(err.message)
@@ -96,73 +68,136 @@ export default function MedicineGroupSection() {
     fetchMedicineGroups()
   }, [searchTerm, currentPage, itemsPerPage])
 
+  // Fetch available medicines
+  const fetchAvailableMedicines = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/${selectedGroup.id}/available-medicines`)
+      const data = await response.json()
+      setAvailableMedicines(data)
+    } catch (err) {
+      console.error("Error fetching available medicines:", err)
+    }
+  }, [selectedGroup])
+
+  const handleAddMedicines = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/${selectedGroup.id}/medicines`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ medicineIds: selectedMedicines })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add medicines to group');
+      }
+  
+      // Get the updated group data from the response
+      const result = await response.json();
+      
+      // Update the groups list with the new count
+      setMedicineGroups(prevGroups => 
+        prevGroups.map(group => 
+          group.id === selectedGroup.id 
+            ? { 
+                ...group, 
+                count: group.count + selectedMedicines.length,
+                medicines: [...(group.medicines || []), ...(result.addedMedicines || [])]
+              } 
+            : group
+        )
+      );
+      
+      // Also update the selectedGroup if the view modal is open
+      if (showViewGroupModal) {
+        setSelectedGroup(prev => ({
+          ...prev,
+          count: prev.count + selectedMedicines.length,
+          medicines: [...(prev.medicines || []), ...(result.addedMedicines || [])]
+        }));
+      }
+      
+      setShowAddMedicineModal(false);
+      setSelectedMedicines([]);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      console.error("Error adding medicines:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedGroup, selectedMedicines, showViewGroupModal]);
+
   // Pagination handlers
-  const goToNextPage = () => {
+  const goToNextPage = useCallback(() => {
     if (currentPage < totalPages) {
       setCurrentPage(prev => prev + 1)
     }
-  }
+  }, [currentPage, totalPages])
 
-  const goToPrevPage = () => {
+  const goToPrevPage = useCallback(() => {
     if (currentPage > 1) {
       setCurrentPage(prev => prev - 1)
     }
-  }
+  }, [currentPage])
 
-  const goToPage = (pageNumber) => {
+  const goToPage = useCallback((pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber)
     }
-  }
+  }, [totalPages])
 
-  const handleCreateGroup = async () => {
+  // Group handlers
+  const handleCreateGroup = useCallback(async () => {
     if (!newGroupName) {
-      setError('Group name is required');
-      return;
+      setError('Group name is required')
+      return
     }
     
     try {
-      setLoading(true);
+      setLoading(true)
       const newGroup = {
         name: newGroupName,
         description: newGroupDescription,
         medicines: []
-      };
+      }
   
       const response = await fetch(API_BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newGroup)
-      });
+      })
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create group');
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create group')
       }
   
-      const data = await response.json();
+      const data = await response.json()
       
       // Refresh the groups list
       const fetchResponse = await fetch(
         `${API_BASE_URL}?search=${searchTerm}&page=${currentPage}&limit=${itemsPerPage}`
-      );
-      const fetchData = await fetchResponse.json();
-      setMedicineGroups(fetchData.data || fetchData);
+      )
+      const fetchData = await fetchResponse.json()
       
-      // Reset form and close modal
-      setNewGroupName("");
-      setNewGroupDescription("");
-      setShowCreateGroupModal(false);
-      setError(null);
+      setMedicineGroups(fetchData.data || fetchData)
+      
+      // Reset form
+      setNewGroupName("")
+      setNewGroupDescription("")
+      setShowCreateGroupModal(false)
+      setError(null)
     } catch (err) {
-      setError(err.message);
-      console.error("Error creating group:", err);
+      setError(err.message)
+      console.error("Error creating group:", err)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }
+  }, [newGroupName, newGroupDescription, searchTerm, currentPage])
 
-  const handleEditGroup = async () => {
+  const handleEditGroup = useCallback(async () => {
     if (!editGroupName) {
       setError('Group name is required')
       return
@@ -185,7 +220,10 @@ export default function MedicineGroupSection() {
       if (!response.ok) throw new Error('Failed to update group')
       
       const updatedGroups = medicineGroups.map(group => 
-        group.id === selectedGroup.id ? updatedGroup : group
+        group.id === selectedGroup.id ? {
+          ...updatedGroup,
+          count: group.count
+        } : group
       )
       
       setMedicineGroups(updatedGroups)
@@ -197,9 +235,9 @@ export default function MedicineGroupSection() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [editGroupName, editGroupDescription, selectedGroup, medicineGroups])
 
-  const handleRemoveItem = async (groupId, medicineId) => {
+  const handleRemoveItem = useCallback(async (groupId, medicineId) => {
     if (!window.confirm('Are you sure you want to remove this medicine from the group?')) {
       return
     }
@@ -212,12 +250,16 @@ export default function MedicineGroupSection() {
       
       if (!response.ok) throw new Error('Failed to remove medicine from group')
       
+      // Refresh the group data
+      const groupResponse = await fetch(`${API_BASE_URL}/${groupId}`)
+      const updatedGroup = await groupResponse.json()
+      
+      // Update in the groups list
       const updatedGroups = medicineGroups.map(group => {
         if (group.id === groupId) {
           return {
-            ...group,
-            medicines: group.medicines.filter(med => med.id !== medicineId),
-            count: group.count - 1
+            ...updatedGroup,
+            count: updatedGroup.medicines?.length || 0
           }
         }
         return group
@@ -232,9 +274,9 @@ export default function MedicineGroupSection() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [medicineGroups, selectedItems])
 
-  const handleRemoveSelected = async () => {
+  const handleRemoveSelected = useCallback(async () => {
     if (!window.confirm(`Are you sure you want to remove ${selectedItems.length} medicines from this group?`)) {
       return
     }
@@ -243,19 +285,22 @@ export default function MedicineGroupSection() {
       setLoading(true)
       const groupId = selectedGroup.id
       
-      // In a real API, you might have a bulk delete endpoint
       await Promise.all(selectedItems.map(medicineId => 
         fetch(`${API_BASE_URL}/${groupId}/medicines/${medicineId}`, {
           method: 'DELETE'
         })
       ))
       
+      // Refresh the group data
+      const groupResponse = await fetch(`${API_BASE_URL}/${groupId}`)
+      const updatedGroup = await groupResponse.json()
+      
+      // Update in the groups list
       const updatedGroups = medicineGroups.map(group => {
         if (group.id === groupId) {
           return {
-            ...group,
-            medicines: group.medicines.filter(med => !selectedItems.includes(med.id)),
-            count: group.count - selectedItems.length
+            ...updatedGroup,
+            count: updatedGroup.medicines?.length || 0
           }
         }
         return group
@@ -271,9 +316,9 @@ export default function MedicineGroupSection() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedGroup, selectedItems, medicineGroups])
 
-  const handleDeleteGroup = async () => {
+  const handleDeleteGroup = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(`${API_BASE_URL}/${selectedGroup.id}`, {
@@ -291,50 +336,90 @@ export default function MedicineGroupSection() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedGroup, medicineGroups])
 
-  const toggleSelectItem = (medicineId) => {
-    setSelectedItems(prev => 
+  // Toggle functions
+  const toggleSelectItem = useCallback((medicineId) => {
+    setSelectedMedicines(prev => 
       prev.includes(medicineId)
         ? prev.filter(id => id !== medicineId)
         : [...prev, medicineId]
     )
-  }
+  }, [])
 
-  const openViewGroup = async (group) => {
-    try {
-      setLoading(true);
-      // Fetch the full group details including medicines
-      const response = await fetch(`${API_BASE_URL}/${group.id}`);
-      if (!response.ok) throw new Error('Failed to fetch group details');
-      
-      const fullGroupDetails = await response.json();
-      setSelectedGroup(fullGroupDetails);
-      setShowViewGroupModal(true);
-    } catch (err) {
-      setError(err.message);
-      console.error("Error fetching group details:", err);
-    } finally {
-      setLoading(false);
+  const toggleSelectAll = useCallback(() => {
+    if (selectedMedicines.length === availableMedicines.length) {
+      setSelectedMedicines([])
+    } else {
+      setSelectedMedicines(availableMedicines.map(m => m.id))
     }
-  }
+  }, [selectedMedicines, availableMedicines])
 
-  const openEditGroup = (group) => {
+  // View/Edit handlers
+  const openViewGroup = useCallback(async (group) => {
+    try {
+      setLoading(true)
+      const response = await fetch(`${API_BASE_URL}/${group.id}`)
+      if (!response.ok) throw new Error('Failed to fetch group details')
+      
+      const fullGroupDetails = await response.json()
+      setSelectedGroup({
+        ...fullGroupDetails,
+        count: fullGroupDetails.medicines?.length || 0
+      })
+      setShowViewGroupModal(true)
+    } catch (err) {
+      setError(err.message)
+      console.error("Error fetching group details:", err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const openEditGroup = useCallback((group) => {
     setSelectedGroup(group)
     setEditGroupName(group.name)
     setEditGroupDescription(group.description || '')
     setShowEditGroupModal(true)
-  }
+  }, [])
 
-  const openRemoveItemModal = (group) => {
+  const openRemoveItemModal = useCallback((group) => {
     setSelectedGroup(group)
     setSelectedItems([])
     setShowRemoveItemModal(true)
-  }
+  }, [])
 
-  const filteredGroups = medicineGroups.filter(group =>
-    group.name.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const openAddMedicineModal = useCallback(async (group) => {
+    try {
+      setLoading(true)
+      setSelectedGroup(group)
+      await fetchAvailableMedicines()
+      setShowAddMedicineModal(true)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [fetchAvailableMedicines])
+
+  // Render checkbox for medicine selection
+  const renderMedicineCheckbox = useCallback((medicine) => (
+    <td className="px-4 py-2">
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          className="checkbox h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+          checked={selectedMedicines.includes(medicine.id)}
+          onChange={() => toggleSelectItem(medicine.id)}
+          disabled={loading}
+          id={`medicine-${medicine.id}`}
+        />
+        <label htmlFor={`medicine-${medicine.id}`} className="sr-only">
+          Select {medicine.name}
+        </label>
+      </div>
+    </td>
+  ), [selectedMedicines, loading, toggleSelectItem])
 
   return (
     <>
@@ -788,6 +873,14 @@ export default function MedicineGroupSection() {
                               Edit
                             </button>
                             <button
+                              className="primaryButton"
+                              onClick={() => openAddMedicineModal(group)}
+                              disabled={loading}
+                            >
+                              <Plus size={16} className="buttonIcon" />
+                              Add Medicines
+                            </button>
+                            <button
                               className="primaryButton deleteButton"
                               onClick={() => {
                                 if (group.count > 0) {
@@ -920,7 +1013,7 @@ export default function MedicineGroupSection() {
             </div>
             <div className="modalBody">
               <p className="text-gray-600 mb-4">{selectedGroup.description || 'No description available'}</p>
-              <span className="countBadge">{selectedGroup.count || 0} medicines</span>
+              <span className="countBadge">{selectedGroup.count} medicines</span>
               
               <h3 className="font-semibold mt-6 mb-4">Medicines in this group</h3>
               <div className="tableContainer">
@@ -929,7 +1022,8 @@ export default function MedicineGroupSection() {
                     <tr>
                       <th>ID</th>
                       <th>Name</th>
-                      {/*<th>Dosage</th>*/}
+                      <th>Dosage</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -938,12 +1032,22 @@ export default function MedicineGroupSection() {
                         <tr key={medicine.id}>
                           <td>{medicine.id}</td>
                           <td>{medicine.name}</td>
-                          {/* <td>{medicine.dosage || 'N/A'}</td> */}
+                          <td>{medicine.dosage || 'N/A'}</td>
+                          <td>
+                            <button
+                              className="primaryButton deleteButton"
+                              onClick={() => handleRemoveItem(selectedGroup.id, medicine.id)}
+                              disabled={loading}
+                            >
+                              <Trash2 size={16} className="buttonIcon" />
+                              Remove
+                            </button>
+                          </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="3" style={{ textAlign: 'center', padding: '1rem' }}>
+                        <td colSpan="4" style={{ textAlign: 'center', padding: '1rem' }}>
                           No medicines in this group
                         </td>
                       </tr>
@@ -1018,15 +1122,15 @@ export default function MedicineGroupSection() {
         </div>
       )}
 
-      {/* Remove Items Modal */}
-      {showRemoveItemModal && selectedGroup && (
+      {/* Add Medicines Modal */}
+      {showAddMedicineModal && selectedGroup && (
         <div className="modalOverlay">
           <div className="modalContent largeModal">
             <div className="modalHeader">
-              <h2 className="modalTitle">Remove Items from {selectedGroup.name}</h2>
+              <h2 className="modalTitle">Add Medicines to {selectedGroup.name}</h2>
               <button 
                 className="modalCloseButton"
-                onClick={() => setShowRemoveItemModal(false)}
+                onClick={() => setShowAddMedicineModal(false)}
                 disabled={loading}
               >
                 <X size={20} />
@@ -1048,56 +1152,39 @@ export default function MedicineGroupSection() {
                   <thead>
                     <tr>
                       <th>
-                        <input 
-                          type="checkbox" 
-                          className="checkbox"
-                          checked={selectedItems.length === (selectedGroup.medicines?.length || 0)}
-                          onChange={() => {
-                            if (selectedItems.length === (selectedGroup.medicines?.length || 0)) {
-                              setSelectedItems([])
-                            } else {
-                              setSelectedItems(selectedGroup.medicines?.map(m => m.id) || [])
-                            }
-                          }}
-                          disabled={loading || !selectedGroup.medicines?.length}
-                        />
+                        <div className="flex items-center">
+                          <input 
+                            type="checkbox" 
+                            className="checkbox h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            checked={selectedMedicines.length === availableMedicines.length && availableMedicines.length > 0}
+                            onChange={toggleSelectAll}
+                            disabled={loading || availableMedicines.length === 0}
+                            id="select-all-medicines"
+                          />
+                          <label htmlFor="select-all-medicines" className="sr-only">
+                            Select all medicines
+                          </label>
+                        </div>
                       </th>
                       <th>ID</th>
                       <th>Name</th>
-                      <th>Action</th>
+                      <th>Dosage</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedGroup.medicines && selectedGroup.medicines.length > 0 ? (
-                      selectedGroup.medicines.map((medicine) => (
-                        <tr key={medicine.id}>
-                          <td>
-                            <input
-                              type="checkbox"
-                              className="checkbox"
-                              checked={selectedItems.includes(medicine.id)}
-                              onChange={() => toggleSelectItem(medicine.id)}
-                              disabled={loading}
-                            />
-                          </td>
+                    {availableMedicines.length > 0 ? (
+                      availableMedicines.map((medicine) => (
+                        <tr key={`medicine-${medicine.id}`}>
+                          {renderMedicineCheckbox(medicine)}
                           <td>{medicine.id}</td>
                           <td>{medicine.name}</td>
-                          <td>
-                            <button
-                              className="primaryButton deleteButton"
-                              onClick={() => handleRemoveItem(selectedGroup.id, medicine.id)}
-                              disabled={loading}
-                            >
-                              <Trash2 size={16} className="buttonIcon" />
-                              Remove
-                            </button>
-                          </td>
+                          <td>{medicine.dosage || 'N/A'}</td>
                         </tr>
                       ))
                     ) : (
                       <tr>
                         <td colSpan="4" style={{ textAlign: 'center', padding: '1rem' }}>
-                          No medicines in this group
+                          No medicines available
                         </td>
                       </tr>
                     )}
@@ -1108,31 +1195,17 @@ export default function MedicineGroupSection() {
             <div className="modalFooter">
               <button
                 className="secondaryButton"
-                onClick={() => setShowRemoveItemModal(false)}
+                onClick={() => setShowAddMedicineModal(false)}
                 disabled={loading}
               >
                 Cancel
               </button>
-              {selectedGroup.count === 0 && (
-                <button
-                  className="primaryButton dangerButton"
-                  onClick={() => {
-                    setShowRemoveItemModal(false)
-                    setShowDeleteGroupModal(true)
-                  }}
-                  disabled={loading}
-                >
-                  <Trash2 size={16} className="buttonIcon" />
-                  Delete Empty Group
-                </button>
-              )}
               <button
-                className="primaryButton dangerButton"
-                onClick={handleRemoveSelected}
-                disabled={loading || selectedItems.length === 0}
+                className="primaryButton"
+                onClick={handleAddMedicines}
+                disabled={loading || selectedMedicines.length === 0}
               >
-                <Trash2 size={16} className="buttonIcon" />
-                Remove Selected ({selectedItems.length})
+                {loading ? 'Adding...' : `Add ${selectedMedicines.length} Medicines`}
               </button>
             </div>
           </div>
