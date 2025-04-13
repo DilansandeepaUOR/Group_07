@@ -13,6 +13,7 @@ import {
 } from "react-icons/fa";
 import axios from "axios";
 import dp from "../assets/paw_vector.png";
+import { useNavigate } from "react-router-dom";
 
 function Profile() {
   const [user, setUser] = useState(null);
@@ -40,6 +41,7 @@ function Profile() {
   });
   const [imagePreview, setImagePreview] = useState(dp);
   const [selectedImage, setSelectedImage] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios
@@ -70,6 +72,9 @@ function Profile() {
               : "",
             gender: response.data.gender || "",
           });
+
+          console.log(response.data.gender);
+          console.log(response.data.Pet_dob);
           if (response.data.profileImage) {
             setImagePreview(
               `http://localhost:3001/uploads/${response.data.profileImage}`
@@ -78,7 +83,7 @@ function Profile() {
         })
         .catch(console.error);
     }
-  }, [user?.id]);
+  }, [user?.id],);
 
   const handleLogout = async () => {
     try {
@@ -126,6 +131,7 @@ function Profile() {
       // Append only non-empty fields from editForm
       Object.entries(editForm).forEach(([key, value]) => {
         formData.append(key, value); // Send empty string if value is falsy
+        
       });
 
       // Append the selected image if it exists
@@ -146,6 +152,7 @@ function Profile() {
 
       setProfile(response.data);
       alert(response.data.message || "Profile updated successfully!");
+      navigate(0); // Refresh the page to see changes
     } catch (err) {
       console.error("Error updating profile:", err);
       alert("Failed to update profile");
@@ -407,7 +414,7 @@ function Profile() {
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-300 mb-1">Gender</label>
+                    <label className="block text-gray-300 mb-1">Pet Type</label>
                     <select
                       name="gender"
                       value={editForm.gender}
@@ -416,6 +423,7 @@ function Profile() {
                     >
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
+                      <option value="Other">Other</option>
                     </select>
                   </div>
                 </div>
