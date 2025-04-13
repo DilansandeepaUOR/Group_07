@@ -32,12 +32,25 @@ const App = () => {
         <Route path="/Pharmacy" element={<Pharmacy />} />
         <Route path="/Login" element={<Login />} />
         <Route path="/Register" element={<Register />} />
+
+        <Route path="/Profile" element={<Profile/>}/>
+        <Route path="/appointment" element={<Appointment/>}/>
+        <Route path="/RecordsEntry" element={<RecordsEntry/>}/>
+
+        {/* Records  */}
+        <Route path="/records" element={<RecordsEntry />} />
+        <Route path="/edit/:id" element={<EditRecords />} />
+        <Route path="/search" element={<SearchRecords />} />
+        <Route path="/delete" element={<useDeleteRecord />} />
+        
+
         <Route path="/Profile" element={<Profile />} />
         <Route path="/appointment" element={<Appointment />} />
         <Route path="/RecordsEntry" element={<RecordsEntry />} />
         <Route path="/records" element={<RecordsEntry />} />
         <Route path="/edit/:id" element={<EditRecords />} />
         <Route path="/search" element={<SearchRecords />} />
+
 
         {/* Admin logins  */}
         <Route path="/Adlogin" element={<Adlogin />} />
