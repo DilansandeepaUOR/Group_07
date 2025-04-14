@@ -48,19 +48,26 @@ const AdminDashboard = () => {
       <aside className="w-64 bg-[#71C9CE] text-gray-900 p-6 space-y-6">
         <h2 className="text-2xl font-bold">Admin Dashboard</h2>
 
-        <div className="items-center gap-4 mt-4">
-          <img
-            src={dp || "Admin"}
-            alt="Admin"
-            className="w-24 h-24 rounded-full border border-gray-400"
-          />
-          <div>
-            <p className="text-black-300">
-              <strong>Admin: </strong> {user?.fname} {user?.lname}
-            </p>
-            <p className="text-black-300">
-              <strong>E mail:</strong> {user?.email}
-            </p>
+        <div className="flex justify-center items-center w-full">
+          <div className="flex flex-col items-center border-1 p-4 bg-gray-50 gap-4 mt-4">
+            <img
+              src={dp || "Admin"}
+              alt="Admin"
+              className="w-24 h-24 rounded-full border border-gray-400"
+            />
+            <div>
+              <p className="text-black-300">
+                <strong>Admin: </strong> {user?.fname} {user?.lname}
+              </p>
+              <div>
+                <button
+                  onClick={() => setActiveTab("profsetting")}
+                  className="flex items-center gap-2 w-full text-left hover:text-[#71C9CE] cursor-pointer"
+                >
+                  <FaUsers /> Profile Settings
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -100,6 +107,7 @@ const AdminDashboard = () => {
         {activeTab === "users" && <UserManagement />}
         {activeTab === "pharmacy" && <PharmacyManagement />}
         {activeTab === "petshop" && <PetShopManagement />}
+        {activeTab === "profsetting" && <ProfSetting />}
       </main>
     </div>
   );
@@ -124,7 +132,9 @@ const UserManagement = () => {
 
   const deleteUser = async (employee_id) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
-      await axios.delete(`http://localhost:3001/api/adregform/empdelete/${employee_id}`);
+      await axios.delete(
+        `http://localhost:3001/api/adregform/empdelete/${employee_id}`
+      );
       fetchUsers();
     }
   };
@@ -147,7 +157,7 @@ const UserManagement = () => {
       </div>
       <div className="">
         <div className="overflow-y-auto max-h-[400px]">
-          <table className="w-full text-left bg-white shadow-md rounded">
+          <table className="w-full text-left bg-gray-50 shadow-md rounded">
             <thead className="bg-[#71C9CE] text-gray-900 sticky top-0 z-10">
               <tr>
                 <th className="p-3">Name</th>
@@ -226,12 +236,11 @@ const EmployeeRegistrationForm = ({ closeForm, editingUser, refreshUsers }) => {
     e.preventDefault();
     try {
       if (editingUser) {
-            await axios.put(
-              `http://localhost:3001/api/adregform/empupdate?employee_id=${editingUser.employee_id}`,
-              formData
-            ); 
-            alert("profile updated!");
-          
+        await axios.put(
+          `http://localhost:3001/api/adregform/empupdate?employee_id=${editingUser.employee_id}`,
+          formData
+        );
+        alert("profile updated!");
       } else {
         await axios.post(
           "http://localhost:3001/api/adregform/empregister",
@@ -310,7 +319,11 @@ const EmployeeRegistrationForm = ({ closeForm, editingUser, refreshUsers }) => {
           name="date_of_birth"
           className="p-2 border rounded-md"
           onChange={handleChange}
-          value={formData.date_of_birth ? new Date(formData.date_of_birth).toISOString().split("T")[0] : ""}
+          value={
+            formData.date_of_birth
+              ? new Date(formData.date_of_birth).toISOString().split("T")[0]
+              : ""
+          }
           required
         />
         <select
@@ -386,6 +399,13 @@ const PetShopManagement = () => (
       Pet Shop Management
     </h2>
     <p className="text-gray-700">Manage pet shop inventory and sales.</p>
+  </div>
+);
+
+const ProfSetting = () => (
+  <div>
+    <h2 className="text-2xl font-semibold text-[#028478]">Profile Setting</h2>
+    <p className="text-gray-700">Profile Setting tab is active.</p>
   </div>
 );
 
