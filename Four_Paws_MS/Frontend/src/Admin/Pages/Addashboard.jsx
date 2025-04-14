@@ -122,9 +122,9 @@ const UserManagement = () => {
     fetchUsers();
   }, []);
 
-  const deleteUser = async (id) => {
+  const deleteUser = async (employee_id) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
-      await axios.delete(`http://localhost:3001/api/adregform/empdelete/${id}`);
+      await axios.delete(`http://localhost:3001/api/adregform/empdelete/${employee_id}`);
       fetchUsers();
     }
   };
@@ -158,7 +158,7 @@ const UserManagement = () => {
             </thead>
             <tbody>
               {users.map((u) => (
-                <tr key={u.id} className="border-t">
+                <tr key={u.employee_id} className="border-t">
                   <td className="p-3">
                     {u.first_name} {u.last_name}
                   </td>
@@ -226,10 +226,12 @@ const EmployeeRegistrationForm = ({ closeForm, editingUser, refreshUsers }) => {
     e.preventDefault();
     try {
       if (editingUser) {
-        await axios.put(
-          `http://localhost:3001/api/adregform/empupdate/${editingUser.employee_id}`,
-          formData
-        );
+            await axios.put(
+              `http://localhost:3001/api/adregform/empupdate?employee_id=${editingUser.employee_id}`,
+              formData
+            ); 
+            alert("profile updated!");
+          
       } else {
         await axios.post(
           "http://localhost:3001/api/adregform/empregister",
@@ -239,7 +241,22 @@ const EmployeeRegistrationForm = ({ closeForm, editingUser, refreshUsers }) => {
       refreshUsers();
       closeForm();
     } catch (error) {
-      alert("Error: " + error.response?.data?.error || "Something went wrong.");
+      if (error.response && error.response.data) {
+        console.error("Backend error response:", error.response.data);
+
+        if (Array.isArray(error.response.data.error)) {
+          // If the backend sends multiple validation errors as an array
+          const errorMessages = error.response.data.error
+            .map((err) => err.message)
+            .join("\n");
+          alert("Error:\n" + errorMessages);
+        } else {
+          // If it's a single error message
+          alert("Error: " + error.response.data.error);
+        }
+      } else {
+        alert("Error: Something went wrong. Please try again.");
+      }
     }
   };
 

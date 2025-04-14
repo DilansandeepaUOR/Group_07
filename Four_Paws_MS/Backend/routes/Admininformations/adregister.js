@@ -102,11 +102,11 @@ router.get("/employees", async (req, res) => {
   }
 });
 
-router.put("/empupdate", validEMPRegister ,async (req, res) => {
-  const { employee_id } = req.query;
+router.put("/empupdate", async (req, res) => {
+  const { employee_id } = req.body;
 
-  console.log("ID:", employee_id); // Log the ID to check if it's being received correctly
-  console.log("Request Body:", req.body); // Log the request body to check the data being sent
+  //console.log("ID:", employee_id); // Log the ID to check if it's being received correctly
+  //console.log("Request Body:", req.body); // Log the request body to check the data being sent
 
   if (!employee_id) {
     return res.status(400).json({ error: "ID query parameter is required" });
@@ -141,13 +141,16 @@ router.put("/empupdate", validEMPRegister ,async (req, res) => {
       ],
       (err, results) => {
         if (err) {
-          return res.status(500).json({ error: "Error inserting pet owner" });
+          return res.status(500).json({ error: "Error inserting user" });
         }
         if (results.affectedRows === 0) {
           return res.status(404).json({ error: "User not found" });
         }
       }
+
     );
+    res.status(200).json({ message: "Employee updated successfully" });
+
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ error: "Error updating user" });
