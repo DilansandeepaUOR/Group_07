@@ -176,8 +176,8 @@ router.post('/api/medicines', async (req, res) => {
   }
 });
 
-// PUT update medicine
-router.put('/api/medicines/:id', (req, res) => {
+// PUT update medicine with notifications
+router.put('/api/medicines/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { name, category, price, stock } = req.body;
@@ -196,55 +196,135 @@ router.put('/api/medicines/:id', (req, res) => {
       status = 'Low Stock';
     }
 
-    db.query(
+    // Get current medicine data for comparison
+    const [currentMedicine] = await db.promise().query(
+      'SELECT name, stock, status FROM medicines WHERE id = ?',
+      [id]
+    );
+
+    if (currentMedicine.length === 0) {
+      return res.status(404).json({ error: 'Medicine not found' });
+    }
+
+    const oldStock = currentMedicine[0].stock;
+    const oldStatus = currentMedicine[0].status;
+    const oldName = currentMedicine[0].name;
+
+    // Update the medicine
+    const [result] = await db.promise().query(
       `UPDATE medicines 
        SET name = ?, category = ?, price = ?, stock = ?, status = ?
        WHERE id = ?`,
-      [name, category, parseFloat(price), stockNum, status, id],
-      (err, result) => {
-        if (err) {
-          console.error(err);
-          return res.status(500).json({ error: 'Failed to update medicine' });
-        }
-        
-        if (result.affectedRows === 0) {
-          return res.status(404).json({ error: 'Medicine not found' });
-        }
-        
-        res.json({ 
-          success: true, 
-          message: 'Medicine updated successfully',
-          status
-        });
-      }
+      [name, category, parseFloat(price), stockNum, status, id]
     );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Medicine not found' });
+    }
+
+    // Create notification about the medicine update
+    await db.promise().query(
+      `INSERT INTO notifications (title, description, type, related_id)
+       VALUES (?, ?, ?, ?)`,
+      [
+        'Medicine Updated',
+        `Medicine "${oldName}" (ID: ${id}) was updated. New stock: ${stock} (was ${oldStock})`,
+        'medicine_updated',
+        id
+      ]
+    );
+
+    // If stock status changed, create additional notifications
+    if (oldStatus !== status) {
+      if (status === 'Low Stock') {
+        await db.promise().query(
+          `INSERT INTO notifications (title, description, type, related_id)
+           VALUES (?, ?, ?, ?)`,
+          [
+            'Low Stock Alert',
+            `Medicine "${name}" is running low (${stock} units remaining)`,
+            'medicine_updated',
+            id
+          ]
+        );
+      } else if (status === 'Out of Stock') {
+        await db.promise().query(
+          `INSERT INTO notifications (title, description, type, related_id)
+           VALUES (?, ?, ?, ?)`,
+          [
+            'Out of Stock Alert',
+            `Medicine "${name}" is now out of stock`,
+            'medicine_updated',
+            id
+          ]
+        );
+      } else if (status === 'In Stock' && oldStatus === 'Low Stock') {
+        await db.promise().query(
+          `INSERT INTO notifications (title, description, type, related_id)
+           VALUES (?, ?, ?, ?)`,
+          [
+            'Stock Replenished',
+            `Medicine "${name}" stock has been replenished to ${stock} units`,
+            'medicine_updated',
+            id
+          ]
+        );
+      }
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Medicine updated successfully',
+      status
+    });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to update medicine' });
   }
 });
 
-// DELETE medicine
-router.delete('/api/medicines/:id', (req, res) => {
+// DELETE medicine with notification
+router.delete('/api/medicines/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
-    db.query(
-      'DELETE FROM medicines WHERE id = ?',
-      [id],
-      (err, result) => {
-        if (err) {
-          console.error(err);
-          return res.status(500).json({ error: 'Failed to delete medicine' });
-        }
-        
-        if (result.affectedRows === 0) {
-          return res.status(404).json({ error: 'Medicine not found' });
-        }
-        
-        res.json({ success: true, message: 'Medicine deleted successfully' });
-      }
+    // Get medicine data before deletion for notification
+    const [medicine] = await db.promise().query(
+      'SELECT name FROM medicines WHERE id = ?',
+      [id]
     );
+
+    if (medicine.length === 0) {
+      return res.status(404).json({ error: 'Medicine not found' });
+    }
+
+    const medicineName = medicine[0].name;
+
+    // Delete the medicine
+    const [result] = await db.promise().query(
+      'DELETE FROM medicines WHERE id = ?',
+      [id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Medicine not found' });
+    }
+
+    // Create notification about the deletion
+    await db.promise().query(
+      `INSERT INTO notifications (title, description, type, related_id)
+       VALUES (?, ?, ?, ?)`,
+      [
+        'Medicine Removed',
+        `Medicine "${medicineName}" (ID: ${id}) was removed from inventory`,
+        'medicine_deleted',
+        id
+      ]
+    );
+
+    res.json({ success: true, message: 'Medicine deleted successfully' });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to delete medicine' });

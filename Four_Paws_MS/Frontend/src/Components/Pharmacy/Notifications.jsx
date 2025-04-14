@@ -4,6 +4,8 @@ import axios from 'axios';
 export default function NotificationsSection() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [displayCount, setDisplayCount] = useState(5); // Start with 5 notifications
+  const [totalNotifications, setTotalNotifications] = useState(0);
 
   // Fetch notifications from API
   useEffect(() => {
@@ -11,6 +13,7 @@ export default function NotificationsSection() {
       try {
         const response = await axios.get('http://localhost:3001/pharmacy/api/notifications');
         setNotifications(response.data);
+        setTotalNotifications(response.data.length);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching notifications:', error);
@@ -20,8 +23,8 @@ export default function NotificationsSection() {
 
     fetchNotifications();
     
-    // Optional: Set up polling for updates
-    const interval = setInterval(fetchNotifications, 60000); // Refresh every minute
+    // Optional: Set up polling for updates every minute
+    const interval = setInterval(fetchNotifications, 60000);
     
     return () => clearInterval(interval);
   }, []);
@@ -52,9 +55,17 @@ export default function NotificationsSection() {
     }
   };
 
+  const loadMore = () => {
+    // Increase display count by 10, but not beyond 15
+    setDisplayCount(prevCount => Math.min(prevCount + 10, 15));
+  };
+
   if (loading) {
     return <div>Loading notifications...</div>;
   }
+
+  // Get notifications to display based on displayCount
+  const displayedNotifications = notifications.slice(0, displayCount);
 
   return (
     <>
@@ -83,10 +94,10 @@ export default function NotificationsSection() {
           </button>
         </div>
         <div>
-          {notifications.length === 0 ? (
+          {displayedNotifications.length === 0 ? (
             <div style={{ padding: "16px", textAlign: "center" }}>No notifications available</div>
           ) : (
-            notifications.map((notification) => (
+            displayedNotifications.map((notification) => (
               <div
                 key={notification.id}
                 style={{
@@ -136,9 +147,10 @@ export default function NotificationsSection() {
             ))
           )}
         </div>
-        {notifications.length > 0 && (
+        {notifications.length > displayCount && displayCount < 15 && (
           <div style={{ textAlign: "center", marginTop: "16px" }}>
             <button
+              onClick={loadMore}
               style={{
                 backgroundColor: "#f9fafb",
                 padding: "8px 16px",
@@ -147,8 +159,13 @@ export default function NotificationsSection() {
                 cursor: "pointer",
               }}
             >
-              Load more
+              Load more ({Math.min(10, 15 - displayCount)} more)
             </button>
+          </div>
+        )}
+        {displayCount >= 15 && totalNotifications > 15 && (
+          <div style={{ textAlign: "center", marginTop: "16px", color: "#6b7280", fontSize: "0.875rem" }}>
+            Showing 15 of {totalNotifications} notifications
           </div>
         )}
       </div>
