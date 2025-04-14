@@ -56,7 +56,7 @@ const AdminDashboard = () => {
           />
           <div>
             <p className="text-black-300">
-              <strong>Admin Name:</strong> {user?.fname} {user?.lname}
+              <strong>Admin Name:</strong><br/> {user?.fname} {user?.lname}
             </p>
             <p className="text-black-300">
               <strong>E mail:</strong> {user?.email}
@@ -68,7 +68,7 @@ const AdminDashboard = () => {
           <li className="">
             <button
               onClick={() => setActiveTab("users")}
-              className="flex items-center gap-2 w-full text-left hover:text-gray-500 cursor-pointer"
+              className="flex items-center gap-2 w-full text-left hover:text-gray-50 cursor-pointer"
             >
               <FaUsers /> Manage Users
             </button>
@@ -76,7 +76,7 @@ const AdminDashboard = () => {
           <li>
             <button
               onClick={() => setActiveTab("pharmacy")}
-              className="flex items-center gap-2 w-full text-left hover:text-gray-500 cursor-pointer"
+              className="flex items-center gap-2 w-full text-left hover:text-gray-50 cursor-pointer"
             >
               <FaPills /> Manage Pharmacy
             </button>
@@ -84,7 +84,7 @@ const AdminDashboard = () => {
           <li>
             <button
               onClick={() => setActiveTab("petshop")}
-              className="flex items-center gap-2 w-full text-left hover:text-gray-500 cursor-pointer"
+              className="flex items-center gap-2 w-full text-left hover:text-gray-50 cursor-pointer"
             >
               <FaShoppingCart /> Manage Pet Shop
             </button>
