@@ -56,7 +56,7 @@ const AdminDashboard = () => {
           />
           <div>
             <p className="text-black-300">
-              <strong>Admin Name:</strong><br/> {user?.fname} {user?.lname}
+              <strong>Admin: </strong> {user?.fname} {user?.lname}
             </p>
             <p className="text-black-300">
               <strong>E mail:</strong> {user?.email}
