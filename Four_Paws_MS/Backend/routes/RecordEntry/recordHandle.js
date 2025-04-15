@@ -3,8 +3,6 @@ const mysql = require('mysql2');
 const cors = require('cors');
 const db = require('../../db');
 
-
-
 const router = express.Router();
 router.use(cors());
 router.use(express.json());
@@ -18,27 +16,7 @@ router.use((req, res, next) => {
   }
   next();
 });
-// MySQL connection
-// const db = mysql.createConnection({
-//   host: 'localhost',
-//   user: 'fourpaws',
-//   password: '1234',
-//   database: 'fourpaws'
-// });
 
-// db.connect(err => {
-//   if (err) {
-//     console.error('Database connection failed:', err.stack);
-//     return;
-//   }
-//   console.log('Connected to database.');
-// });
-
-// Test route to check server running
-// router.get('/', (req, res) => {
-//   res.send('Welcome to the Pet Services API!');
-// });
-// Endpoint to fetch all records from pet_services table
 router.get('/', (req, res) => {
   const query = 'SELECT * FROM pet_services';
   
@@ -51,12 +29,6 @@ router.get('/', (req, res) => {
   });
 });
 
-
-// Add these new endpoints to your Express router:
-
-// Search records by owner name
-// In your recordHandle.js
-// Add this route before module.exports
 router.get('/search', (req, res) => {
   const owner = req.query.owner;
   if (!owner) {
