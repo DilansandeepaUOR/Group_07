@@ -18,6 +18,7 @@ import Docprofile from "./Otherusers/Doctor/docprofile";
 import Assistprofile from "./Otherusers/Assitdoctor/assistprofile";
 import EditRecords from "./Pages/EditRecords";
 import SearchRecords from "./Pages/SearchRecords";
+import PetRecordPDF from "./Pages/PetRecordPDF"
 
 
 const App = () => {
@@ -42,6 +43,10 @@ const App = () => {
         <Route path="/edit/:id" element={<EditRecords />} />
         <Route path="/search" element={<SearchRecords />} />
         <Route path="/delete" element={<useDeleteRecord />} />
+
+
+        {/* New Record */}
+        <Route path="/recordselection" element={<PetRecordPDF />} />
         
 
         <Route path="/Profile" element={<Profile />} />
