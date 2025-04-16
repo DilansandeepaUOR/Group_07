@@ -85,14 +85,6 @@ function Profile() {
     }
   }, [user?.id],);
 
-  useEffect(() => {
-    window.onpageshow = function (event) {
-      if (event.persisted) {
-        window.location.reload(); // Force re-check
-      }
-    };
-  }, []);
-
   const handleLogout = async () => {
     try {
       await axios.get("http://localhost:3001/api/auth/logout", {
