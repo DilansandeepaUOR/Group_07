@@ -18,7 +18,12 @@ import Docprofile from "./Otherusers/Doctor/docprofile";
 import Assistprofile from "./Otherusers/Assitdoctor/assistprofile";
 import EditRecords from "./Pages/EditRecords";
 import SearchRecords from "./Pages/SearchRecords";
+import Adprofile from "./Admin/Pages/Adprofile";
+import ProtectedRoutes from "./Components/ProtectedRoutes/ProtectedRoutes";
+import ProtectedRoutesUser from "./Components/ProtectedRoutes/ProtectedRoutesUser";
+import Unauth from "./Pages/Unauth";
 import PetRecordPDF from "./Pages/PetRecordPDF"
+
 
 
 const App = () => {
@@ -30,9 +35,12 @@ const App = () => {
         <Route path="/Contactus" element={<Contactus />} />
         <Route path="/Ourservices" element={<Ourservices />} />
         <Route path="/Petshop" element={<Petshop />} />
-        <Route path="/Pharmacy" element={<Pharmacy />} />
+        <Route path="/Pharmacy" element={<ProtectedRoutes><Pharmacy /></ProtectedRoutes>} />
         <Route path="/Login" element={<Login />} />
         <Route path="/Register" element={<Register />} />
+
+        <Route path="/Profile" element={<ProtectedRoutesUser allowedRolesUser={["Petowner"]}><Profile /></ProtectedRoutesUser>} />
+
 
         <Route path="/Profile" element={<Profile/>}/>
         <Route path="/appointment" element={<Appointment/>}/>
@@ -50,6 +58,7 @@ const App = () => {
         
 
         <Route path="/Profile" element={<Profile />} />
+
         <Route path="/appointment" element={<Appointment />} />
         <Route path="/RecordsEntry" element={<RecordsEntry />} />
         <Route path="/records" element={<RecordsEntry />} />
@@ -59,11 +68,13 @@ const App = () => {
 
         {/* Admin logins  */}
         <Route path="/Adlogin" element={<Adlogin />} />
-        <Route path="/Addashboard" element={<Addashboard />} />
-        <Route path="/psprofile" element={<Psprofile />} />
-        <Route path="/docprofile" element={<Docprofile />} />
-        <Route path="/assistprofile" element={<Assistprofile />} />
+        <Route path="/Addashboard" element={<ProtectedRoutes allowedRoles={["Admin"]}><Addashboard /></ProtectedRoutes>} />
+        <Route path="/psprofile" element={<ProtectedRoutes><Psprofile /></ProtectedRoutes>} />
+        <Route path="/docprofile" element={<ProtectedRoutes allowedRoles={["Doctor"]}><Docprofile /></ProtectedRoutes>} />
+        <Route path="/assistprofile" element={<ProtectedRoutes><Assistprofile /></ProtectedRoutes>} />
+        <Route path="/adprofile" element={<ProtectedRoutes allowedRoles={["Admin"]}><Adprofile /></ProtectedRoutes>} />
 
+        <Route path="/unauth" element={<Unauth/>} />
         <Route path="*" element={<h1>404 Not Found</h1>} />
       </Routes>
     </>

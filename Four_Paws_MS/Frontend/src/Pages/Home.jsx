@@ -24,7 +24,7 @@ function Home() {
     <section id="home">
       <Navbar />
       {/* Main Home Section */}
-      <div className="container bg-gradient-to-b from-[#22292F] via-[#71C9CE] to-[#A6E3E9] text-white relative">
+      <div className="container max-w-full bg-gradient-to-b from-[#22292F] via-[#71C9CE] to-[#A6E3E9] text-white relative">
         {/* Background image*/}
         <div className="bgimage">
           <div className="bgopacity">

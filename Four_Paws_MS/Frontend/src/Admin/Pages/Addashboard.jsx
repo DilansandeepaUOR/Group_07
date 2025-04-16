@@ -6,11 +6,15 @@ import {
   FaPlus,
   FaUser,
   FaSignOutAlt,
+  FaEdit,
+  FaTrash,
+  FaEye,
 } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import dp from "../../../src/assets/paw_vector.png"
+import dp from "../../../src/assets/paw_vector.png";
+import { Link } from "react-router-dom";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("users");
@@ -45,26 +49,36 @@ const AdminDashboard = () => {
       <aside className="w-64 bg-[#71C9CE] text-gray-900 p-6 space-y-6">
         <h2 className="text-2xl font-bold">Admin Dashboard</h2>
 
-        <div className="items-center gap-4 mt-4">
-          <img
-            src={dp || "Admin"} // Use optional chaining and default image
-            alt="Admin"
-            className="w-24 h-24 rounded-full border border-gray-400"
-          />
-          <div>
-            <p className="text-black-300">
-              <strong>Admin Name:</strong> {user?.fname} {user?.lname}
-            </p>
-            <p className="text-black-300">
-              <strong>E mail:</strong> {user?.email}
-            </p>
+        <div className="flex justify-center items-center w-full">
+          <div className="flex flex-col items-center border-1 p-4 bg-gray-50 gap-4 mt-4">
+            <img
+              src={dp || "Admin"}
+              alt="Admin"
+              className="w-24 h-24 rounded-full border border-gray-400"
+            />
+            <div>
+              <p className="text-black-300">
+                <strong>Admin: </strong> {user?.fname} {user?.lname}
+              </p>
+              <div>
+                <Link to={"/adprofile"}>
+                <button
+                  onClick={() => setActiveTab("profsetting")}
+                  className="flex items-center gap-2 w-full text-left hover:text-[#71C9CE] cursor-pointer"
+                >
+                  <FaUsers /> Profile Settings
+                </button>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
-        <ul className="space-y-4">
-          <li>
+
+        <ul className="space-y-5">
+          <li className="">
             <button
               onClick={() => setActiveTab("users")}
-              className="flex items-center gap-2 w-full text-left hover:text-gray-700"
+              className="flex items-center gap-2 w-full text-left hover:text-gray-50 cursor-pointer"
             >
               <FaUsers /> Manage Users
             </button>
@@ -72,7 +86,7 @@ const AdminDashboard = () => {
           <li>
             <button
               onClick={() => setActiveTab("pharmacy")}
-              className="flex items-center gap-2 w-full text-left hover:text-gray-700"
+              className="flex items-center gap-2 w-full text-left hover:text-gray-50 cursor-pointer"
             >
               <FaPills /> Manage Pharmacy
             </button>
@@ -80,14 +94,13 @@ const AdminDashboard = () => {
           <li>
             <button
               onClick={() => setActiveTab("petshop")}
-              className="flex items-center gap-2 w-full text-left hover:text-gray-700"
+              className="flex items-center gap-2 w-full text-left hover:text-gray-50 cursor-pointer"
             >
               <FaShoppingCart /> Manage Pet Shop
             </button>
           </li>
-
-          <li className="hover:text-red-400 items-center gap-2 w-full text-left">
-            <a href="/Adlogin" onClick={handleLogout} className="">
+          <li className="flex hover:text-red-400 items-center gap-2 w-full text-left">
+            <a href="/Adlogin" onClick={handleLogout}>
               <FaSignOutAlt className="mr-2" /> Logout
             </a>
           </li>
@@ -102,46 +115,120 @@ const AdminDashboard = () => {
   );
 };
 
+//user management section
 const UserManagement = () => {
+  const [users, setUsers] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+
+  const fetchUsers = async () => {
+    const res = await axios.get(
+      "http://localhost:3001/api/adregform/employees"
+    );
+    setUsers(res.data);
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const deleteUser = async (employee_id) => {
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      await axios.delete(
+        `http://localhost:3001/api/adregform/empdelete/${employee_id}`
+      );
+      fetchUsers();
+    }
+  };
+
   return (
-    <div>
+    <div className="relative">
       <h2 className="text-2xl font-semibold mb-4 text-[#028478]">
         User Management
       </h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-[#A6E3E9] p-4 rounded-lg shadow-md flex items-center gap-4">
-          <FaUser className="text-[#028478] text-2xl" />
-          <p className="text-lg font-medium text-gray-900">Add a New User</p>
-          <Button
-            className="ml-auto bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900 flex items-center"
-            onClick={() => setShowForm(true)}
-          >
-            <FaPlus className="mr-2" /> Add User
-          </Button>
+      <div className="flex justify-end mb-4">
+        <Button
+          className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900 flex items-center"
+          onClick={() => {
+            setEditingUser(null);
+            setShowForm(true);
+          }}
+        >
+          <FaPlus className="mr-2" /> Add User
+        </Button>
+      </div>
+      <div className="">
+        <div className="overflow-y-auto max-h-[400px]">
+          <table className="w-full text-left bg-gray-50 shadow-md rounded">
+            <thead className="bg-[#71C9CE] text-gray-900 sticky top-0 z-10">
+              <tr>
+                <th className="p-3">Name</th>
+                <th className="p-3">Email</th>
+                <th className="p-3">Role</th>
+                <th className="p-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u) => (
+                <tr key={u.employee_id} className="border-t">
+                  <td className="p-3">
+                    {u.first_name} {u.last_name}
+                  </td>
+                  <td className="p-3">{u.email}</td>
+                  <td className="p-3">{u.role}</td>
+                  <td className="p-3 space-x-2">
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setEditingUser(u);
+                        setShowForm(true);
+                      }}
+                    >
+                      <FaEdit />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => deleteUser(u.id)}
+                    >
+                      <FaTrash />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full max-w-2xl z-20 p-4 rounded-md">
+          {showForm && (
+            <EmployeeRegistrationForm
+              closeForm={() => setShowForm(false)}
+              editingUser={editingUser}
+              refreshUsers={fetchUsers}
+            />
+          )}
         </div>
       </div>
-      {showForm && (
-        <EmployeeRegistrationForm closeForm={() => setShowForm(false)} />
-      )}
     </div>
   );
 };
 
-const EmployeeRegistrationForm = ({ closeForm }) => {
+const EmployeeRegistrationForm = ({ closeForm, editingUser, refreshUsers }) => {
   const [formData, setFormData] = useState({
-    fname: "",
-    lname: "",
+    first_name: "",
+    last_name: "",
     email: "",
-    phone: "",
-    dob: "",
+    phone_number: "",
+    date_of_birth: "",
     gender: "Male",
     role: "Admin",
     address: "",
     password: "",
   });
 
-  const navigate = useNavigate();
+  useEffect(() => {
+    if (editingUser) setFormData(editingUser);
+  }, [editingUser]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -149,16 +236,21 @@ const EmployeeRegistrationForm = ({ closeForm }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // post data to backend
     try {
-      const res = await axios.post(
-        "http://localhost:3001/api/adregform/empregister",
-        formData
-      );
-      alert(res.data.message);
-      if (res.data.message === "employee added successfully") {
-        navigate("/Addashboard");
+      if (editingUser) {
+        await axios.put(
+          `http://localhost:3001/api/adregform/empupdate?employee_id=${editingUser.employee_id}`,
+          formData
+        );
+        alert("profile updated!");
+      } else {
+        await axios.post(
+          "http://localhost:3001/api/adregform/empregister",
+          formData
+        );
       }
+      refreshUsers();
+      closeForm();
     } catch (error) {
       if (error.response && error.response.data) {
         console.error("Backend error response:", error.response.data);
@@ -182,7 +274,7 @@ const EmployeeRegistrationForm = ({ closeForm }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
       <h2 className="text-xl font-semibold mb-4 text-[#028478]">
-        Register New Employee
+        {editingUser ? "Edit" : "Register New"} Employee
       </h2>
       <form
         className="grid grid-cols-1 md:grid-cols-2 gap-4"
@@ -190,18 +282,20 @@ const EmployeeRegistrationForm = ({ closeForm }) => {
       >
         <input
           type="text"
-          name="fname"
+          name="first_name"
           placeholder="First Name"
           className="p-2 border rounded-md"
           onChange={handleChange}
+          value={formData.first_name}
           required
         />
         <input
           type="text"
-          name="lname"
+          name="last_name"
           placeholder="Last Name"
           className="p-2 border rounded-md"
           onChange={handleChange}
+          value={formData.last_name}
           required
         />
         <input
@@ -210,27 +304,35 @@ const EmployeeRegistrationForm = ({ closeForm }) => {
           placeholder="Email"
           className="p-2 border rounded-md"
           onChange={handleChange}
+          value={formData.email}
           required
         />
         <input
           type="text"
-          name="phone"
+          name="phone_number"
           placeholder="Phone Number"
           className="p-2 border rounded-md"
           onChange={handleChange}
+          value={formData.phone_number}
           required
         />
         <input
           type="date"
-          name="dob"
+          name="date_of_birth"
           className="p-2 border rounded-md"
           onChange={handleChange}
+          value={
+            formData.date_of_birth
+              ? new Date(formData.date_of_birth).toISOString().split("T")[0]
+              : ""
+          }
           required
         />
         <select
           name="gender"
           className="p-2 border rounded-md"
           onChange={handleChange}
+          value={formData.gender}
           required
         >
           <option>Male</option>
@@ -241,6 +343,7 @@ const EmployeeRegistrationForm = ({ closeForm }) => {
           name="role"
           className="p-2 border rounded-md"
           onChange={handleChange}
+          value={formData.role}
           required
         >
           <option>Admin</option>
@@ -255,21 +358,25 @@ const EmployeeRegistrationForm = ({ closeForm }) => {
           placeholder="Address"
           className="p-2 border rounded-md col-span-2"
           onChange={handleChange}
+          value={formData.address}
           required
         />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          className="p-2 border rounded-md col-span-2"
-          onChange={handleChange}
-          required
-        />
+        {!editingUser && (
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            className="p-2 border rounded-md col-span-2"
+            onChange={handleChange}
+            value={formData.password}
+            required
+          />
+        )}
         <Button
           type="submit"
           className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900 col-span-2"
         >
-          Register
+          {editingUser ? "Update" : "Register"}
         </Button>
       </form>
       <button onClick={closeForm} className="mt-4 text-red-500 hover:underline">

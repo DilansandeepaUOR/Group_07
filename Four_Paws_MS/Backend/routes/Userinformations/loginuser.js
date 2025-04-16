@@ -4,7 +4,7 @@ const verifyToken = require("../../verifications/verifyuser");
 const router = express.Router();
 
 router.get("/user", verifyToken, (req, res) => {
-    res.json({ id: req.user.id, name: req.user.name, email: req.user.email });
+    res.json({ id: req.user.id, name: req.user.name, email: req.user.email, role: req.user.role });
 });
 
 router.get("/admins", verifyToken, (req, res) => {

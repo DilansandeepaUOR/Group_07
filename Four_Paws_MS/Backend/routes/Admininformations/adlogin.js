@@ -51,7 +51,7 @@ router.post("/adlogin", validADLogin, async (req,res) => {
                 maxAge: 3* 60* 60* 1000,
             });
 
-            res.status(200).json({ message: "Login successful", user: { fname: user.first_name, lname: user.last_name , email: user.email, role: user.role} });
+            res.status(200).json({ message: "Login successful", user: { role: user.role} });
 
             
         });

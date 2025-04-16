@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
+const verifyRoutes=require("../../verifications/verifyroutes");
 
-router.get("/logout", (req, res) => {
+router.get("/logout", verifyRoutes, (req, res) => {
     res.clearCookie("token", {
         httpOnly: true,
         secure: true,

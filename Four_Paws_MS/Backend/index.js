@@ -40,11 +40,17 @@ app.use('/api/', petProfileRoutes);
 
 
 //admin routes
+//admin register
 const adminRegRoutes =require('./routes/Admininformations/adregister');
 app.use('/api/adregform', adminRegRoutes);
 
+//admin login
 const adminloginRoutes =require('./routes/Admininformations/adlogin');
 app.use('/api/adloginform/', adminloginRoutes);
+
+//admin profile
+const adminprofileRoutes =require("./routes/Admininformations/adgetprofile");
+app.use('/api/',adminprofileRoutes);
 
 const pharmacy =require('./routes/Pharmacy/pharmacy');
 app.use('/pharmacy', pharmacy);
