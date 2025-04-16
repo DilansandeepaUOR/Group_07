@@ -12,10 +12,6 @@ function Adlogin() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const storeSession = (sessionData) => {
-    sessionStorage.setItem("authToken", sessionData);
-  };
-
   const navigate = useNavigate();
 
   // Clear session when login page loads
@@ -23,7 +19,7 @@ function Adlogin() {
     const clearSession = async () => {
       try {
         await axios.get("http://localhost:3001/api/auth/logout", {
-          withCredentials: true
+          withCredentials: true,
         });
         sessionStorage.clear();
         navigate("/Adlogin"); // Redirect to login page
@@ -44,45 +40,36 @@ function Adlogin() {
     }
 
     try {
-      axios
-        .post(
-          "http://localhost:3001/api/adloginform/adlogin",
-          { email, password },
-          { withCredentials: true }
-        )
-        .then((response) => {
-          console.log(response.data);
-          if (response?.data?.user?.role == "Admin") {
-            storeSession(response.data.session);
-            alert("Admin Login Successful!");
-            window.location.href = "/Addashboard"; 
-          } else if (response?.data?.user?.role == "Doctor") {   
-            storeSession(response.data.session);                              
-            alert("Doctor Login Successful!");
-            window.location.href = "/docprofile"; 
-          } 
-          
-          else if (response?.data?.user?.role == "Assistant Doctor") {  
-            storeSession(response.data.session);                              
-            alert("Assistant Doctor Login Successful!");
-            window.location.href = "/assistprofile"; 
-          }
-          else if (response?.data?.user?.role == "Pharmacist") { 
-            storeSession(response.data.session);                               
-            alert("Pharmacist Login Successful!");
-            window.location.href = "/Pharmacy"; 
-          }
-          else if (response?.data?.user?.role == "Pet Shopper") { 
-            storeSession(response.data.session);                                
-            alert("Pet Shopper Login Successful!");
-            window.location.href = "/psprofile"; 
-          }else {
-            alert("Unauthorized Role!");
-          }
-        })
-        .catch((error) => {
-          alert("Login failed: " + error.response.data.error);
-        });
+      const response = await axios.post(
+        "http://localhost:3001/api/adloginform/adlogin",
+        { email, password },
+        { withCredentials: true }
+      );
+
+      const logedUser = await axios.get(
+        "http://localhost:3001/api/auth/admins",
+        { withCredentials: true }
+      ); //response.data contains the logged user information
+      const user = logedUser.data;
+
+      if (user?.role === "Admin") {
+        alert("Admin Login Successful!");
+        window.location.href = "/Addashboard";
+      } else if (user?.role === "Doctor") {
+        alert("Doctor Login Successful!");
+        window.location.href = "/docprofile";
+      } else if (user?.role === "Assistant Doctor") {
+        alert("Assistant Doctor Login Successful!");
+        window.location.href = "/assistprofile";
+      } else if (user?.role === "Pharmacist") {
+        alert("Pharmacist Login Successful!");
+        window.location.href = "/Pharmacy";
+      } else if (user?.role === "Pet Shopper") {
+        alert("Pet Shopper Login Successful!");
+        window.location.href = "/psprofile";
+      } else {
+        alert("Unauthorized role");
+      }
     } catch (err) {
       if (err.response && err.response.data) {
         console.error("Backend error response:", err.response.data);
