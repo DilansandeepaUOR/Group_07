@@ -24,7 +24,15 @@ const ProtectedRoutes = ({ children, allowedRoles }) => {
 
   if (error || !user || !allowedRoles.includes(user.role)) {
     // Not logged in or not allowed
-    return <Navigate to="/" replace />;
+    try {
+        axios.get("http://localhost:3001/api/auth/logout", {
+          withCredentials: true,
+        });
+        setUser(null);
+        window.location.href = "/";
+      } catch (err) {
+        console.error("Logout failed:", err);
+      }
   }
 
   return children;
