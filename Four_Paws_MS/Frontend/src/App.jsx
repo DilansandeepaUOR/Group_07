@@ -35,11 +35,11 @@ const App = () => {
         <Route path="/Login" element={<Login />} />
         <Route path="/Register" element={<Register />} />
         <Route path="/Profile" element={<ProtectedRoutesUser allowedRolesUser={["Petowner"]}><Profile /></ProtectedRoutesUser>} />
-        <Route path="/appointment" element={<ProtectedRoutes><Appointment /></ProtectedRoutes>} />
-        <Route path="/RecordsEntry" element={<ProtectedRoutes><RecordsEntry /></ProtectedRoutes>} />
-        <Route path="/records" element={<ProtectedRoutes><RecordsEntry /></ProtectedRoutes>} />
-        <Route path="/edit/:id" element={<ProtectedRoutes><EditRecords /></ProtectedRoutes>} />
-        <Route path="/search" element={<ProtectedRoutes><SearchRecords /></ProtectedRoutes>} />
+        <Route path="/appointment" element={<ProtectedRoutesUser allowedRolesUser={["Petowner"]}><Appointment /></ProtectedRoutesUser>} />
+        <Route path="/RecordsEntry" element={<RecordsEntry />} />
+        <Route path="/records" element={<RecordsEntry />} />
+        <Route path="/edit/:id" element={<EditRecords />} />
+        <Route path="/search" element={<SearchRecords />} />
 
         {/* Admin logins  */}
         <Route path="/Adlogin" element={<Adlogin />} />

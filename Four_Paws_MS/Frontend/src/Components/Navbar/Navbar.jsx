@@ -20,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 function Navbar() {
   const [showMenu, setShowMenu] = useState(false);
   const [user, setUser] = useState(null);
+  const [loading, setLoading]= useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {

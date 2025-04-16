@@ -20,9 +20,6 @@ function Login() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const storeSession = (sessionData) => {
-    sessionStorage.setItem("authToken", sessionData);
-  };
 
   const navigate = useNavigate();
 
@@ -52,15 +49,15 @@ function Login() {
     }
 
     try {
-      axios
+      const response= await axios
         .post(
           "http://localhost:3001/api/loginform/login",
           { email, password },
           { withCredentials: true }
         )
         .then((response) => {
-          storeSession(response.data.session);
-          alert("Login successful!");
+          alert(response.data.message);
+          //alert("Login successful!");
           window.location.href = "/"; // Redirect to profile
         })
         .catch((error) => {

@@ -12,7 +12,7 @@ const ProtectedRoutesUser = ({ children, allowedRolesUser }) => {
       .then((res) => {
         setUser(res.data);
         setLoading(false);
-        console.log("role: ", );
+        console.log("role: ", res.data.role);
       })
       .catch(() => {
         setError(true);
