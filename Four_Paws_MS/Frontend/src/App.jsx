@@ -20,6 +20,7 @@ import EditRecords from "./Pages/EditRecords";
 import SearchRecords from "./Pages/SearchRecords";
 import Adprofile from "./Admin/Pages/Adprofile";
 import ProtectedRoutes from "./Components/ProtectedRoutes/ProtectedRoutes";
+import ProtectedRoutesUser from "./Components/ProtectedRoutes/ProtectedRoutesUser";
 
 const App = () => {
   return (
@@ -33,7 +34,7 @@ const App = () => {
         <Route path="/Pharmacy" element={<ProtectedRoutes><Pharmacy /></ProtectedRoutes>} />
         <Route path="/Login" element={<Login />} />
         <Route path="/Register" element={<Register />} />
-        <Route path="/Profile" element={<Profile />} />
+        <Route path="/Profile" element={<ProtectedRoutesUser allowedRolesUser={["Petowner"]}><Profile /></ProtectedRoutesUser>} />
         <Route path="/appointment" element={<ProtectedRoutes><Appointment /></ProtectedRoutes>} />
         <Route path="/RecordsEntry" element={<ProtectedRoutes><RecordsEntry /></ProtectedRoutes>} />
         <Route path="/records" element={<ProtectedRoutes><RecordsEntry /></ProtectedRoutes>} />

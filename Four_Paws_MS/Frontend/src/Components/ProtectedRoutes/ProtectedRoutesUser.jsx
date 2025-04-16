@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const ProtectedRoutes = ({ children, allowedRoles }) => {
+const ProtectedRoutesUser = ({ children, allowedRolesUser }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true); // Track loading state
   const [error, setError] = useState(false);
 
   useEffect(() => {
     axios
-      .get("http://localhost:3001/api/auth/admins", { withCredentials: true })
+      .get("http://localhost:3001/api/auth/user", { withCredentials: true })
       .then((res) => {
         setUser(res.data);
         setLoading(false);
+        console.log("role: ", );
       })
       .catch(() => {
         setError(true);
@@ -21,7 +22,7 @@ const ProtectedRoutes = ({ children, allowedRoles }) => {
 
   if (loading) return <p>Loading...</p>;
 
-  if (error || !user || !allowedRoles.includes(user.role)) {
+  if (error || !user || !allowedRolesUser.includes(user.role)) {
     // Not logged in or not allowed
     try {
         axios.get("http://localhost:3001/api/auth/logout", {
@@ -37,4 +38,4 @@ const ProtectedRoutes = ({ children, allowedRoles }) => {
   return children;
 };
 
-export default ProtectedRoutes;
+export default ProtectedRoutesUser;
