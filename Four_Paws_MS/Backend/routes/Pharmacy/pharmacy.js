@@ -12,6 +12,16 @@ router.use((req, res, next) => {
   next();
 });
 
+
+
+// Add this helper function to create notifications
+const createNotification = async (title, description, type, related_id = null) => {
+  await db.execute(
+    'INSERT INTO notifications (title, description, type, related_id) VALUES (?, ?, ?, ?)',
+    [title, description, type, related_id]
+  );
+};
+
 // GET all medicines (with optional search and pagination)
 router.get('/api/medicines', (req, res) => {
   try {
@@ -101,8 +111,8 @@ router.get('/api/medicines/:id', (req, res) => {
   });
 });
 
-// POST create new medicine
-router.post('/api/medicines', (req, res) => {
+// POST create new medicine with notification
+router.post('/api/medicines', async (req, res) => {
   try {
     const { name, category, price, stock } = req.body;
     
@@ -120,24 +130,46 @@ router.post('/api/medicines', (req, res) => {
       status = 'Low Stock';
     }
 
-    db.query(
+    // Using async/await instead of callback
+    const [result] = await db.promise().query(
       `INSERT INTO medicines (name, category, price, stock, status)
        VALUES (?, ?, ?, ?, ?)`,
-      [name, category, parseFloat(price), stockNum, status],
-      (err, result) => {
-        if (err) {
-          console.error(err);
-          return res.status(500).json({ error: 'Failed to create medicine' });
-        }
-
-        res.status(201).json({
-          success: true,
-          message: 'Medicine created successfully',
-          id: result.insertId,
-          status
-        });
-      }
+      [name, category, parseFloat(price), stockNum, status]
     );
+
+    // Create notification about the new medicine
+    await db.promise().query(
+      `INSERT INTO notifications (title, description, type, related_id)
+       VALUES (?, ?, ?, ?)`,
+      [
+        'New Medicine Added',
+        `Medicine "${name}" (${category}) has been added to inventory with ${stock} units`,
+        'medicine_added',
+        result.insertId
+      ]
+    );
+
+    // If stock is low, create an additional notification
+    if (status === 'Low Stock') {
+      await db.promise().query(
+        `INSERT INTO notifications (title, description, type, related_id)
+         VALUES (?, ?, ?, ?)`,
+        [
+          'Low Stock Alert',
+          `Medicine "${name}" is running low (${stock} units remaining)`,
+          'medicine_updated', // or you could add 'low_stock' to your ENUM
+          result.insertId
+        ]
+      );
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Medicine created successfully',
+      id: result.insertId,
+      status
+    });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to create medicine' });
@@ -685,6 +717,90 @@ router.delete('/api/medicine-groups/:groupId/medicines/:medicineId', (req, res) 
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to remove medicine from group' });
+  }
+});
+
+
+
+/*- GET all notifications (with optional search and pagination)*/
+
+// GET all notifications
+router.get('/api/notifications', async (req, res) => {
+  try {
+    const [notifications] = await db.promise().query(
+      'SELECT * FROM notifications ORDER BY created_at DESC LIMIT 50'
+    );
+    res.json(notifications);
+  } catch (error) {
+    console.error('Failed to fetch notifications:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch notifications',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Mark notification as read
+router.patch('/api/notifications/:id/read', async (req, res) => {
+  try {
+    const [result] = await db.promise().query(
+      'UPDATE notifications SET is_read = TRUE WHERE id = ?',
+      [req.params.id]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Notification not found' });
+    }
+    
+    res.json({ success: true, message: 'Notification marked as read' });
+  } catch (error) {
+    console.error('Failed to mark notification as read:', error);
+    res.status(500).json({ 
+      error: 'Failed to update notification',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Mark all notifications as read
+router.patch('/api/notifications/mark-all-read', async (req, res) => {
+  try {
+    await db.promise().query(
+      'UPDATE notifications SET is_read = TRUE WHERE is_read = FALSE'
+    );
+    res.json({ success: true, message: 'All notifications marked as read' });
+  } catch (error) {
+    console.error('Failed to mark all notifications as read:', error);
+    res.status(500).json({ 
+      error: 'Failed to update notifications',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Debug endpoint
+router.get('/api/notifications/debug', async (req, res) => {
+  try {
+    const [[{count}]] = await db.promise().query(
+      'SELECT COUNT(*) as count FROM notifications'
+    );
+    const [recent] = await db.promise().query(
+      'SELECT * FROM notifications ORDER BY created_at DESC LIMIT 5'
+    );
+    
+    res.json({
+      success: true,
+      count,
+      recent_notifications: recent,
+      table_exists: count >= 0
+    });
+  } catch (error) {
+    console.error('Debug endpoint failed:', error);
+    res.status(500).json({
+      error: 'Debug check failed',
+      details: error.message,
+      table_exists: false
+    });
   }
 });
 

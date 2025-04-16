@@ -60,6 +60,18 @@ const contactInfoRoutes = require('./routes/Contactinfo/contact');
 app.use('/contact', contactInfoRoutes);
 
 
+//Record Selection
+//const mysql = require('mysql2/promise');
+//const router = express.Router();
+// Middleware
+
+app.use(express.json());
+// Use the routes
+const recordRoutes = require('./routes/Records/RecordSelection');
+app.use('/api', recordRoutes);
+
+
+
 //Sample code
 // app.get('/', (req, res) => {
 //   db.query('SELECT * FROM owners', (err, results) => {
@@ -71,7 +83,9 @@ app.use('/contact', contactInfoRoutes);
 //     res.json(results); 
 //   });
 // });
-
+app.get('/api/test-route', (req, res) => {
+  res.json({ message: "Test route works!" });
+});
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

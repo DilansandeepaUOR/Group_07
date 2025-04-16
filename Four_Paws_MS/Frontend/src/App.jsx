@@ -22,6 +22,9 @@ import Adprofile from "./Admin/Pages/Adprofile";
 import ProtectedRoutes from "./Components/ProtectedRoutes/ProtectedRoutes";
 import ProtectedRoutesUser from "./Components/ProtectedRoutes/ProtectedRoutesUser";
 import Unauth from "./Pages/Unauth";
+import PetRecordPDF from "./Pages/PetRecordPDF"
+
+
 
 const App = () => {
   return (
@@ -35,12 +38,33 @@ const App = () => {
         <Route path="/Pharmacy" element={<ProtectedRoutes><Pharmacy /></ProtectedRoutes>} />
         <Route path="/Login" element={<Login />} />
         <Route path="/Register" element={<Register />} />
+
         <Route path="/Profile" element={<ProtectedRoutesUser allowedRolesUser={["Petowner"]}><Profile /></ProtectedRoutesUser>} />
+
+
+        <Route path="/Profile" element={<Profile/>}/>
+        <Route path="/appointment" element={<Appointment/>}/>
+        <Route path="/RecordsEntry" element={<RecordsEntry/>}/>
+
+        {/* Records  */}
+        <Route path="/records" element={<RecordsEntry />} />
+        <Route path="/edit/:id" element={<EditRecords />} />
+        <Route path="/search" element={<SearchRecords />} />
+        <Route path="/delete" element={<useDeleteRecord />} />
+
+
+        {/* New Record */}
+        <Route path="/recordselection" element={<PetRecordPDF />} />
+        
+
+        <Route path="/Profile" element={<Profile />} />
+
         <Route path="/appointment" element={<Appointment />} />
         <Route path="/RecordsEntry" element={<RecordsEntry />} />
         <Route path="/records" element={<RecordsEntry />} />
         <Route path="/edit/:id" element={<EditRecords />} />
         <Route path="/search" element={<SearchRecords />} />
+
 
         {/* Admin logins  */}
         <Route path="/Adlogin" element={<Adlogin />} />
