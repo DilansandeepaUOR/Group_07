@@ -150,6 +150,22 @@ const MedicationsSection = () => (
       Generate PDF Records
       </button>
     </Link>
+    <div>
+      <Link to="/recordsNew">
+      <button className="bg-blue-500 text-white px-4 py-2 rounded flex items-center gap-2">
+        <p></p>
+        View All Records
+      </button>
+      </Link>
+    </div>
+    <div>
+      <Link to="/records/new">
+      <button className="bg-blue-500 text-white px-4 py-2 rounded flex items-center gap-2">
+        <p></p>
+        Enter New Record
+      </button>
+      </Link>
+    </div>
   </div>
 );
 

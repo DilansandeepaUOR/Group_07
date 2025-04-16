@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { jsPDF } from 'jspdf';
 import axios from 'axios';
-import { FaSearch, FaFilePdf } from 'react-icons/fa';
+import { FaSearch, FaFilePdf, FaTimes } from 'react-icons/fa';
 import autoTable from 'jspdf-autotable';
 import logo from '../assets/logo.png';
-
+import { useNavigate } from 'react-router-dom';
 
 const PetRecordPDF = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,47 +14,61 @@ const PetRecordPDF = () => {
   const [selectedPet, setSelectedPet] = useState(null);
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [setShowPetSelection] = useState(false);
-
-  // Database connection config
-  const dbConfig = {
-    host: 'localhost',
-    user: 'fourpaws_user',
-    password: '1234',
-    database: 'fourpaws_db'
-  };
+  const [ownerError, setOwnerError] = useState(null);
+  const [petError, setPetError] = useState(null);
+  const [recordsError, setRecordsError] = useState(null);
+  const navigate = useNavigate();
 
   // Search owners by name
- // Update all your API calls to use '/api' prefix
-const searchOwners = async () => {
-  if (!searchTerm.trim()) return;
-  
-  setLoading(true);
-  try {
-    const response = await axios.post('http://localhost:3001/api/search-owners', {
-      searchTerm // Removed dbConfig from here
-    });
-    setOwners(response.data);
-  } catch (error) {
-    console.error('Error searching owners:', error);
-    alert('Error searching owners: ' + (error.response?.data?.error || error.message));
-  } finally {
-    setLoading(false);
-  }
-};
+  const searchOwners = async () => {
+    if (!searchTerm.trim()) return;
+    
+    setOwners([]);
+    setSelectedOwner(null);
+    setPets([]);
+    setSelectedPet(null);
+    setRecords([]);
+    setOwnerError(null);
+    setPetError(null);
+    setRecordsError(null);
+    
+    setLoading(true);
+    try {
+      const response = await axios.post('http://localhost:3001/api/search-owners', {
+        searchTerm
+      });
+      setOwners(response.data);
+      if (response.data.length === 0) {
+        setOwnerError('No owners found matching your search.');
+      }
+    } catch (error) {
+      console.error('Error searching owners:', error);
+      setOwnerError(error.response?.data?.error || 'Failed to search owners. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Get pets for selected owner
   const getPetsByOwner = async (ownerId) => {
+    setPets([]);
+    setSelectedPet(null);
+    setRecords([]);
+    setPetError(null);
+    setRecordsError(null);
+    
     setLoading(true);
     try {
       const response = await axios.post('http://localhost:3001/api/get-pets', {
-        ownerId,
-        dbConfig
+        ownerId
       });
       setPets(response.data);
+      if (response.data.length === 0) {
+        setPetError('No pets registered for this owner.');
+      }
     } catch (error) {
       console.error('Error fetching pets:', error);
-      alert('Error fetching pets');
+      setPetError(error.response?.data?.error || 'Failed to fetch pets. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -62,16 +76,21 @@ const searchOwners = async () => {
 
   // Get records for selected pet
   const getPetRecords = async (petId) => {
+    setRecords([]);
+    setRecordsError(null);
+    
     setLoading(true);
     try {
       const response = await axios.post('http://localhost:3001/api/get-records', {
-        petId,
-        dbConfig
+        petId
       });
       setRecords(response.data);
+      if (response.data.length === 0) {
+        setRecordsError('No medical records found for this pet.');
+      }
     } catch (error) {
       console.error('Error fetching records:', error);
-      alert('Error fetching records');
+      setRecordsError(error.response?.data?.error || 'Failed to fetch records. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -80,7 +99,7 @@ const searchOwners = async () => {
   // Generate PDF
   const generatePDF = () => {
     if (!selectedOwner || !selectedPet || records.length === 0) {
-      alert('No records found for selected pet');
+      alert('No records available to generate PDF');
       return;
     }
   
@@ -135,118 +154,198 @@ const searchOwners = async () => {
       doc.save(fileName);
     } catch (error) {
       alert(`Failed to generate PDF: ${error.message}`);
-    } finally {
-      setShowPetSelection(false);
     }
   };
-  
+
+  // Close button handler
+  const handleClose = () => {
+    navigate(-1);
+  };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6 text-center">Generate Medical Record PDF</h1>
-      
+    <div className="p-6 max-w-4xl mx-auto bg-white rounded-lg shadow-md relative">
+      {/* Close Button */}
+      <button
+        onClick={handleClose}
+        className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
+        aria-label="Close"
+      >
+        <FaTimes size={24} />
+      </button>
+
+      <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Medical Record Generator 'PDF'</h1>
+
       {/* Search Section */}
-      <div className="mb-6">
+      <section className="mb-8">
         <div className="flex gap-2 mb-4">
           <input
             type="text"
-            placeholder="Search owner by name"
+            placeholder="Enter owner name to search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 p-2 border rounded"
+            onKeyPress={(e) => e.key === 'Enter' && searchOwners()}
+            className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <button
             onClick={searchOwners}
             disabled={loading || !searchTerm.trim()}
-            className="bg-blue-500 text-white p-2 rounded flex items-center gap-2"
+            className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-md flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FaSearch /> Search
           </button>
         </div>
-        
-        {/* Owners List */}
-        {owners.length > 0 && (
-          <div className="mb-4">
-            <h2 className="font-semibold mb-2">Select Owner:</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+      </section>
+
+      {/* Owners Section */}
+      <section className="mb-8">
+        <h2 className="text-lg font-semibold mb-3 text-gray-700">Select Owner</h2>
+        <div className="bg-gray-50 rounded-lg p-4 min-h-32">
+          {ownerError ? (
+            <div className="text-center p-4 bg-red-50 border border-red-200 text-red-600 rounded">
+              {ownerError}
+            </div>
+          ) : owners.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {owners.map(owner => (
                 <div
                   key={owner.Owner_id}
                   onClick={() => {
                     setSelectedOwner(owner);
-                    setSelectedPet(null);
-                    setRecords([]);
                     getPetsByOwner(owner.Owner_id);
                   }}
-                  className={`p-3 border rounded cursor-pointer hover:bg-gray-50 ${
-                    selectedOwner?.Owner_id === owner.Owner_id ? 'bg-blue-50 border-blue-300' : ''
+                  className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                    selectedOwner?.Owner_id === owner.Owner_id 
+                      ? 'bg-blue-50 border-blue-300 shadow-sm' 
+                      : 'hover:bg-gray-100 border-gray-200'
                   }`}
                 >
-                  <p className="font-medium">{owner.Owner_name}</p>
-                  <p className="text-sm text-gray-600">{owner.E_mail}</p>
+                  <p className="font-medium text-gray-800">{owner.Owner_name}</p>
+                  <p className="text-sm text-gray-500">{owner.E_mail}</p>
+                  <p className="text-xs text-gray-400 mt-1">ID: {owner.Owner_id}</p>
                 </div>
               ))}
             </div>
-          </div>
-        )}
-        
-        {/* Pets List */}
-        {selectedOwner && pets.length > 0 && (
-          <div className="mb-4">
-            <h2 className="font-semibold mb-2">Select Pet:</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {pets.map(pet => (
-                <div
-                  key={pet.Pet_id}
-                  onClick={async () => {
-                    setSelectedPet(pet);
-                    await getPetRecords(pet.Pet_id);
-                  }}
-                  className={`p-3 border rounded cursor-pointer hover:bg-gray-50 ${
-                    selectedPet?.Pet_id === pet.Pet_id ? 'bg-blue-50 border-blue-300' : ''
-                  }`}
-                >
-                  <p className="font-medium">{pet.Pet_name}</p>
-                  <p className="text-sm text-gray-600">{pet.Pet_type}</p>
-                </div>
-              ))}
+          ) : (
+            <div className="text-center p-4 text-gray-500">
+              {loading ? 'Searching for owners...' : 'Search for owners to display results'}
             </div>
+          )}
+        </div>
+      </section>
+
+      {/* Pets Section - Only shown when owner is selected */}
+      {selectedOwner && (
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold mb-3 text-gray-700">
+            Select Pet for {selectedOwner.Owner_name}
+          </h2>
+          <div className="bg-gray-50 rounded-lg p-4 min-h-32">
+            {petError ? (
+              <div className="text-center p-4 bg-red-50 border border-red-200 text-red-600 rounded">
+                {petError}
+              </div>
+            ) : pets.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {pets.map(pet => (
+                  <div
+                    key={pet.Pet_id}
+                    onClick={() => {
+                      setSelectedPet(pet);
+                      getPetRecords(pet.Pet_id);
+                    }}
+                    className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                      selectedPet?.Pet_id === pet.Pet_id
+                        ? 'bg-blue-50 border-blue-300 shadow-sm'
+                        : 'hover:bg-gray-100 border-gray-200'
+                    }`}
+                  >
+                    <p className="font-medium text-gray-800">{pet.Pet_name}</p>
+                    <p className="text-sm text-gray-500 capitalize">{pet.Pet_type}</p>
+                    <p className="text-xs text-gray-400 mt-1">ID: {pet.Pet_id}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center p-4 text-gray-500">
+                {loading ? 'Loading pets...' : 'No pets registered for this owner'}
+              </div>
+            )}
           </div>
-        )}
-        
-        {/* Records Preview */}
-        {selectedPet && records.length > 0 && (
-          <div className="mb-6">
-            <h2 className="font-semibold mb-2">Records for {selectedPet.Pet_name}:</h2>
-            <div className="border rounded p-4 max-h-60 overflow-y-auto">
-              {records.map((record, index) => (
-                <div key={record.id} className="mb-4 pb-4 border-b last:border-b-0">
-                  <p className="font-medium">Record #{index + 1} - {new Date(record.date).toLocaleDateString()}</p>
-                  {record.surgery && <p>Surgery: {record.surgery}</p>}
-                  {record.vaccination && <p>Vaccination: {record.vaccination}</p>}
-                  {record.other && <p>Other: {record.other}</p>}
-                </div>
-              ))}
-            </div>
+        </section>
+      )}
+
+      {/* Records Section - Only shown when pet is selected */}
+      {selectedPet && (
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold mb-3 text-gray-700">
+            Medical Records for {selectedPet.Pet_name}
+          </h2>
+          <div className="bg-gray-50 rounded-lg p-4">
+            {recordsError ? (
+              <div className="text-center p-4 bg-red-50 border border-red-200 text-red-600 rounded">
+                {recordsError}
+              </div>
+            ) : records.length > 0 ? (
+              <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+                {records.map((record, index) => (
+                  <div 
+                    key={record.id} 
+                    className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-medium text-gray-800">
+                        Record #{index + 1}
+                      </h3>
+                      <span className="text-sm text-gray-500">
+                        {new Date(record.date).toLocaleDateString()}
+                      </span>
+                    </div>
+                    {record.surgery && (
+                      <p className="text-sm mb-1">
+                        <span className="font-medium">Surgery:</span> {record.surgery}
+                      </p>
+                    )}
+                    {record.vaccination && (
+                      <p className="text-sm mb-1">
+                        <span className="font-medium">Vaccination:</span> {record.vaccination}
+                      </p>
+                    )}
+                    {record.other && (
+                      <p className="text-sm">
+                        <span className="font-medium">Notes:</span> {record.other}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center p-4 text-gray-500">
+                {loading ? 'Loading records...' : 'No medical records found for this pet'}
+              </div>
+            )}
           </div>
-        )}
-      </div>
-      
-      {/* Generate PDF Button */}
-      {selectedPet && records.length > 0 && (
-        <div className="flex justify-center">
+        </section>
+      )}
+
+      {/* Generate PDF Button - Only shown when records are available */}
+      {records.length > 0 && (
+        <section className="flex justify-center">
           <button
             onClick={generatePDF}
-            className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-green-700"
+            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-colors shadow-md"
           >
-            <FaFilePdf /> Generate PDF
+            <FaFilePdf size={18} /> Generate PDF Report
           </button>
-        </div>
+        </section>
       )}
-      
+
+      {/* Loading Indicator */}
       {loading && (
-        <div className="text-center py-4">
-          <p>Loading...</p>
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl text-center">
+            <p className="text-lg font-medium text-gray-800">Loading data...</p>
+            <div className="mt-4 w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          </div>
         </div>
       )}
     </div>

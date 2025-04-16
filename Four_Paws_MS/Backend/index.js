@@ -72,6 +72,10 @@ app.use('/api', recordRoutes);
 
 
 
+
+
+
+
 //Sample code
 // app.get('/', (req, res) => {
 //   db.query('SELECT * FROM owners', (err, results) => {
