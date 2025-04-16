@@ -110,7 +110,6 @@ const AdminDashboard = () => {
         {activeTab === "users" && <UserManagement />}
         {activeTab === "pharmacy" && <PharmacyManagement />}
         {activeTab === "petshop" && <PetShopManagement />}
-        {activeTab === "profsetting" && <ProfSetting />}
       </main>
     </div>
   );
@@ -402,13 +401,6 @@ const PetShopManagement = () => (
       Pet Shop Management
     </h2>
     <p className="text-gray-700">Manage pet shop inventory and sales.</p>
-  </div>
-);
-
-const ProfSetting = () => (
-  <div>
-    <h2 className="text-2xl font-semibold text-[#028478]">Profile Setting</h2>
-    <p className="text-gray-700">Profile Setting tab is active.</p>
   </div>
 );
 

@@ -10,7 +10,8 @@ import "../Styles/Fonts/Fonts.css";
 import axios from "axios";
 import logo from "../assets/logo.png";
 import { Link } from "react-router-dom";
-
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 
 function Login() {
@@ -22,6 +23,25 @@ function Login() {
   const storeSession = (sessionData) => {
     sessionStorage.setItem("authToken", sessionData);
   };
+
+  const navigate = useNavigate();
+
+  // Clear session when login page loads
+  useEffect(() => {
+    const clearSession = async () => {
+      try {
+        await axios.get("http://localhost:3001/api/auth/logout", {
+          withCredentials: true
+        });
+        sessionStorage.clear();
+        navigate("/Login"); // Redirect to login page
+      } catch (err) {
+        console.error("Session cleanup failed:", err);
+      }
+    };
+
+    clearSession();
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();

@@ -228,8 +228,8 @@ function adprofile() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 md:p-10 bg-gradient-to-b from-[#A6E3E9] via-[#028478] to-[#A6E3E9] flex justify-center items-center">
-        <div className="bg-[#1f2937] p-8 rounded-2xl shadow-2xl max-w-4xl w-full text-white">
+      <main className="flex-1 p-6 md:p-10 bg-gradient-to-b from-[#E3FDFD] via-[#71C9CE] to-[#A6E3E9] flex justify-center items-center">
+        <div className="bg-[#71C9CE] p-8 rounded-2xl shadow-2xl max-w-4xl w-full text-gray-900">
           {/* Profile View Tab */}
           {activeTab === "profile" && (
             <>
@@ -241,7 +241,7 @@ function adprofile() {
                 />
                 <div>
                   <h1 className="text-2xl md:text-3xl font-bold">
-                    Hi, {profile?.first_name || "Your name"}
+                    Hi, {profile?.last_name || "Your name"}
                   </h1>
                 </div>
               </div>
@@ -303,12 +303,12 @@ function adprofile() {
                       />
                     </label>
                   </div>
-                  <p className="text-sm text-gray-400">Click to change photo</p>
+                  <p className="text-sm text-gray-700">Click to change photo</p>
                 </div>
 
                 <div className="flex-1 space-y-4">
                   <div>
-                    <label className="block text-gray-300 mb-1">
+                    <label className="block text-gray-700 mb-1">
                       Your First Name
                     </label>
                     <input
@@ -321,7 +321,7 @@ function adprofile() {
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-300 mb-1">
+                    <label className="block text-gray-700 mb-1">
                       Your Last Name
                     </label>
                     <input
@@ -335,7 +335,7 @@ function adprofile() {
                   </div>
 
                   <div>
-                    <label className="block text-gray-300 mb-1">Email</label>
+                    <label className="block text-gray-700 mb-1">Email</label>
                     <input
                       type="email"
                       name="email"
@@ -346,7 +346,7 @@ function adprofile() {
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-300 mb-1">
+                    <label className="block text-gray-700 mb-1">
                       Phone Number
                     </label>
                     <input
@@ -358,7 +358,7 @@ function adprofile() {
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-300 mb-1">
+                    <label className="block text-gray-700 mb-1">
                       Date of Birth
                     </label>
                     <input
@@ -370,7 +370,7 @@ function adprofile() {
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-300 mb-1">Pet Type</label>
+                    <label className="block text-gray-700 mb-1">Pet Type</label>
                     <select
                       name="gender"
                       value={editForm.gender}
@@ -383,7 +383,7 @@ function adprofile() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-gray-300 mb-1">Address</label>
+                    <label className="block text-gray-700 mb-1">Address</label>
                     <textarea
                       name="address"
                       value={editForm.address}
@@ -412,7 +412,7 @@ function adprofile() {
 
               <div className="space-y-4 mb-6">
                 <div>
-                  <label className="block text-gray-300 mb-1">
+                  <label className="block text-gray-700 mb-1">
                     Current Password
                   </label>
                   <div className="relative">
@@ -435,7 +435,7 @@ function adprofile() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 mb-1">
+                  <label className="block text-gray-700 mb-1">
                     New Password
                   </label>
                   <div className="relative">
@@ -459,7 +459,7 @@ function adprofile() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 mb-1">
+                  <label className="block text-gray-700 mb-1">
                     Confirm New Password
                   </label>
                   <div className="relative">
