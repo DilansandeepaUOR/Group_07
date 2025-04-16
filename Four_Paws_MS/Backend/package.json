@@ -22,6 +22,7 @@
     "mongoose": "^8.13.0",
     "mysql": "^2.18.1",
     "mysql2": "^3.14.0",
+    "node-cron": "^3.0.3",
     "react-hot-toast": "^2.5.2",
     "rout": "^1.0.1",
     "route": "^0.2.5",
