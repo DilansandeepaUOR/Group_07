@@ -29,7 +29,7 @@ const ProtectedRoutesUser = ({ children, allowedRolesUser }) => {
           withCredentials: true,
         });
         setUser(null);
-        window.location.href = "/";
+        window.location.href = "unauth";
       } catch (err) {
         console.error("Logout failed:", err);
       }

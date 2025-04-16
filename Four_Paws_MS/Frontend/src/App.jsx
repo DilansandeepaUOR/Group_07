@@ -21,6 +21,7 @@ import SearchRecords from "./Pages/SearchRecords";
 import Adprofile from "./Admin/Pages/Adprofile";
 import ProtectedRoutes from "./Components/ProtectedRoutes/ProtectedRoutes";
 import ProtectedRoutesUser from "./Components/ProtectedRoutes/ProtectedRoutesUser";
+import Unauth from "./Pages/Unauth";
 
 const App = () => {
   return (
@@ -35,7 +36,7 @@ const App = () => {
         <Route path="/Login" element={<Login />} />
         <Route path="/Register" element={<Register />} />
         <Route path="/Profile" element={<ProtectedRoutesUser allowedRolesUser={["Petowner"]}><Profile /></ProtectedRoutesUser>} />
-        <Route path="/appointment" element={<ProtectedRoutesUser allowedRolesUser={["Petowner"]}><Appointment /></ProtectedRoutesUser>} />
+        <Route path="/appointment" element={<Appointment />} />
         <Route path="/RecordsEntry" element={<RecordsEntry />} />
         <Route path="/records" element={<RecordsEntry />} />
         <Route path="/edit/:id" element={<EditRecords />} />
@@ -49,6 +50,7 @@ const App = () => {
         <Route path="/assistprofile" element={<ProtectedRoutes><Assistprofile /></ProtectedRoutes>} />
         <Route path="/adprofile" element={<ProtectedRoutes allowedRoles={["Admin"]}><Adprofile /></ProtectedRoutes>} />
 
+        <Route path="/unauth" element={<Unauth/>} />
         <Route path="*" element={<h1>404 Not Found</h1>} />
       </Routes>
     </>
