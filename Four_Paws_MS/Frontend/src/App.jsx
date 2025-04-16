@@ -19,6 +19,7 @@ import Assistprofile from "./Otherusers/Assitdoctor/assistprofile";
 import EditRecords from "./Pages/EditRecords";
 import SearchRecords from "./Pages/SearchRecords";
 import Adprofile from "./Admin/Pages/Adprofile";
+import ProtectedRoutes from "./Components/ProtectedRoutes/ProtectedRoutes";
 
 const App = () => {
   return (
@@ -32,7 +33,7 @@ const App = () => {
         <Route path="/Pharmacy" element={<Pharmacy />} />
         <Route path="/Login" element={<Login />} />
         <Route path="/Register" element={<Register />} />
-        <Route path="/Profile" element={<Profile />} />
+        <Route path="/Profile" element={<ProtectedRoutes><Profile /></ProtectedRoutes>} />
         <Route path="/appointment" element={<Appointment />} />
         <Route path="/RecordsEntry" element={<RecordsEntry />} />
         <Route path="/records" element={<RecordsEntry />} />
