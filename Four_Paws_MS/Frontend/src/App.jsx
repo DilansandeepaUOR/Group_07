@@ -35,7 +35,7 @@ const App = () => {
         <Route path="/Contactus" element={<Contactus />} />
         <Route path="/Ourservices" element={<Ourservices />} />
         <Route path="/Petshop" element={<Petshop />} />
-        <Route path="/Pharmacy" element={<ProtectedRoutes><Pharmacy /></ProtectedRoutes>} />
+        <Route path="/Pharmacy" element={<ProtectedRoutes allowedRolesUser={["Pharmacist"]} ><Pharmacy /></ProtectedRoutes>} />
         <Route path="/Login" element={<Login />} />
         <Route path="/Register" element={<Register />} />
 
@@ -69,9 +69,9 @@ const App = () => {
         {/* Admin logins  */}
         <Route path="/Adlogin" element={<Adlogin />} />
         <Route path="/Addashboard" element={<ProtectedRoutes allowedRoles={["Admin"]}><Addashboard /></ProtectedRoutes>} />
-        <Route path="/psprofile" element={<ProtectedRoutes><Psprofile /></ProtectedRoutes>} />
+        <Route path="/psprofile" element={<ProtectedRoutes allowedRoles={["Pet Shopper"]}><Psprofile /></ProtectedRoutes>} />
         <Route path="/docprofile" element={<ProtectedRoutes allowedRoles={["Doctor"]}><Docprofile /></ProtectedRoutes>} />
-        <Route path="/assistprofile" element={<ProtectedRoutes><Assistprofile /></ProtectedRoutes>} />
+        <Route path="/assistprofile" element={<ProtectedRoutes allowedRoles={["Assistant Doctor"]}><Assistprofile /></ProtectedRoutes>} />
         <Route path="/adprofile" element={<ProtectedRoutes allowedRoles={["Admin"]}><Adprofile /></ProtectedRoutes>} />
 
         <Route path="/unauth" element={<Unauth/>} />
