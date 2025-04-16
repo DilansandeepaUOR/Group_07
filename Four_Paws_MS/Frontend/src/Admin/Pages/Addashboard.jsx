@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import dp from "../../../src/assets/paw_vector.png";
+import { Link } from "react-router-dom";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("users");
@@ -60,12 +61,14 @@ const AdminDashboard = () => {
                 <strong>Admin: </strong> {user?.fname} {user?.lname}
               </p>
               <div>
+                <Link to={"/adprofile"}>
                 <button
                   onClick={() => setActiveTab("profsetting")}
                   className="flex items-center gap-2 w-full text-left hover:text-[#71C9CE] cursor-pointer"
                 >
                   <FaUsers /> Profile Settings
                 </button>
+                </Link>
               </div>
             </div>
           </div>

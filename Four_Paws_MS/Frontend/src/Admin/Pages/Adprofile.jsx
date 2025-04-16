@@ -44,7 +44,7 @@ function adprofile() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3001/api/auth/user", { withCredentials: true })
+      .get("http://localhost:3001/api/auth/admins", { withCredentials: true })
       .then((response) => {
         setUser(response.data);
       })
@@ -56,7 +56,7 @@ function adprofile() {
   useEffect(() => {
     if (user?.id) {
       axios
-        .get(`http://localhost:3001/api/profile/?id=${user.id}`)
+        .get(`http://localhost:3001/api/adprofile/?id=${user.id}`)
         .then((response) => {
           setProfile(response.data);
           setEditForm({
@@ -67,7 +67,7 @@ function adprofile() {
             address: response.data.address || "",
             gender: response.data.gender || "",
             date_of_birth: response.data.date_of_birth
-              ? new Date(response.data.Pet_dob).toISOString().split("T")[0]
+              ? new Date(response.data.date_of_birth).toISOString().split("T")[0]
               : "",
           });
 
@@ -135,7 +135,7 @@ function adprofile() {
       }
 
       const response = await axios.put(
-        `http://localhost:3001/api/update/?id=${user.id}`,
+        `http://localhost:3001/api/adupdate/?id=${user.id}`,
         formData,
         {
           headers: {
@@ -184,10 +184,10 @@ function adprofile() {
   return (
     <div className="flex min-h-screen bg-gradient-to-b from-[#22292F] via-[#028478] to-[#46dfd0] text-white">
       {/* Sidebar */}
-      <aside className="w-1/4 bg-gradient-to-b from-[#22292F] via-[#028478] to-[#46dfd0] p-6 shadow-lg text-white rounded-r-2xl">
+      <aside className="w-1/4 bg-gradient-to-b bg-[#71C9CE] p-6 shadow-lg text-gray-900 ">
         <button
           onClick={() => window.history.back()}
-          className="flex items-center mb-6 text-gray-300 hover:text-white cursor-pointer"
+          className="flex items-center mb-6 text-gray-900 hover:text-white cursor-pointer"
         >
           <FaArrowLeft className="w-5 h-5 mr-2" /> Back
         </button>
@@ -241,48 +241,39 @@ function adprofile() {
                 />
                 <div>
                   <h1 className="text-2xl md:text-3xl font-bold">
-                    {profile?.Pet_name || "Pet Name"}
+                    Hi, {profile?.first_name || "Your name"}
                   </h1>
                 </div>
               </div>
 
               <div className="mb-8">
                 <h2 className="text-xl font-semibold mb-4 border-b pb-2 border-gray-300">
-                  Owner Information
+                  Your Information
                 </h2>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <p>
-                    <strong>Name:</strong> {profile?.Owner_name || "N/A"}
+                    <strong>Name:</strong> {profile?.first_name || "N/A"}{" "}
+                    {profile?.last_name || "N/A"}
                   </p>
                   <p>
-                    <strong>Email:</strong> {profile?.E_mail || "N/A"}
+                    <strong>Email:</strong> {profile?.email || "N/A"}
                   </p>
                   <p>
                     <strong>Phone Number:</strong>{" "}
-                    {profile?.Phone_number || "N/A"}
-                  </p>
-                  <p>
-                    <strong>Address:</strong> {profile?.Owner_address || "N/A"}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <h2 className="text-xl font-semibold mb-4 border-b pb-2 border-gray-300">
-                  Pet Information
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <p>
-                    <strong>Type:</strong> {profile?.Pet_type || "N/A"}
+                    {profile?.phone_number || "N/A"}
                   </p>
                   <p>
                     <strong>Date of Birth:</strong>{" "}
-                    {profile?.Pet_dob
-                      ? new Date(profile.Pet_dob).toLocaleDateString()
+                    {profile?.date_of_birth
+                      ? new Date(profile.date_of_birth).toLocaleDateString()
                       : "N/A"}
                   </p>
                   <p className="md:col-span-2">
-                    <strong>Gender:</strong> {profile?.Pet_gender || "N/A"}
+                    <strong>Gender:</strong> {profile?.gender || "N/A"}
+                  </p>
+                  <p>
+                    <strong>Address:</strong> {profile?.address || "N/A"}
                   </p>
                 </div>
               </div>
@@ -318,23 +309,37 @@ function adprofile() {
                 <div className="flex-1 space-y-4">
                   <div>
                     <label className="block text-gray-300 mb-1">
-                      Owner Name
+                      Your First Name
                     </label>
                     <input
                       type="text"
-                      name="Owner_name"
-                      value={editForm.Owner_name}
+                      name="first_name"
+                      value={editForm.first_name}
                       onChange={handleEditChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
                       required
                     />
                   </div>
                   <div>
+                    <label className="block text-gray-300 mb-1">
+                      Your Last Name
+                    </label>
+                    <input
+                      type="text"
+                      name="last_name"
+                      value={editForm.last_name}
+                      onChange={handleEditChange}
+                      className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
+                      required
+                    />
+                  </div>
+
+                  <div>
                     <label className="block text-gray-300 mb-1">Email</label>
                     <input
                       type="email"
-                      name="E_mail"
-                      value={editForm.E_mail}
+                      name="email"
+                      value={editForm.email}
                       onChange={handleEditChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
                       required
@@ -346,43 +351,11 @@ function adprofile() {
                     </label>
                     <input
                       type="tel"
-                      name="Phone_number"
-                      value={editForm.Phone_number}
+                      name="phone_number"
+                      value={editForm.phone_number}
                       onChange={handleEditChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
                     />
-                  </div>
-                </div>
-              </div>
-
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold mb-4 border-b pb-2 border-gray-300">
-                  Pet Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-gray-300 mb-1">Pet Name</label>
-                    <input
-                      type="text"
-                      name="Pet_name"
-                      value={editForm.Pet_name}
-                      onChange={handleEditChange}
-                      className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-300 mb-1">Pet Type</label>
-                    <select
-                      name="Pet_type"
-                      value={editForm.Pet_type}
-                      onChange={handleEditChange}
-                      className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
-                    >
-                      <option value="Dog">Dog</option>
-                      <option value="Cat">Cat</option>
-                      <option value="Cow">Cow</option>
-                      <option value="Other">Other</option>
-                    </select>
                   </div>
                   <div>
                     <label className="block text-gray-300 mb-1">
@@ -390,8 +363,8 @@ function adprofile() {
                     </label>
                     <input
                       type="date"
-                      name="Pet_dob"
-                      value={editForm.Pet_dob}
+                      name="date_of_birth"
+                      value={editForm.date_of_birth}
                       onChange={handleEditChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
                     />
@@ -399,8 +372,8 @@ function adprofile() {
                   <div>
                     <label className="block text-gray-300 mb-1">Pet Type</label>
                     <select
-                      name="Pet_gender"
-                      value={editForm.Pet_gender}
+                      name="gender"
+                      value={editForm.gender}
                       onChange={handleEditChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
                     >
@@ -409,17 +382,16 @@ function adprofile() {
                       <option value="Other">Other</option>
                     </select>
                   </div>
+                  <div>
+                    <label className="block text-gray-300 mb-1">Address</label>
+                    <textarea
+                      name="address"
+                      value={editForm.address}
+                      onChange={handleEditChange}
+                      className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600 h-24"
+                    />
+                  </div>
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-gray-300 mb-1">Address</label>
-                <textarea
-                  name="Owner_address"
-                  value={editForm.Owner_address}
-                  onChange={handleEditChange}
-                  className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600 h-24"
-                />
               </div>
 
               <div className="flex justify-end mt-6">

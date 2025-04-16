@@ -18,6 +18,7 @@ import Docprofile from "./Otherusers/Doctor/docprofile";
 import Assistprofile from "./Otherusers/Assitdoctor/assistprofile";
 import EditRecords from "./Pages/EditRecords";
 import SearchRecords from "./Pages/SearchRecords";
+import Adprofile from "./Admin/Pages/Adprofile";
 
 const App = () => {
   return (
@@ -44,6 +45,7 @@ const App = () => {
         <Route path="/psprofile" element={<Psprofile />} />
         <Route path="/docprofile" element={<Docprofile />} />
         <Route path="/assistprofile" element={<Assistprofile />} />
+        <Route path="/adprofile" element={<Adprofile />} />
 
         <Route path="*" element={<h1>404 Not Found</h1>} />
       </Routes>
