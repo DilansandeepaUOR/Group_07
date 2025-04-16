@@ -18,7 +18,7 @@ return (
             backgroundImage: `url(${dog})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
-            backgroundColor: "rgba(2, 132, 120, 0.9)",
+            backgroundColor: "rgba(0,0,0, 0.7)",
             backgroundBlendMode: "overlay",
         }}
     >
