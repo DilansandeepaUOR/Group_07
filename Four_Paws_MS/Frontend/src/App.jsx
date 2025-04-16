@@ -19,6 +19,9 @@ import Assistprofile from "./Otherusers/Assitdoctor/assistprofile";
 import EditRecords from "./Pages/EditRecords";
 import SearchRecords from "./Pages/SearchRecords";
 import PetRecordPDF from "./Pages/PetRecordPDF"
+import AllRecords from "./Pages/AllRecords";
+import RecordEdit from "./Pages/RecordEdit";
+import RecordNew from "./Pages/RecordNew";
 
 
 const App = () => {
@@ -36,23 +39,26 @@ const App = () => {
 
         <Route path="/Profile" element={<Profile/>}/>
         <Route path="/appointment" element={<Appointment/>}/>
-        <Route path="/RecordsEntry" element={<RecordsEntry/>}/>
+        {/* <Route path="/RecordsEntry" element={<RecordsEntry/>}/> */}
 
         {/* Records  */}
-        <Route path="/records" element={<RecordsEntry />} />
+        {/* <Route path="/records" element={<RecordsEntry />} />
         <Route path="/edit/:id" element={<EditRecords />} />
         <Route path="/search" element={<SearchRecords />} />
-        <Route path="/delete" element={<useDeleteRecord />} />
+        <Route path="/delete" element={<useDeleteRecord />} /> */}
 
 
         {/* New Record */}
         <Route path="/recordselection" element={<PetRecordPDF />} />
+        <Route path="/recordsNew" element={<AllRecords />} />
+        <Route path="/records/edit/:id" element={<RecordEdit />} />
+        <Route path="/records/new" element={<RecordNew />} />
         
 
         <Route path="/Profile" element={<Profile />} />
         <Route path="/appointment" element={<Appointment />} />
-        <Route path="/RecordsEntry" element={<RecordsEntry />} />
-        <Route path="/records" element={<RecordsEntry />} />
+        {/* <Route path="/RecordsEntry" element={<RecordsEntry />} /> */}
+        {/* <Route path="/records" element={<RecordsEntry />} /> */}
         <Route path="/edit/:id" element={<EditRecords />} />
         <Route path="/search" element={<SearchRecords />} />
 
