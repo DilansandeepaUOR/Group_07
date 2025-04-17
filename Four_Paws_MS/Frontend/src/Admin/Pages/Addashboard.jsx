@@ -135,7 +135,7 @@ const UserManagement = () => {
   const deleteUser = async (employee_id) => {
     try {
       if (window.confirm("Are you sure you want to delete this user?")) {
-        const response = await axios.put(
+        const response = await axios.delete(
           `http://localhost:3001/api/adregform/empdelete?employee_id=${employee_id}`
         );
         alert(response.data.message);
@@ -231,6 +231,7 @@ const EmployeeRegistrationForm = ({ closeForm, editingUser, refreshUsers }) => {
     role: "Admin",
     address: "",
     password: "",
+    status: "Active",
   });
 
   useEffect(() => {
@@ -359,6 +360,16 @@ const EmployeeRegistrationForm = ({ closeForm, editingUser, refreshUsers }) => {
           <option>Pharmacist</option>
           <option>Pet Shopper</option>
         </select>
+        { editingUser && (<select
+          name="status"
+          className="p-2 border rounded-md"
+          onChange={handleChange}
+          value={formData.status}
+          required
+        >
+          <option>Active</option>
+          <option>Inactive</option>
+        </select>)}
         <input
           type="text"
           name="address"

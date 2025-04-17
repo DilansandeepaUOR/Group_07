@@ -122,9 +122,10 @@ router.put("/empupdate", async (req, res) => {
       date_of_birth,
       gender,
       address,
+      status
     } = req.body;
     const empsql =
-      "UPDATE employee SET first_name = ?, last_name = ?, email = ?, phone_number = ?, role = ?, date_of_birth = ?, gender = ?, address = ? WHERE employee_id = ?";
+      "UPDATE employee SET first_name = ?, last_name = ?, email = ?, phone_number = ?, role = ?, date_of_birth = ?, gender = ?, address = ?, status = ? WHERE employee_id = ?";
 
     db.query(
       empsql,
@@ -137,6 +138,7 @@ router.put("/empupdate", async (req, res) => {
         date_of_birth,
         gender,
         address,
+        status,
         employee_id,
       ],
       (err, results) => {
@@ -157,14 +159,14 @@ router.put("/empupdate", async (req, res) => {
   }
 });
 
-router.put("/empdelete", async (req, res) => {
+router.delete("/empdelete", async (req, res) => {
   const {employee_id}=req.query;
 
   if (!employee_id) {
     return res.status(400).json({ error: "ID query parameter is required" });
   }
 
-  const delsql="UPDATE employee SET status = 'Inactive' WHERE employee_id=?";
+  const delsql="DELETE FROM employee WHERE employee_id=?";
   try {
 
     db.query(delsql, [employee_id], (error, result) => {
