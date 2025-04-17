@@ -80,7 +80,7 @@ router.post("/empregister", validEMPRegister, async (req, res) => {
 });
 
 router.get("/employees", async (req, res) => {
-  const usersql = "SELECT * FROM employee;";
+  const usersql = "SELECT * FROM employee WHERE role <> 'Admin';";
   try {
     db.query(usersql, (err, results) => {
       if (err) {
@@ -151,6 +151,30 @@ router.put("/empupdate", async (req, res) => {
     );
     res.status(200).json({ message: "Employee updated successfully" });
 
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).json({ error: "Error updating user" });
+  }
+});
+
+router.delete("/empdelete", async (req, res) => {
+  const {employee_id}=req.query;
+
+  if (!employee_id) {
+    return res.status(400).json({ error: "ID query parameter is required" });
+  }
+
+  const delsql="DELETE FROM employee WHERE employee_id=?";
+  try {
+
+    db.query(delsql, [employee_id], (error, result) => {
+      if(error){
+        res.status(500).json({message: "Error deleting user!"});
+      }
+    });
+
+    res.status(200).json({message: "User Deleted!!"});
+    
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ error: "Error updating user" });

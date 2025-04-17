@@ -133,11 +133,16 @@ const UserManagement = () => {
   }, []);
 
   const deleteUser = async (employee_id) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      await axios.delete(
-        `http://localhost:3001/api/adregform/empdelete/${employee_id}`
-      );
-      fetchUsers();
+    try {
+      if (window.confirm("Are you sure you want to delete this user?")) {
+        const response = await axios.delete(
+          `http://localhost:3001/api/adregform/empdelete?employee_id=${employee_id}`
+        );
+        alert(response.data.message);
+        fetchUsers();
+      }
+    } catch (error) {
+      alert(error.response?.data?.error || "An error occurred while deleting.");
     }
   };
 
@@ -189,7 +194,7 @@ const UserManagement = () => {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => deleteUser(u.id)}
+                      onClick={() => deleteUser(u.employee_id)}
                     >
                       <FaTrash />
                     </Button>
