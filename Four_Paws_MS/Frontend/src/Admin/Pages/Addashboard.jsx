@@ -135,7 +135,7 @@ const UserManagement = () => {
   const deleteUser = async (employee_id) => {
     try {
       if (window.confirm("Are you sure you want to delete this user?")) {
-        const response = await axios.delete(
+        const response = await axios.put(
           `http://localhost:3001/api/adregform/empdelete?employee_id=${employee_id}`
         );
         alert(response.data.message);
@@ -170,6 +170,7 @@ const UserManagement = () => {
                 <th className="p-3">Name</th>
                 <th className="p-3">Email</th>
                 <th className="p-3">Role</th>
+                <th className="p-3">Status</th>
                 <th className="p-3">Actions</th>
               </tr>
             </thead>
@@ -181,6 +182,7 @@ const UserManagement = () => {
                   </td>
                   <td className="p-3">{u.email}</td>
                   <td className="p-3">{u.role}</td>
+                  <td className="p-3">{u.status}</td>
                   <td className="p-3 space-x-2">
                     <Button
                       size="sm"

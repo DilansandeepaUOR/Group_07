@@ -157,14 +157,14 @@ router.put("/empupdate", async (req, res) => {
   }
 });
 
-router.delete("/empdelete", async (req, res) => {
+router.put("/empdelete", async (req, res) => {
   const {employee_id}=req.query;
 
   if (!employee_id) {
     return res.status(400).json({ error: "ID query parameter is required" });
   }
 
-  const delsql="DELETE FROM employee WHERE employee_id=?";
+  const delsql="UPDATE employee SET status = 'Inactive' WHERE employee_id=?";
   try {
 
     db.query(delsql, [employee_id], (error, result) => {

@@ -148,18 +148,12 @@ function Adlogin() {
 
         {/* Buttons */}
         <div className="flex justify-between items-center">
-          <button className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-400 transition cursor-pointer">
-            Cancel
+          <button
+            onClick={handleLogin}
+            className="px-4 py-2 rounded-lg transition flex items-center justify-center w-full gap-2 bg-[#028478] hover:bg-[#5ba29c] text-white cursor-pointer"
+          >
+            Login
           </button>
-
-          <div>
-            <button
-              onClick={handleLogin}
-              className="px-4 py-2 rounded-lg transition flex items-center gap-2 bg-[#028478] hover:bg-[#5ba29c] text-white cursor-pointer"
-            >
-              Login
-            </button>
-          </div>
         </div>
 
         {/* Divider */}
