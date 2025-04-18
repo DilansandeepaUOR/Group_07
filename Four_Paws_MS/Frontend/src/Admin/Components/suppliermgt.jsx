@@ -1,43 +1,37 @@
 import React, { useState, useEffect } from "react";
 import {
-  FaUsers,
-  FaPills,
-  FaShoppingCart,
   FaPlus,
-  FaUser,
-  FaSignOutAlt,
   FaEdit,
   FaTrash,
-  FaEye,
 } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const SupplierManagement = () => {
-    const [users, setUsers] = useState([]);
+    const [suppliers, setsuppliers] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
+  const [editingsuppliers, setEditingsupplier] = useState(null);
 
-  const fetchUsers = async () => {
+  const fetchsuppliers = async () => {
     const res = await axios.get(
-      "http://localhost:3001/api/adregform/employees"
+      "http://localhost:3001/api/adminpetshop/suppliers"
     );
-    setUsers(res.data);
+    setsuppliers(res.data);
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchsuppliers();
   }, []);
 
-  const deleteUser = async (employee_id) => {
+  const deletesupplier = async (supplier_id) => {
     try {
       if (window.confirm("Are you sure you want to delete this user?")) {
         const response = await axios.delete(
-          `http://localhost:3001/api/adregform/empdelete?employee_id=${employee_id}`
+          `http://localhost:3001/api/adregform/supplierdelete?supplier_id=${supplier_id}`
         );
         alert(response.data.message);
-        fetchUsers();
+        fetchsuppliers();
       }
     } catch (error) {
       alert(error.response?.data?.error || "An error occurred while deleting.");
@@ -49,11 +43,11 @@ const SupplierManagement = () => {
         <Button
           className="bg-[#71C9CE] hover:bg-gray-50 text-gray-900 flex items-center"
           onClick={() => {
-            setEditingUser(null);
+            setEditingsupplier(null);
             setShowForm(true);
           }}
         >
-          <FaPlus className="mr-2" /> Add User
+          <FaPlus className="mr-2" /> Add Supplier
         </Button>
       </div>
       <div className="">
@@ -61,27 +55,29 @@ const SupplierManagement = () => {
           <table className="w-full text-left bg-gray-50 shadow-md">
             <thead className="bg-[#71C9CE] text-gray-900 sticky top-0 z-10">
               <tr>
+              <th className="p-3">Supplier ID</th>
                 <th className="p-3">Name</th>
-                <th className="p-3">Email</th>
-                <th className="p-3">Role</th>
+                <th className="p-3">Contact Info</th>
+                <th className="p-3">Address</th>
                 <th className="p-3">Status</th>
                 <th className="p-3">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => (
-                <tr key={u.employee_id} className="border-t">
+              {suppliers.map((u) => (
+                <tr key={u.supplier_id} className="border-t">
                   <td className="p-3">
-                    {u.first_name} {u.last_name}
+                    {u.supplier_id} 
                   </td>
-                  <td className="p-3">{u.email}</td>
-                  <td className="p-3">{u.role}</td>
+                  <td className="p-3">{u.name}</td>
+                  <td className="p-3">{u.contact_info}</td>
+                  <td className="p-3">{u.address}</td>
                   <td className="p-3">{u.status}</td>
                   <td className="p-3 space-x-2">
                     <Button
                       size="sm"
                       onClick={() => {
-                        setEditingUser(u);
+                        setEditingsupplier(u);
                         setShowForm(true);
                       }}
                     >
@@ -90,7 +86,7 @@ const SupplierManagement = () => {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => deleteUser(u.employee_id)}
+                      onClick={() => deletesupplier(u.supplier_id)}
                     >
                       <FaTrash />
                     </Button>
@@ -102,10 +98,10 @@ const SupplierManagement = () => {
         </div>
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full max-w-2xl z-20 p-4 rounded-md">
           {showForm && (
-            <EmployeeRegistrationForm
+            <SupplierForm
               closeForm={() => setShowForm(false)}
-              editingUser={editingUser}
-              refreshUsers={fetchUsers}
+              editingsuppliers={editingsuppliers}
+              refreshsuppliers={fetchsuppliers}
             />
           )}
         </div>
@@ -114,23 +110,17 @@ const SupplierManagement = () => {
   );
 }
 
-const EmployeeRegistrationForm = ({ closeForm, editingUser, refreshUsers }) => {
+const SupplierForm = ({ closeForm, editingsuppliers, refreshsuppliers }) => {
     const [formData, setFormData] = useState({
-      first_name: "",
-      last_name: "",
-      email: "",
-      phone_number: "",
-      date_of_birth: "",
-      gender: "Male",
-      role: "Admin",
+      name: "",
+      contact_info: "",
       address: "",
-      password: "",
-      status: "Active",
+     
     });
   
     useEffect(() => {
-      if (editingUser) setFormData(editingUser);
-    }, [editingUser]);
+      if (editingsuppliers) setFormData(editingsuppliers);
+    }, [editingsuppliers]);
   
     const handleChange = (e) => {
       setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -139,19 +129,19 @@ const EmployeeRegistrationForm = ({ closeForm, editingUser, refreshUsers }) => {
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-        if (editingUser) {
+        if (editingsuppliers) {
           await axios.put(
-            `http://localhost:3001/api/adregform/empupdate?employee_id=${editingUser.employee_id}`,
+            `http://localhost:3001/api/adminpetshop/supplierupdate?supplier_id=${editingsuppliers.supplier_id}`,
             formData
           );
           alert("profile updated!");
         } else {
           await axios.post(
-            "http://localhost:3001/api/adregform/empregister",
+            "http://localhost:3001/api/adminpetshop/addsupplier",
             formData
           );
         }
-        refreshUsers();
+        refreshsuppliers();
         closeForm();
       } catch (error) {
         if (error.response && error.response.data) {
@@ -176,7 +166,7 @@ const EmployeeRegistrationForm = ({ closeForm, editingUser, refreshUsers }) => {
     return (
       <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
         <h2 className="text-xl font-semibold mb-4 text-[#028478]">
-          {editingUser ? "Edit" : "Register New"} Employee
+          {editingsuppliers ? "Edit" : "Register New"} Supplier
         </h2>
         <form
           className="grid grid-cols-1 md:grid-cols-2 gap-4"
@@ -184,77 +174,24 @@ const EmployeeRegistrationForm = ({ closeForm, editingUser, refreshUsers }) => {
         >
           <input
             type="text"
-            name="first_name"
-            placeholder="First Name"
+            name="name"
+            placeholder="Supplier Name"
             className="p-2 border rounded-md"
             onChange={handleChange}
-            value={formData.first_name}
+            value={formData.name}
             required
           />
           <input
             type="text"
-            name="last_name"
-            placeholder="Last Name"
+            name="contact_info"
+            placeholder="Contact Information"
             className="p-2 border rounded-md"
             onChange={handleChange}
-            value={formData.last_name}
+            value={formData.contact_info}
             required
           />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            className="p-2 border rounded-md"
-            onChange={handleChange}
-            value={formData.email}
-            required
-          />
-          <input
-            type="text"
-            name="phone_number"
-            placeholder="Phone Number"
-            className="p-2 border rounded-md"
-            onChange={handleChange}
-            value={formData.phone_number}
-            required
-          />
-          <input
-            type="date"
-            name="date_of_birth"
-            className="p-2 border rounded-md"
-            onChange={handleChange}
-            value={
-              formData.date_of_birth
-                ? new Date(formData.date_of_birth).toISOString().split("T")[0]
-                : ""
-            }
-            required
-          />
-          <select
-            name="gender"
-            className="p-2 border rounded-md"
-            onChange={handleChange}
-            value={formData.gender}
-            required
-          >
-            <option>Male</option>
-            <option>Female</option>
-            <option>Other</option>
-          </select>
-          <select
-            name="role"
-            className="p-2 border rounded-md"
-            onChange={handleChange}
-            value={formData.role}
-            required
-          >
-            <option>Admin</option>
-            <option>Doctor</option>
-            <option>Assistant Doctor</option>
-            <option>Pharmacist</option>
-            <option>Pet Shopper</option>
-          </select>
-          {editingUser && (
+          
+          {editingsuppliers && (
             <select
               name="status"
               className="p-2 border rounded-md"
@@ -275,22 +212,12 @@ const EmployeeRegistrationForm = ({ closeForm, editingUser, refreshUsers }) => {
             value={formData.address}
             required
           />
-          {!editingUser && (
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              className="p-2 border rounded-md col-span-2"
-              onChange={handleChange}
-              value={formData.password}
-              required
-            />
-          )}
+          
           <Button
             type="submit"
             className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900 col-span-2"
           >
-            {editingUser ? "Update" : "Register"}
+            {editingsuppliers ? "Update" : "Register"}
           </Button>
         </form>
         <button onClick={closeForm} className="mt-4 text-red-500 hover:underline">

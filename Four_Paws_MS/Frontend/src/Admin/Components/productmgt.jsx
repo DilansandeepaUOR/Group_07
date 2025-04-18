@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
 import {
-  FaUsers,
-  FaPills,
-  FaShoppingCart,
+
   FaPlus,
-  FaUser,
-  FaSignOutAlt,
+
   FaEdit,
   FaTrash,
-  FaEye,
+ 
 } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
