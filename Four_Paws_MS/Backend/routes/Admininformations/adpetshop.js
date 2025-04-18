@@ -75,7 +75,7 @@ router.post("/addproduct", async (req, res) => {
 });
 
 router.get("/products", async (req, res) => {
-  const productsql = "SELECT * FROM pet_products";
+  const productsql = "SELECT p.*, category_name FROM pet_products p JOIN pet_categories c ON p.category_id = c.category_id;";
   try {
     db.query(productsql, (err, results) => {
       if (err) {
