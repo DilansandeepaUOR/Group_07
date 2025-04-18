@@ -57,16 +57,16 @@ function Adlogin() {
         window.location.href = "/Addashboard";
       } else if (user?.role === "Doctor") {
         alert("Doctor Login Successful!");
-        window.location.href = "/docprofile";
+        window.location.href = "/docdashboard";
       } else if (user?.role === "Assistant Doctor") {
         alert("Assistant Doctor Login Successful!");
-        window.location.href = "/assistprofile";
+        window.location.href = "/assistdashboard";
       } else if (user?.role === "Pharmacist") {
         alert("Pharmacist Login Successful!");
         window.location.href = "/Pharmacy";
       } else if (user?.role === "Pet Shopper") {
         alert("Pet Shopper Login Successful!");
-        window.location.href = "/psprofile";
+        window.location.href = "/psdashboard";
       } else {
         alert("Unauthorized role");
       }

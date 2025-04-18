@@ -13,11 +13,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import dp from "../../../src/assets/paw_vector.png";
+import dp from "../../assets/paw_vector.png";
 import { Link } from "react-router-dom";
-import AdPetShopManagement from "../Components/adpetshop";
 
-const AdminDashboard = () => {
+const psdashboard = () => {
   const [activeTab, setActiveTab] = useState("users");
   const [user, setUser] = useState(null);
 
@@ -154,7 +153,7 @@ const UserManagement = () => {
       </h2>
       <div className="flex justify-end mb-4">
         <Button
-          className="bg-[#71C9CE] hover:bg-gray-50 text-gray-900 flex items-center"
+          className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900 flex items-center"
           onClick={() => {
             setEditingUser(null);
             setShowForm(true);
@@ -416,8 +415,11 @@ const PharmacyManagement = () => (
 
 const PetShopManagement = () => (
   <div>
-    <AdPetShopManagement />
+    <h2 className="text-2xl font-semibold text-[#028478]">
+      Pet Shop Management
+    </h2>
+    <p className="text-gray-700">Manage pet shop inventory and sales.</p>
   </div>
 );
 
-export default AdminDashboard;
+export default psdashboard;
