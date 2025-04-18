@@ -52,6 +52,10 @@ app.use('/api/adloginform/', adminloginRoutes);
 const adminprofileRoutes =require("./routes/Admininformations/adgetprofile");
 app.use('/api/',adminprofileRoutes);
 
+//admin petshop
+const adminpetshopRoutes =require('./routes/Admininformations/adpetshop');
+app.use('/api/adminpetshop',adminpetshopRoutes)
+
 const pharmacy =require('./routes/Pharmacy/pharmacy');
 app.use('/pharmacy', pharmacy);
 
