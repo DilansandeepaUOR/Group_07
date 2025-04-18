@@ -133,11 +133,16 @@ const UserManagement = () => {
   }, []);
 
   const deleteUser = async (employee_id) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      await axios.delete(
-        `http://localhost:3001/api/adregform/empdelete/${employee_id}`
-      );
-      fetchUsers();
+    try {
+      if (window.confirm("Are you sure you want to delete this user?")) {
+        const response = await axios.delete(
+          `http://localhost:3001/api/adregform/empdelete?employee_id=${employee_id}`
+        );
+        alert(response.data.message);
+        fetchUsers();
+      }
+    } catch (error) {
+      alert(error.response?.data?.error || "An error occurred while deleting.");
     }
   };
 
@@ -165,6 +170,7 @@ const UserManagement = () => {
                 <th className="p-3">Name</th>
                 <th className="p-3">Email</th>
                 <th className="p-3">Role</th>
+                <th className="p-3">Status</th>
                 <th className="p-3">Actions</th>
               </tr>
             </thead>
@@ -176,6 +182,7 @@ const UserManagement = () => {
                   </td>
                   <td className="p-3">{u.email}</td>
                   <td className="p-3">{u.role}</td>
+                  <td className="p-3">{u.status}</td>
                   <td className="p-3 space-x-2">
                     <Button
                       size="sm"
@@ -189,7 +196,7 @@ const UserManagement = () => {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => deleteUser(u.id)}
+                      onClick={() => deleteUser(u.employee_id)}
                     >
                       <FaTrash />
                     </Button>
@@ -224,6 +231,7 @@ const EmployeeRegistrationForm = ({ closeForm, editingUser, refreshUsers }) => {
     role: "Admin",
     address: "",
     password: "",
+    status: "Active",
   });
 
   useEffect(() => {
@@ -352,6 +360,16 @@ const EmployeeRegistrationForm = ({ closeForm, editingUser, refreshUsers }) => {
           <option>Pharmacist</option>
           <option>Pet Shopper</option>
         </select>
+        { editingUser && (<select
+          name="status"
+          className="p-2 border rounded-md"
+          onChange={handleChange}
+          value={formData.status}
+          required
+        >
+          <option>Active</option>
+          <option>Inactive</option>
+        </select>)}
         <input
           type="text"
           name="address"
