@@ -72,8 +72,8 @@ const ProductManagement = () => {
                   <td className="p-3">{u.name}</td>
                   <td className="p-3">{u.category_name}</td>
                   <td className="p-3">{u.quantity_in_stock}</td>
-                  <td className="p-3">{u.price}</td>
-                  <td className="p-3">{u.status}</td>
+                  <td className="p-3">Rs. {u.unit_price}</td>
+                  <td className={`p-3 ${u.status != "Active" ? "text-2xl" : null}`}>{u.status}</td>
                   <td className="p-3 space-x-2">
                     <Button
                       size="sm"
