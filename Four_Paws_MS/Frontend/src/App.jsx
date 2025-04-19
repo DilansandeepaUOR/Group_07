@@ -29,6 +29,7 @@ import RecordNew from "./Pages/RecordNew";
 //admin routes
 import AdDashboard from "./Admin/Pages/Addashboard";
 import Adprofile from "./Admin/Pages/Adprofile";
+import PsOperations from "./Admin/Pages/Petshopproductoperaions";
 
 //other user routes
 import DoctorDashboard from "./Otherusers/Doctor/docdashboard";
@@ -39,6 +40,7 @@ import Assistprofile from "./Otherusers/Assitdoctor/assistprofile";
 
 import Psprofile from "./Otherusers/Petshopper/psprofile";
 import PsDashboard from "./Otherusers/Petshopper/psdashboard";
+
 
 const App = () => {
   return (
@@ -83,6 +85,8 @@ const App = () => {
         <Route path="/Adlogin" element={<Adlogin />} />
         <Route path="/Addashboard" element={<ProtectedRoutes allowedRoles={["Admin"]}><AdDashboard /></ProtectedRoutes>} />
         <Route path="/adprofile" element={<ProtectedRoutes allowedRoles={["Admin"]}><Adprofile /></ProtectedRoutes>} />
+        <Route path="/product/:id" element={<PsOperations />} />
+
 
         {/* Other user Routes  */}
         <Route path="/psdashboard" element={<ProtectedRoutes allowedRoles={["Pet Shopper"]}><PsDashboard /></ProtectedRoutes>} />

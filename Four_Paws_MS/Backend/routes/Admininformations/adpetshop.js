@@ -127,6 +127,31 @@ router.get("/products", async (req, res) => {
   }
 });
 
+
+router.get("/productsqr/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [product] = await db.query(
+      `SELECT p.*, c.name AS category_name, s.name AS supplier_name
+       FROM products p
+       JOIN categories c ON p.category_id = c.id
+       JOIN suppliers s ON p.supplier_id = s.id
+       WHERE p.id = ?`, [id]
+    );
+
+    if (product) {
+      res.json(product);
+    } else {
+      res.status(404).json({ message: "Product not found" });
+    }
+  } catch (err) {
+    console.error("Error fetching product:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+
 router.put("/productupdate", upload.single("image"), async (req, res) => {
   const { product_id } = req.query;
 
