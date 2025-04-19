@@ -54,7 +54,8 @@ app.use('/api/',adminprofileRoutes);
 
 //admin petshop
 const adminpetshopRoutes =require('./routes/Admininformations/adpetshop');
-app.use('/api/adminpetshop',adminpetshopRoutes)
+app.use('/api/adminpetshop',adminpetshopRoutes);
+app.use('/uploads', express.static('uploads'));
 
 const pharmacy =require('./routes/Pharmacy/pharmacy');
 app.use('/pharmacy', pharmacy);

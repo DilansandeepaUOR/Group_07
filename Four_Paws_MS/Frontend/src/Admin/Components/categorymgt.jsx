@@ -51,10 +51,10 @@ const CategoryManagement = () => {
           <table className="w-full text-left bg-gray-50 shadow-md">
             <thead className="bg-[#71C9CE] text-gray-900 sticky top-0 z-10">
               <tr>
-                <th className="p-3">Category ID</th>
-                <th className="p-3">Name</th>
-                <th className="p-3">Status</th>
-                <th className="p-3">Actions</th>
+                <th className="p-3 border-l-2">Category ID</th>
+                <th className="p-3 border-l-2">Name</th>
+                <th className="p-3 border-l-2">Status</th>
+                <th className="p-3 border-l-2">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -62,7 +62,15 @@ const CategoryManagement = () => {
                 <tr key={u.category_id} className="border-t">
                   <td className="p-3">{u.category_id}</td>
                   <td className="p-3">{u.category_name}</td>
-                  <td className="p-3">{u.status}</td>
+                  <td
+                    className={`p-3 ${
+                      u.status != "Inactive"
+                        ? "text-[#71C9CE] font-bold"
+                        : "font-bold text-red-500"
+                    }`}
+                  >
+                    {u.status}
+                  </td>
                   <td className="p-3 space-x-2">
                     <Button
                       size="sm"
@@ -119,7 +127,7 @@ const CategoryForm = ({ closeForm, editingcategory, refreshcategories }) => {
     try {
       if (editingcategory) {
         await axios.put(
-          `http://localhost:3001/api/adminpetshop/caegoryupdate?category_id=${editingcategory.category_id}`,
+          `http://localhost:3001/api/adminpetshop/categoryupdate?category_id=${editingcategory.category_id}`,
           formData
         );
         alert("profile updated!");
@@ -160,34 +168,46 @@ const CategoryForm = ({ closeForm, editingcategory, refreshcategories }) => {
         className="grid grid-cols-1 md:grid-cols-2 gap-4"
         onSubmit={handleSubmit}
       >
-        <input
-          type="text"
-          name="category_name"
-          placeholder="Category Name"
-          className="p-2 border rounded-md"
-          onChange={handleChange}
-          value={formData.category_name}
-          required
-        />
-
-        {editingcategory && (
-          <select
-            name="status"
+        <div>
+          {editingcategory && (
+            <label className="flex font-bold" htmlFor="Category Name">
+              Category Name
+            </label>
+          )}
+          <input
+            type="text"
+            name="category_name"
+            placeholder="Category Name"
             className="p-2 border rounded-md"
             onChange={handleChange}
-            value={formData.status}
+            value={formData.category_name}
             required
-          >
-            <option>Active</option>
-            <option>Inactive</option>
-          </select>
+          />
+        </div>
+
+        {editingcategory && (
+          <div>
+            <label className="flex font-bold" htmlFor="stats">
+              Status
+            </label>
+            <select
+              name="status"
+              className="p-2 border rounded-md"
+              onChange={handleChange}
+              value={formData.status}
+              required
+            >
+              <option>Active</option>
+              <option>Inactive</option>
+            </select>
+          </div>
         )}
 
         <Button
           type="submit"
           className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900 col-span-2"
         >
-          {editingcategory ? "Update" : "Register"}
+          {editingcategory ? "Update" : "Add"}
         </Button>
       </form>
       <button onClick={closeForm} className="mt-4 text-red-500 hover:underline">

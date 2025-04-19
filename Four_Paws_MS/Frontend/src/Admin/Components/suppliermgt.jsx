@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from "react";
-import {
-  FaPlus,
-  FaEdit,
-  FaTrash,
-} from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const SupplierManagement = () => {
-    const [suppliers, setsuppliers] = useState([]);
+  const [suppliers, setsuppliers] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingsuppliers, setEditingsupplier] = useState(null);
 
@@ -55,24 +51,30 @@ const SupplierManagement = () => {
           <table className="w-full text-left bg-gray-50 shadow-md">
             <thead className="bg-[#71C9CE] text-gray-900 sticky top-0 z-10">
               <tr>
-              <th className="p-3">Supplier ID</th>
-                <th className="p-3">Name</th>
-                <th className="p-3">Contact Info</th>
-                <th className="p-3">Address</th>
-                <th className="p-3">Status</th>
-                <th className="p-3">Actions</th>
+                <th className="p-3 border-l-2">Supplier ID</th>
+                <th className="p-3 border-l-2">Name</th>
+                <th className="p-3 border-l-2">Contact Info</th>
+                <th className="p-3 border-l-2">Address</th>
+                <th className="p-3 border-l-2">Status</th>
+                <th className="p-3 border-l-2">Actions</th>
               </tr>
             </thead>
             <tbody>
               {suppliers.map((u) => (
                 <tr key={u.supplier_id} className="border-t">
-                  <td className="p-3">
-                    {u.supplier_id} 
-                  </td>
+                  <td className="p-3">{u.supplier_id}</td>
                   <td className="p-3">{u.name}</td>
                   <td className="p-3">{u.contact_info}</td>
                   <td className="p-3">{u.address}</td>
-                  <td className="p-3">{u.status}</td>
+                  <td
+                    className={`p-3 ${
+                      u.status != "Inactive"
+                        ? "text-[#71C9CE] font-bold"
+                        : "font-bold text-red-500"
+                    }`}
+                  >
+                    {u.status}
+                  </td>
                   <td className="p-3 space-x-2">
                     <Button
                       size="sm"
@@ -108,70 +110,75 @@ const SupplierManagement = () => {
       </div>
     </div>
   );
-}
+};
 
 const SupplierForm = ({ closeForm, editingsuppliers, refreshsuppliers }) => {
-    const [formData, setFormData] = useState({
-      name: "",
-      contact_info: "",
-      address: "",
-     
-    });
-  
-    useEffect(() => {
-      if (editingsuppliers) setFormData(editingsuppliers);
-    }, [editingsuppliers]);
-  
-    const handleChange = (e) => {
-      setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
-  
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-      try {
-        if (editingsuppliers) {
-          await axios.put(
-            `http://localhost:3001/api/adminpetshop/supplierupdate?supplier_id=${editingsuppliers.supplier_id}`,
-            formData
-          );
-          alert("profile updated!");
-        } else {
-          await axios.post(
-            "http://localhost:3001/api/adminpetshop/addsupplier",
-            formData
-          );
-        }
-        refreshsuppliers();
-        closeForm();
-      } catch (error) {
-        if (error.response && error.response.data) {
-          console.error("Backend error response:", error.response.data);
-  
-          if (Array.isArray(error.response.data.error)) {
-            // If the backend sends multiple validation errors as an array
-            const errorMessages = error.response.data.error
-              .map((err) => err.message)
-              .join("\n");
-            alert("Error:\n" + errorMessages);
-          } else {
-            // If it's a single error message
-            alert("Error: " + error.response.data.error);
-          }
-        } else {
-          alert("Error: Something went wrong. Please try again.");
-        }
+  const [formData, setFormData] = useState({
+    name: "",
+    contact_info: "",
+    address: "",
+  });
+
+  useEffect(() => {
+    if (editingsuppliers) setFormData(editingsuppliers);
+  }, [editingsuppliers]);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingsuppliers) {
+        await axios.put(
+          `http://localhost:3001/api/adminpetshop/supplierupdate?supplier_id=${editingsuppliers.supplier_id}`,
+          formData
+        );
+        alert("profile updated!");
+      } else {
+        await axios.post(
+          "http://localhost:3001/api/adminpetshop/addsupplier",
+          formData
+        );
       }
-    };
-  
-    return (
-      <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
-        <h2 className="text-xl font-semibold mb-4 text-[#028478]">
-          {editingsuppliers ? "Edit" : "Register New"} Supplier
-        </h2>
-        <form
-          className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          onSubmit={handleSubmit}
-        >
+      refreshsuppliers();
+      closeForm();
+    } catch (error) {
+      if (error.response && error.response.data) {
+        console.error("Backend error response:", error.response.data);
+
+        if (Array.isArray(error.response.data.error)) {
+          // If the backend sends multiple validation errors as an array
+          const errorMessages = error.response.data.error
+            .map((err) => err.message)
+            .join("\n");
+          alert("Error:\n" + errorMessages);
+        } else {
+          // If it's a single error message
+          alert("Error: " + error.response.data.error);
+        }
+      } else {
+        alert("Error: Something went wrong. Please try again.");
+      }
+    }
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
+      <h2 className="text-xl font-semibold mb-4 text-[#028478]">
+        {editingsuppliers ? "Edit" : "Register New"} Supplier
+      </h2>
+      <form
+        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        onSubmit={handleSubmit}
+      >
+        <div>
+          {editingsuppliers && (
+            <label className="flex font-bold" htmlFor="Supplier Name">
+              Supplier Name
+            </label>
+          )}
           <input
             type="text"
             name="name"
@@ -181,17 +188,31 @@ const SupplierForm = ({ closeForm, editingsuppliers, refreshsuppliers }) => {
             value={formData.name}
             required
           />
+        </div>
+
+        <div>
+          {editingsuppliers&& (
+            <label className="flex font-bold" htmlFor="Contact Information">
+              Contact Information
+            </label>
+          )}
           <input
-            type="text"
-            name="contact_info"
-            placeholder="Contact Information"
-            className="p-2 border rounded-md"
-            onChange={handleChange}
-            value={formData.contact_info}
-            required
-          />
-          
-          {editingsuppliers && (
+          type="text"
+          name="contact_info"
+          placeholder="Contact Information"
+          className="p-2 border rounded-md"
+          onChange={handleChange}
+          value={formData.contact_info}
+          required
+        />
+        </div>
+        
+
+        {editingsuppliers && (
+          <div>
+            <label className="flex font-bold" htmlFor="status">
+              Status
+            </label>
             <select
               name="status"
               className="p-2 border rounded-md"
@@ -202,6 +223,14 @@ const SupplierForm = ({ closeForm, editingsuppliers, refreshsuppliers }) => {
               <option>Active</option>
               <option>Inactive</option>
             </select>
+          </div>
+        )}
+
+        <div>
+          {editingsuppliers && (
+            <label className="flex font-bold" htmlFor="Address">
+              Supplier Address
+            </label>
           )}
           <input
             type="text"
@@ -212,19 +241,20 @@ const SupplierForm = ({ closeForm, editingsuppliers, refreshsuppliers }) => {
             value={formData.address}
             required
           />
-          
-          <Button
-            type="submit"
-            className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900 col-span-2"
-          >
-            {editingsuppliers ? "Update" : "Register"}
-          </Button>
-        </form>
-        <button onClick={closeForm} className="mt-4 text-red-500 hover:underline">
-          Cancel
-        </button>
-      </div>
-    );
-  };
+        </div>
 
-  export default SupplierManagement;
+        <Button
+          type="submit"
+          className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900 col-span-2"
+        >
+          {editingsuppliers ? "Update" : "Add"}
+        </Button>
+      </form>
+      <button onClick={closeForm} className="mt-4 text-red-500 hover:underline">
+        Cancel
+      </button>
+    </div>
+  );
+};
+
+export default SupplierManagement;

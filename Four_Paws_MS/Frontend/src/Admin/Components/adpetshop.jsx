@@ -3,16 +3,12 @@ import {
   FaUsers,
   FaPills,
   FaShoppingCart,
-  FaPlus,
-  FaUser,
-  FaSignOutAlt,
-  FaEdit,
-  FaTrash,
-  FaEye,
+  FaQrcode,
 } from "react-icons/fa";
 import CategoryMGT from "../Components/categorymgt";
 import SupplierMGT from "../Components/suppliermgt";
 import ProductMGT from "../Components/productmgt";
+import QrMGT from "../Components/qrscanner";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -62,12 +58,21 @@ return (
                         <FaUsers /> Manage Suppliers
                     </button>
                 </li>
+                <li>
+                    <button
+                        onClick={() => setActiveTab("qr")}
+                        className="flex items-center gap-2 w-full text-left border-1 p-2 rounded-2xl hover:border-gray-900 hover:text-gray-50 cursor-pointer"
+                    >
+                        <FaQrcode /> QR Scanner
+                    </button>
+                </li>
             </ul>
         </div>
         <div className="">
             {activeTab === "products" && <ProductManagement />}
             {activeTab === "categories" && <CategoryManagement />}
             {activeTab === "suppliers" && <SupplierManagement />}
+            {activeTab === "qr" && <QrManagement />}
         </div>
     </div>
 );
@@ -91,4 +96,9 @@ const SupplierManagement = () => (
     </div>
 );
 
+const QrManagement = () => (
+    <div>
+        <QrMGT/>
+    </div>
+);
 export default adPetShopManagement;
