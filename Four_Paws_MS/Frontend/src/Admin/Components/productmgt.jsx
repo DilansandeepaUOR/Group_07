@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from "react";
-import {
-
-  FaPlus,
-
-  FaEdit,
-  FaTrash,
- 
-} from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { FaCamera } from "react-icons/fa";
+import paw from "../../assets/paw_vector.png"
 
 const ProductManagement = () => {
   const [products, setProducts] = useState([]);
@@ -58,22 +53,30 @@ const ProductManagement = () => {
           <table className="w-full text-left bg-gray-50 shadow-md">
             <thead className="bg-[#71C9CE] text-gray-900 sticky top-0 z-10">
               <tr>
-                <th className="p-3">Name</th>
-                <th className="p-3">Category</th>
-                <th className="p-3">Quantity</th>
-                <th className="p-3">Price</th>
-                <th className="p-3">Status</th>
-                <th className="p-3">Actioins</th>
+                <th className="p-3 border-l-2">Name</th>
+                <th className="p-3 border-l-2">Category</th>
+                <th className="p-3 border-l-2">Quantity</th>
+                <th className="p-3 border-l-2">Price</th>
+                <th className="p-3 border-l-2">Status</th>
+                <th className="p-3 border-l-2">Actioins</th>
               </tr>
             </thead>
             <tbody>
               {products.map((u) => (
                 <tr key={u.product_id} className="border-t">
-                  <td className="p-3">{u.name}</td>
+                  <td className="p-3 ">{u.name}</td>
                   <td className="p-3">{u.category_name}</td>
                   <td className="p-3">{u.quantity_in_stock}</td>
                   <td className="p-3">Rs. {u.unit_price}</td>
-                  <td className={`p-3 ${u.status != "Active" ? "text-2xl" : null}`}>{u.status}</td>
+                  <td
+                    className={`p-3 ${
+                      u.status != "Inactive"
+                        ? "text-[#71C9CE] font-bold"
+                        : "font-bold text-red-500"
+                    }`}
+                  >
+                    {u.status}
+                  </td>
                   <td className="p-3 space-x-2">
                     <Button
                       size="sm"
@@ -107,6 +110,10 @@ const ProductManagement = () => {
           )}
         </div>
       </div>
+      <div className="imagediv">
+
+      </div>
+      
     </div>
   );
 };
@@ -121,6 +128,7 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
     unit_price: "",
     supplier_id: "",
     status: "Active",
+    image: null,
   });
 
   useEffect(() => {
@@ -128,23 +136,39 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
   }, [editingProduct]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, files } = e.target;
+    if (name === "image") {
+      setFormData({ ...formData, image: files[0] });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const submitData = new FormData();
+
+    // Append all form fields
+    for (let key in formData) {
+      if (formData[key]) {
+        submitData.append(key, formData[key]);
+      }
+    }
     try {
       if (editingProduct) {
         await axios.put(
           `http://localhost:3001/api/adminpetshop/productupdate?product_id=${editingProduct.product_id}`,
-          formData
+          submitData,
+        { headers: { "Content-Type": "multipart/form-data" } }
         );
-        alert("profile updated!");
+        alert("product updated!");
       } else {
         await axios.post(
           "http://localhost:3001/api/adminpetshop/addproduct",
-          formData
+          submitData,
+        { headers: { "Content-Type": "multipart/form-data" } }
         );
+        alert("Product added")
       }
       refreshProducts();
       closeForm();
@@ -255,11 +279,23 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
           value={formData.description}
         />
 
+        <div className="col-span-2 flex items-center">
+          <FaCamera className="mr-2 text-gray-500" />
+          <input
+            type="file"
+            name="image"
+            accept="image/*"
+            className="p-2 border rounded-md"
+            onChange={handleChange}
+            required={!editingProduct}
+          />
+        </div>
+
         <Button
           type="submit"
           className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900 col-span-2"
         >
-          {editingProduct ? "Update" : "Register"}
+          {editingProduct ? "Update" : "Add"}
         </Button>
       </form>
       <button onClick={closeForm} className="mt-4 text-red-500 hover:underline">

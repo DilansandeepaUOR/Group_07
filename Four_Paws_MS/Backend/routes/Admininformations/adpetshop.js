@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../../db");
-const bcrypt = require("bcrypt");
-const validEMPRegister = require("../../validations/adregvalidator");
+const upload=require("../../validations/imgvalidator");
 
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
@@ -14,7 +13,7 @@ router.use((req, res, next) => {
 
 
 //Manage products
-router.post("/addproduct", async (req, res) => {
+router.post("/addproduct", upload.single("image") ,async (req, res) => {
   const {
     name,
     category_id,
@@ -24,6 +23,8 @@ router.post("/addproduct", async (req, res) => {
     unit_price,
     supplier_id,
   } = req.body;
+
+  const imagePath = req.file ? `/uploads/productpics/${req.file.filename}` : null;
 
   try {
     //existance of product
@@ -40,7 +41,7 @@ router.post("/addproduct", async (req, res) => {
           return res.status(409).json({ error: "Product already exists" });
         }
         const productsql =
-          "INSERT INTO pet_products (name, category_id, brand, description, quantity_in_stock, unit_price, supplier_id) VALUES (?, ?, ?, ?, ?,?,?)";
+          "INSERT INTO pet_products (name, category_id, brand, description, quantity_in_stock, unit_price, supplier_id, product_image) VALUES (?, ?, ?, ?, ?,?,?,?)";
 
         db.query(
           productsql,
@@ -52,6 +53,7 @@ router.post("/addproduct", async (req, res) => {
             quantity_in_stock,
             unit_price,
             supplier_id,
+            imagePath
           ],
           (err, result) => {
             if (err) {
@@ -97,7 +99,7 @@ router.get("/products", async (req, res) => {
   }
 });
 
-router.put("/productupdate", async (req, res) => {
+router.put("/productupdate", upload.single("image") ,async (req, res) => {
   const { product_id } = req.body;
 
   //console.log("ID:", product_id); // Log the ID to check if it's being received correctly
@@ -116,10 +118,11 @@ router.put("/productupdate", async (req, res) => {
         quantity_in_stock,
         unit_price,
         supplier_id,
-        status
+        status,
       } = req.body;
+      const imagePath = req.file ? `/uploads/productpics/${req.file.filename}` : null;
     const productsql =
-      "UPDATE pet_products SET name = ?, category_id = ?, brand = ?, description = ?, quantity_in_stock = ?, unit_price = ?, supplier_id = ?, status = ? WHERE product_id = ?";
+      "UPDATE pet_products SET name = ?, category_id = ?, brand = ?, description = ?, quantity_in_stock = ?, unit_price = ?, supplier_id = ?, status = ?, product_image = ? WHERE product_id = ?";
 
     db.query(
         productsql,
@@ -132,7 +135,9 @@ router.put("/productupdate", async (req, res) => {
         unit_price,
         supplier_id,
         status,
+        imagePath,
         product_id,
+        
       ],
       (err, results) => {
         if (err) {

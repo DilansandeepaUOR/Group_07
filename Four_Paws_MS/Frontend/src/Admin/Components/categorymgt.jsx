@@ -51,10 +51,10 @@ const CategoryManagement = () => {
           <table className="w-full text-left bg-gray-50 shadow-md">
             <thead className="bg-[#71C9CE] text-gray-900 sticky top-0 z-10">
               <tr>
-                <th className="p-3">Category ID</th>
-                <th className="p-3">Name</th>
-                <th className="p-3">Status</th>
-                <th className="p-3">Actions</th>
+                <th className="p-3 border-l-2">Category ID</th>
+                <th className="p-3 border-l-2">Name</th>
+                <th className="p-3 border-l-2">Status</th>
+                <th className="p-3 border-l-2">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -62,7 +62,15 @@ const CategoryManagement = () => {
                 <tr key={u.category_id} className="border-t">
                   <td className="p-3">{u.category_id}</td>
                   <td className="p-3">{u.category_name}</td>
-                  <td className="p-3">{u.status}</td>
+                  <td
+                    className={`p-3 ${
+                      u.status != "Inactive"
+                        ? "text-[#71C9CE] font-bold"
+                        : "font-bold text-red-500"
+                    }`}
+                  >
+                    {u.status}
+                  </td>
                   <td className="p-3 space-x-2">
                     <Button
                       size="sm"
@@ -187,7 +195,7 @@ const CategoryForm = ({ closeForm, editingcategory, refreshcategories }) => {
           type="submit"
           className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900 col-span-2"
         >
-          {editingcategory ? "Update" : "Register"}
+          {editingcategory ? "Update" : "Add"}
         </Button>
       </form>
       <button onClick={closeForm} className="mt-4 text-red-500 hover:underline">
