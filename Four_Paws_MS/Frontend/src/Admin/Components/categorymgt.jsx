@@ -127,7 +127,7 @@ const CategoryForm = ({ closeForm, editingcategory, refreshcategories }) => {
     try {
       if (editingcategory) {
         await axios.put(
-          `http://localhost:3001/api/adminpetshop/caegoryupdate?category_id=${editingcategory.category_id}`,
+          `http://localhost:3001/api/adminpetshop/categoryupdate?category_id=${editingcategory.category_id}`,
           formData
         );
         alert("profile updated!");
@@ -168,27 +168,39 @@ const CategoryForm = ({ closeForm, editingcategory, refreshcategories }) => {
         className="grid grid-cols-1 md:grid-cols-2 gap-4"
         onSubmit={handleSubmit}
       >
-        <input
-          type="text"
-          name="category_name"
-          placeholder="Category Name"
-          className="p-2 border rounded-md"
-          onChange={handleChange}
-          value={formData.category_name}
-          required
-        />
-
-        {editingcategory && (
-          <select
-            name="status"
+        <div>
+          {editingcategory && (
+            <label className="flex font-bold" htmlFor="Category Name">
+              Category Name
+            </label>
+          )}
+          <input
+            type="text"
+            name="category_name"
+            placeholder="Category Name"
             className="p-2 border rounded-md"
             onChange={handleChange}
-            value={formData.status}
+            value={formData.category_name}
             required
-          >
-            <option>Active</option>
-            <option>Inactive</option>
-          </select>
+          />
+        </div>
+
+        {editingcategory && (
+          <div>
+            <label className="flex font-bold" htmlFor="stats">
+              Status
+            </label>
+            <select
+              name="status"
+              className="p-2 border rounded-md"
+              onChange={handleChange}
+              value={formData.status}
+              required
+            >
+              <option>Active</option>
+              <option>Inactive</option>
+            </select>
+          </div>
         )}
 
         <Button

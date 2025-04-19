@@ -115,13 +115,13 @@ const ProductManagement = () => {
       <div className="mt-6 items-center justify-center">
         <h1>Product Images</h1>
         <div className="">
-        {products[0]?.product_image && (
-          <img
-            src={`http://localhost:3001${products[0].product_image}`}
-            alt={products[0].name}
-            className="w-40 h-40 object-cover rounded-lg shadow-md"
-          />
-        )}
+          {products[0]?.product_image && (
+            <img
+              src={`http://localhost:3001${products[0].product_image}`}
+              alt={products[0].name}
+              className="w-40 h-40 object-cover rounded-lg shadow-md"
+            />
+          )}
         </div>
       </div>
     </div>
@@ -211,25 +211,47 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
         className="grid grid-cols-1 md:grid-cols-2 gap-4"
         onSubmit={handleSubmit}
       >
-        <input
-          type="text"
-          name="name"
-          placeholder="Product Name"
-          className="p-2 border rounded-md"
-          onChange={handleChange}
-          value={formData.name}
-          required
-        />
-        <input
-          type="text"
-          name="category_id"
-          placeholder="Category id"
-          className="p-2 border rounded-md"
-          onChange={handleChange}
-          value={formData.category_id}
-          required
-        />
-        <input
+        <div className="">
+          {editingProduct && (
+            <label className="flex font-bold" htmlFor="name">
+              Product Name
+            </label>
+          )}
+          <input
+            type="text"
+            name="name"
+            placeholder="Product Name"
+            className="flex p-2 border rounded-md"
+            onChange={handleChange}
+            value={formData.name}
+            required
+          />
+        </div>
+
+        <div>
+          {editingProduct && (
+            <label className="flex font-bold" htmlFor="Category id">
+              Category ID
+            </label>
+          )}
+          <input
+            type="text"
+            name="category_id"
+            placeholder="Category id"
+            className="p-2 border rounded-md"
+            onChange={handleChange}
+            value={formData.category_id}
+            required
+          />
+        </div>
+
+        <div>
+          {editingProduct && (
+            <label className="flex font-bold" htmlFor="Brand Name">
+              Brand Name
+            </label>
+          )}
+          <input
           type="text"
           name="brand"
           placeholder="Brand Name"
@@ -238,7 +260,16 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
           value={formData.brand}
           required
         />
-        <input
+        </div>
+        
+
+        <div>
+          {editingProduct && (
+            <label className="flex font-bold" htmlFor="Unit Price">
+              Unit Price
+            </label>
+          )}
+          <input
           type="text"
           name="unit_price"
           placeholder="Unit Price"
@@ -247,8 +278,16 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
           value={formData.unit_price}
           required
         />
+        </div>
+        
 
-        <input
+        <div>
+          {editingProduct && (
+            <label className="flex font-bold" htmlFor="Supplier Id">
+             Supplier ID
+            </label>
+          )}
+          <input
           type="text"
           name="supplier_id"
           placeholder="Supplier Id"
@@ -257,8 +296,16 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
           value={formData.supplier_id}
           required
         />
+        </div>
+        
 
-        <input
+        <div>
+          {editingProduct && (
+            <label className="flex font-bold" htmlFor="Quantity">
+              Quantity
+            </label>
+          )}
+          <input
           type="text"
           name="quantity_in_stock"
           placeholder="Quantity"
@@ -267,27 +314,44 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
           value={formData.quantity_in_stock}
           required
         />
+        </div>
+        
 
         {editingProduct && (
-          <select
-            name="status"
-            className="p-2 border rounded-md"
-            onChange={handleChange}
-            value={formData.status}
-            required
-          >
-            <option>Active</option>
-            <option>Inactive</option>
-          </select>
+          <div>
+            {editingProduct && (
+              <label className="flex font-bold" htmlFor="status">
+                Product Status
+              </label>
+            )}
+            <select
+              name="status"
+              className="p-2 border rounded-md"
+              onChange={handleChange}
+              value={formData.status}
+              required
+            >
+              <option>Active</option>
+              <option>Inactive</option>
+            </select>
+          </div>
         )}
-        <input
-          type="text"
-          name="description"
-          placeholder="Product Description"
-          className="p-2 border rounded-md col-span-2"
-          onChange={handleChange}
-          value={formData.description}
-        />
+
+        <div>
+          {editingProduct && (
+            <label className="flex font-bold" htmlFor="Product Description">
+              Product Description
+            </label>
+          )}
+          <input
+            type="text"
+            name="description"
+            placeholder="Product Description"
+            className="p-2 border rounded-md col-span-2"
+            onChange={handleChange}
+            value={formData.description}
+          />
+        </div>
 
         <div className="col-span-2 flex items-center">
           <FaCamera className="mr-2 text-gray-500" />

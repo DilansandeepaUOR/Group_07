@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require("../../db");
 const upload=require("../../validations/imgvalidator");
+const QRCode = require('qrcode');
 
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
@@ -120,7 +121,7 @@ router.put("/productupdate", upload.single("image") ,async (req, res) => {
         supplier_id,
         status,
       } = req.body;
-      const imagePath = req.file ? `/uploads/productpics/${req.file.filename}` : null;
+      const imagePath = req.file ? `/uploads/productpics/${req.file.filename}` : "";
     const productsql =
       "UPDATE pet_products SET name = ?, category_id = ?, brand = ?, description = ?, quantity_in_stock = ?, unit_price = ?, supplier_id = ?, status = ?, product_image = ? WHERE product_id = ?";
 
@@ -398,8 +399,8 @@ router.get("/suppliers", async (req, res) => {
 router.put("/supplierupdate", async (req, res) => {
   const { supplier_id } = req.body;
 
-  //console.log("ID:", supplier_id); // Log the ID to check if it's being received correctly
-  //console.log("Request Body:", req.body); // Log the request body to check the data being sent
+ // console.log("ID:", supplier_id); // Log the ID to check if it's being received correctly
+ // console.log("Request Body:", req.body); // Log the request body to check the data being sent
 
   if (!supplier_id) {
     return res.status(400).json({ error: "ID query parameter is required" });
@@ -412,11 +413,11 @@ router.put("/supplierupdate", async (req, res) => {
         address,
         status
       } = req.body;
-    const productsql =
-      "UPDATE pet_products SET name = ?, contact_info =?, address = ?, status = ? WHERE supplier_id = ?";
+    const suppliersql =
+      "UPDATE pet_suppliers SET name = ?, contact_info =?, address = ?, status = ? WHERE supplier_id = ?";
 
     db.query(
-        productsql,
+      suppliersql,
       [
         name,
         contact_info,
@@ -431,9 +432,10 @@ router.put("/supplierupdate", async (req, res) => {
         if (results.affectedRows === 0) {
           return res.status(404).json({ error: "supplier not found" });
         }
+        res.status(200).json({ message: "supplier updated successfully" });
       }
     );
-    res.status(200).json({ message: "supplier updated successfully" });
+    
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ error: "Error updating supplier" });
