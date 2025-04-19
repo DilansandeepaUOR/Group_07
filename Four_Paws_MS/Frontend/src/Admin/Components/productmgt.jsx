@@ -59,6 +59,7 @@ const ProductManagement = () => {
                 <th className="p-3 border-l-2">Quantity</th>
                 <th className="p-3 border-l-2">Price</th>
                 <th className="p-3 border-l-2">Status</th>
+                <th className="p-3 border-l-2">QR Code</th>
                 <th className="p-3 border-l-2">Actioins</th>
               </tr>
             </thead>
@@ -70,6 +71,7 @@ const ProductManagement = () => {
                   <td className="p-3">{u.supplier_name}</td>
                   <td className="p-3">{u.quantity_in_stock}</td>
                   <td className="p-3">Rs. {u.unit_price}</td>
+
                   <td
                     className={`p-3 ${
                       u.status != "Inactive"
@@ -78,6 +80,17 @@ const ProductManagement = () => {
                     }`}
                   >
                     {u.status}
+                  </td>
+                  <td className="p-3">
+                    {u.qr_code_image ? (
+                      <img
+                        src={u.qr_code_image}
+                        alt="QR Code"
+                        className="w-16 h-16 object-contain"
+                      />
+                    ) : (
+                      "N/A"
+                    )}
                   </td>
                   <td className="p-3 space-x-2">
                     <Button
@@ -379,7 +392,6 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
             accept="image/*"
             className="p-2 border rounded-md"
             onChange={handleChange}
-            required={!editingProduct}
           />
         </div>
 

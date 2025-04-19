@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../../db");
-const upload=require("../../validations/imgvalidator");
-const QRCode = require('qrcode');
+const upload = require("../../validations/imgvalidator");
+const QRCode = require("qrcode");
 
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
@@ -12,9 +12,8 @@ router.use((req, res, next) => {
   next();
 });
 
-
 //Manage products
-router.post("/addproduct", upload.single("image") ,async (req, res) => {
+router.post("/addproduct", upload.single("image"), async (req, res) => {
   const {
     name,
     category_id,
@@ -25,7 +24,9 @@ router.post("/addproduct", upload.single("image") ,async (req, res) => {
     supplier_id,
   } = req.body;
 
-  const imagePath = req.file ? `/uploads/productpics/${req.file.filename}` : null;
+  const imagePath = req.file
+    ? `/uploads/productpics/${req.file.filename}`
+    : null;
 
   try {
     //existance of product
@@ -54,20 +55,45 @@ router.post("/addproduct", upload.single("image") ,async (req, res) => {
             quantity_in_stock,
             unit_price,
             supplier_id,
-            imagePath
+            imagePath,
           ],
-          (err, result) => {
+          async (err, result) => {
             if (err) {
-              return res
-                .status(500)
-                .json({ error: "Error inserting product" });
+              return res.status(500).json({ error: "Error inserting product" });
             }
 
             if (result.affectedRows === 0) {
               return res.status(404).json({ error: "product not found!" });
             }
 
-            res.status(201).json({ message: "product added successfully" });
+            const product_id = result.insertId;
+            const productUrl = `http://localhost:3001/api/adminpetshop/product/${product_id}`;
+
+            try {
+              const qrDataUrl = await QRCode.toDataURL(productUrl);
+              const updateQR =
+                "UPDATE pet_products SET qr_code_data = ?, qr_code_image = ? WHERE product_id = ?";
+
+              db.query(
+                updateQR,
+                [productUrl, qrDataUrl, product_id],
+                (err2) => {
+                  if (err2)
+                    return res
+                      .status(500)
+                      .json({ error: "QR code update failed" });
+                  res.json({
+                    message: "Product added successfully with QR code",
+                    product_id,
+                    qrDataUrl,
+                  });
+                }
+              );
+            } catch (error) {
+              return res
+                .status(500)
+                .json({ error: "QR code generation failed" });
+            }
           }
         );
       }
@@ -78,7 +104,8 @@ router.post("/addproduct", upload.single("image") ,async (req, res) => {
 });
 
 router.get("/products", async (req, res) => {
-  const productsql = "SELECT p.*, c.category_name, s.name AS supplier_name FROM pet_products p LEFT JOIN pet_categories c ON p.category_id = c.category_id LEFT JOIN pet_suppliers s ON p.supplier_id = s.supplier_id;";
+  const productsql =
+    "SELECT p.*, c.category_name, s.name AS supplier_name FROM pet_products p LEFT JOIN pet_categories c ON p.category_id = c.category_id LEFT JOIN pet_suppliers s ON p.supplier_id = s.supplier_id;";
   try {
     db.query(productsql, (err, results) => {
       if (err) {
@@ -100,7 +127,7 @@ router.get("/products", async (req, res) => {
   }
 });
 
-router.put("/productupdate", upload.single("image") ,async (req, res) => {
+router.put("/productupdate", upload.single("image"), async (req, res) => {
   const { product_id } = req.query;
 
   console.log("ID:", product_id); // Log the ID to check if it's being received correctly
@@ -112,22 +139,24 @@ router.put("/productupdate", upload.single("image") ,async (req, res) => {
 
   try {
     const {
-        name,
-        category_id,
-        brand,
-        description,
-        quantity_in_stock,
-        unit_price,
-        supplier_id,
-        status,
-        oldImage
-      } = req.body;
-      const imagePath = req.file ? `/uploads/productpics/${req.file.filename}` : oldImage;
+      name,
+      category_id,
+      brand,
+      description,
+      quantity_in_stock,
+      unit_price,
+      supplier_id,
+      status,
+      oldImage,
+    } = req.body;
+    const imagePath = req.file
+      ? `/uploads/productpics/${req.file.filename}`
+      : oldImage;
     const productsql =
       "UPDATE pet_products SET name = ?, category_id = ?, brand = ?, description = ?, quantity_in_stock = ?, unit_price = ?, supplier_id = ?, status = ?, product_image = ? WHERE product_id = ?";
 
     db.query(
-        productsql,
+      productsql,
       [
         name,
         category_id,
@@ -139,7 +168,6 @@ router.put("/productupdate", upload.single("image") ,async (req, res) => {
         status,
         imagePath,
         product_id,
-        
       ],
       (err, results) => {
         if (err) {
@@ -151,7 +179,6 @@ router.put("/productupdate", upload.single("image") ,async (req, res) => {
         res.status(200).json({ message: "Product updated successfully" });
       }
     );
-    
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ error: "Error updating Product" });
@@ -180,14 +207,9 @@ router.delete("/productdelete", async (req, res) => {
   }
 });
 
-
-
-
 //Manage categories
 router.post("/addcategory", async (req, res) => {
-  const {
-    category_name,
-  } = req.body;
+  const { category_name } = req.body;
 
   try {
     //existance of category
@@ -206,25 +228,17 @@ router.post("/addcategory", async (req, res) => {
         const categorysql =
           "INSERT INTO pet_categories (category_name) VALUES (?)";
 
-        db.query(
-          categorysql,
-          [
-            category_name,
-          ],
-          (err, result) => {
-            if (err) {
-              return res
-                .status(500)
-                .json({ error: "Error inserting Category" });
-            }
-
-            if (result.affectedRows === 0) {
-              return res.status(404).json({ error: "Category not found!" });
-            }
-
-            res.status(201).json({ message: "Category added successfully" });
+        db.query(categorysql, [category_name], (err, result) => {
+          if (err) {
+            return res.status(500).json({ error: "Error inserting Category" });
           }
-        );
+
+          if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "Category not found!" });
+          }
+
+          res.status(201).json({ message: "Category added successfully" });
+        });
       }
     );
   } catch (error) {
@@ -266,20 +280,13 @@ router.put("/categoryupdate", async (req, res) => {
   }
 
   try {
-    const {
-      category_name,
-        status
-      } = req.body;
+    const { category_name, status } = req.body;
     const categorysql =
       "UPDATE pet_categories SET category_name = ?, status = ? WHERE category_id = ?";
 
     db.query(
       categorysql,
-      [
-        category_name,
-        status,
-        category_id,
-      ],
+      [category_name, status, category_id],
       (err, results) => {
         if (err) {
           return res.status(500).json({ error: "Error inserting Category" });
@@ -318,17 +325,9 @@ router.delete("/categorydelete", async (req, res) => {
   }
 });
 
-
-
-
-
 //Manage suppliers
 router.post("/addsupplier", async (req, res) => {
-  const {
-    name,
-    contact_info,
-    address,
-  } = req.body;
+  const { name, contact_info, address } = req.body;
 
   try {
     //existance of product
@@ -347,27 +346,17 @@ router.post("/addsupplier", async (req, res) => {
         const suppliersql =
           "INSERT INTO pet_suppliers (name, contact_info, address) VALUES ( ?,?,?)";
 
-        db.query(
-          suppliersql,
-          [
-            name,
-            contact_info,
-            address
-          ],
-          (err, result) => {
-            if (err) {
-              return res
-                .status(500)
-                .json({ error: "Error inserting supplier" });
-            }
-
-            if (result.affectedRows === 0) {
-              return res.status(404).json({ error: "supplier not found!" });
-            }
-
-            res.status(201).json({ message: "supplier added successfully" });
+        db.query(suppliersql, [name, contact_info, address], (err, result) => {
+          if (err) {
+            return res.status(500).json({ error: "Error inserting supplier" });
           }
-        );
+
+          if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "supplier not found!" });
+          }
+
+          res.status(201).json({ message: "supplier added successfully" });
+        });
       }
     );
   } catch (error) {
@@ -401,32 +390,21 @@ router.get("/suppliers", async (req, res) => {
 router.put("/supplierupdate", async (req, res) => {
   const { supplier_id } = req.body;
 
- // console.log("ID:", supplier_id); // Log the ID to check if it's being received correctly
- // console.log("Request Body:", req.body); // Log the request body to check the data being sent
+  // console.log("ID:", supplier_id); // Log the ID to check if it's being received correctly
+  // console.log("Request Body:", req.body); // Log the request body to check the data being sent
 
   if (!supplier_id) {
     return res.status(400).json({ error: "ID query parameter is required" });
   }
 
   try {
-    const {
-        name,
-        contact_info,
-        address,
-        status
-      } = req.body;
+    const { name, contact_info, address, status } = req.body;
     const suppliersql =
       "UPDATE pet_suppliers SET name = ?, contact_info =?, address = ?, status = ? WHERE supplier_id = ?";
 
     db.query(
       suppliersql,
-      [
-        name,
-        contact_info,
-        address,
-        status,
-        supplier_id,  
-      ],
+      [name, contact_info, address, status, supplier_id],
       (err, results) => {
         if (err) {
           return res.status(500).json({ error: "Error inserting supplier" });
@@ -437,7 +415,6 @@ router.put("/supplierupdate", async (req, res) => {
         res.status(200).json({ message: "supplier updated successfully" });
       }
     );
-    
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ error: "Error updating supplier" });
