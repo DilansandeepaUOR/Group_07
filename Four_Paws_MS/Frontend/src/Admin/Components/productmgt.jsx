@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaCamera } from "react-icons/fa";
-import paw from "../../assets/paw_vector.png"
+import paw from "../../assets/paw_vector.png";
 
 const ProductManagement = () => {
   const [products, setProducts] = useState([]);
@@ -110,10 +110,18 @@ const ProductManagement = () => {
           )}
         </div>
       </div>
-      <div className="imagediv">
-
+      <div className="mt-6 items-center justify-center">
+        <h1>Product Images</h1>
+        <div className="">
+        {products[0]?.product_image && (
+          <img
+            src={`http://localhost:3001${products[0].product_image}`}
+            alt={products[0].name}
+            className="w-40 h-40 object-cover rounded-lg shadow-md"
+          />
+        )}
+        </div>
       </div>
-      
     </div>
   );
 };
@@ -159,16 +167,16 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
         await axios.put(
           `http://localhost:3001/api/adminpetshop/productupdate?product_id=${editingProduct.product_id}`,
           submitData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+          { headers: { "Content-Type": "multipart/form-data" } }
         );
         alert("product updated!");
       } else {
         await axios.post(
           "http://localhost:3001/api/adminpetshop/addproduct",
           submitData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+          { headers: { "Content-Type": "multipart/form-data" } }
         );
-        alert("Product added")
+        alert("Product added");
       }
       refreshProducts();
       closeForm();
