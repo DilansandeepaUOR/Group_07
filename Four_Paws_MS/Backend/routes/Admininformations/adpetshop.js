@@ -101,10 +101,10 @@ router.get("/products", async (req, res) => {
 });
 
 router.put("/productupdate", upload.single("image") ,async (req, res) => {
-  const { product_id } = req.body;
+  const { product_id } = req.query;
 
-  //console.log("ID:", product_id); // Log the ID to check if it's being received correctly
-  //console.log("Request Body:", req.body); // Log the request body to check the data being sent
+  console.log("ID:", product_id); // Log the ID to check if it's being received correctly
+  console.log("Request Body:", req.body); // Log the request body to check the data being sent
 
   if (!product_id) {
     return res.status(400).json({ error: "ID query parameter is required" });
@@ -120,8 +120,9 @@ router.put("/productupdate", upload.single("image") ,async (req, res) => {
         unit_price,
         supplier_id,
         status,
+        oldImage
       } = req.body;
-      const imagePath = req.file ? `/uploads/productpics/${req.file.filename}` : "";
+      const imagePath = req.file ? `/uploads/productpics/${req.file.filename}` : oldImage;
     const productsql =
       "UPDATE pet_products SET name = ?, category_id = ?, brand = ?, description = ?, quantity_in_stock = ?, unit_price = ?, supplier_id = ?, status = ?, product_image = ? WHERE product_id = ?";
 
@@ -147,9 +148,10 @@ router.put("/productupdate", upload.single("image") ,async (req, res) => {
         if (results.affectedRows === 0) {
           return res.status(404).json({ error: "Product not found" });
         }
+        res.status(200).json({ message: "Product updated successfully" });
       }
     );
-    res.status(200).json({ message: "Product updated successfully" });
+    
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ error: "Error updating Product" });

@@ -139,10 +139,17 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
     supplier_id: "",
     status: "Active",
     image: null,
+    oldImage: "",
   });
 
   useEffect(() => {
-    if (editingProduct) setFormData(editingProduct);
+    if (editingProduct) {
+      setFormData({
+        ...editingProduct,
+        image: null, // clear input
+        oldImage: editingProduct.product_image || "", // set old image path
+      });
+    }
   }, [editingProduct]);
 
   const handleChange = (e) => {
@@ -159,11 +166,26 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
     const submitData = new FormData();
 
     // Append all form fields
-    for (let key in formData) {
-      if (formData[key]) {
-        submitData.append(key, formData[key]);
-      }
+    // Always send this
+    submitData.append("product_id", editingProduct?.product_id);
+
+    // Append non-file fields explicitly
+    submitData.append("name", formData.name);
+    submitData.append("category_id", formData.category_id);
+    submitData.append("brand", formData.brand);
+    submitData.append("description", formData.description);
+    submitData.append("quantity_in_stock", formData.quantity_in_stock);
+    submitData.append("unit_price", formData.unit_price);
+    submitData.append("supplier_id", formData.supplier_id);
+    submitData.append("status", formData.status);
+
+    // Handle image logic
+    if (formData.image instanceof File) {
+      submitData.append("image", formData.image);
+    } else if (formData.oldImage) {
+      submitData.append("oldImage", formData.oldImage);
     }
+
     try {
       if (editingProduct) {
         await axios.put(
@@ -252,16 +274,15 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
             </label>
           )}
           <input
-          type="text"
-          name="brand"
-          placeholder="Brand Name"
-          className="p-2 border rounded-md"
-          onChange={handleChange}
-          value={formData.brand}
-          required
-        />
+            type="text"
+            name="brand"
+            placeholder="Brand Name"
+            className="p-2 border rounded-md"
+            onChange={handleChange}
+            value={formData.brand}
+            required
+          />
         </div>
-        
 
         <div>
           {editingProduct && (
@@ -270,34 +291,32 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
             </label>
           )}
           <input
-          type="text"
-          name="unit_price"
-          placeholder="Unit Price"
-          className="p-2 border rounded-md"
-          onChange={handleChange}
-          value={formData.unit_price}
-          required
-        />
+            type="text"
+            name="unit_price"
+            placeholder="Unit Price"
+            className="p-2 border rounded-md"
+            onChange={handleChange}
+            value={formData.unit_price}
+            required
+          />
         </div>
-        
 
         <div>
           {editingProduct && (
             <label className="flex font-bold" htmlFor="Supplier Id">
-             Supplier ID
+              Supplier ID
             </label>
           )}
           <input
-          type="text"
-          name="supplier_id"
-          placeholder="Supplier Id"
-          className="p-2 border rounded-md"
-          onChange={handleChange}
-          value={formData.supplier_id}
-          required
-        />
+            type="text"
+            name="supplier_id"
+            placeholder="Supplier Id"
+            className="p-2 border rounded-md"
+            onChange={handleChange}
+            value={formData.supplier_id}
+            required
+          />
         </div>
-        
 
         <div>
           {editingProduct && (
@@ -306,16 +325,15 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
             </label>
           )}
           <input
-          type="text"
-          name="quantity_in_stock"
-          placeholder="Quantity"
-          className="p-2 border rounded-md"
-          onChange={handleChange}
-          value={formData.quantity_in_stock}
-          required
-        />
+            type="text"
+            name="quantity_in_stock"
+            placeholder="Quantity"
+            className="p-2 border rounded-md"
+            onChange={handleChange}
+            value={formData.quantity_in_stock}
+            required
+          />
         </div>
-        
 
         {editingProduct && (
           <div>
