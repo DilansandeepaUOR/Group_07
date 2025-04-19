@@ -55,6 +55,7 @@ const ProductManagement = () => {
               <tr>
                 <th className="p-3 border-l-2">Name</th>
                 <th className="p-3 border-l-2">Category</th>
+                <th className="p-3 border-l-2">Supplier</th>
                 <th className="p-3 border-l-2">Quantity</th>
                 <th className="p-3 border-l-2">Price</th>
                 <th className="p-3 border-l-2">Status</th>
@@ -66,6 +67,7 @@ const ProductManagement = () => {
                 <tr key={u.product_id} className="border-t">
                   <td className="p-3 ">{u.name}</td>
                   <td className="p-3">{u.category_name}</td>
+                  <td className="p-3">{u.supplier_name}</td>
                   <td className="p-3">{u.quantity_in_stock}</td>
                   <td className="p-3">Rs. {u.unit_price}</td>
                   <td

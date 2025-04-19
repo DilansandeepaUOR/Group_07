@@ -77,7 +77,7 @@ router.post("/addproduct", upload.single("image") ,async (req, res) => {
 });
 
 router.get("/products", async (req, res) => {
-  const productsql = "SELECT p.*, category_name FROM pet_products p JOIN pet_categories c ON p.category_id = c.category_id;";
+  const productsql = "SELECT p.*, c.category_name, s.name AS supplier_name FROM pet_products p LEFT JOIN pet_categories c ON p.category_id = c.category_id LEFT JOIN pet_suppliers s ON p.supplier_id = s.supplier_id;";
   try {
     db.query(productsql, (err, results) => {
       if (err) {
