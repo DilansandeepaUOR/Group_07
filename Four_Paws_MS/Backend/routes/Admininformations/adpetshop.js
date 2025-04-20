@@ -129,26 +129,31 @@ router.get("/products", async (req, res) => {
 
 
 router.get("/productsqr/:id", async (req, res) => {
-  const { id } = req.params;
+  const productsql =
+    "SELECT p.*, c.category_name, s.name AS supplier_name FROM pet_products p LEFT JOIN pet_categories c ON p.category_id = c.category_id LEFT JOIN pet_suppliers s ON p.supplier_id = s.supplier_id;";
   try {
-    const [product] = db.query(
-      `SELECT p.*, c.name AS category_name, s.name AS supplier_name
-       FROM products p
-       JOIN categories c ON p.category_id = c.id
-       JOIN suppliers s ON p.supplier_id = s.idcd
-       WHERE p.id = ?`, [id]
-    );
+    db.query(productsql, (err, results) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ error: "Error retrieving products" });
+      }
 
-    if (product) {
-      res.json(product);
-    } else {
-      res.status(404).json({ message: "Product not found" });
-    }
+      //console.log("Database results:", results);
+
+      if (results.length === 0) {
+        return res.status(404).json({ error: "No Products Found" });
+      }
+
+      res.json(results);
+    });
   } catch (err) {
-    console.error("Error fetching product:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error("Database error:", err);
+    res.status(500).json({ error: "Error retrieving product" });
   }
 });
+
+
+
 
 
 
