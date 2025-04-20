@@ -131,11 +131,11 @@ router.get("/products", async (req, res) => {
 router.get("/productsqr/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    const [product] = await db.query(
+    const [product] = db.query(
       `SELECT p.*, c.name AS category_name, s.name AS supplier_name
        FROM products p
        JOIN categories c ON p.category_id = c.id
-       JOIN suppliers s ON p.supplier_id = s.id
+       JOIN suppliers s ON p.supplier_id = s.idcd
        WHERE p.id = ?`, [id]
     );
 
