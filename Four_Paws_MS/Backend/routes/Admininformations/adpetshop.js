@@ -135,7 +135,7 @@ router.get("/productsqr/:id", async (req, res) => {
       `SELECT p.*, c.name AS category_name, s.name AS supplier_name
        FROM products p
        JOIN categories c ON p.category_id = c.id
-       JOIN suppliers s ON p.supplier_id = s.id
+       JOIN suppliers s ON p.supplier_id = s.idcd
        WHERE p.id = ?`, [id]
     );
 
