@@ -128,33 +128,37 @@ router.get("/products", async (req, res) => {
 });
 
 
-router.get("/productsqr/:id", async (req, res) => {
-  const productsql =
-    "SELECT p.*, c.category_name, s.name AS supplier_name FROM pet_products p LEFT JOIN pet_categories c ON p.category_id = c.category_id LEFT JOIN pet_suppliers s ON p.supplier_id = s.supplier_id;";
-  try {
-    db.query(productsql, (err, results) => {
-      if (err) {
-        console.error("Database error:", err);
-        return res.status(500).json({ error: "Error retrieving products" });
-      }
+router.get("/productsqr/:id", (req, res) => {
+  const { id } = req.params;
 
-      //console.log("Database results:", results);
+  const productsql = `
+    SELECT 
+      p.*, 
+      c.category_name, 
+      s.name AS supplier_name 
+    FROM 
+      pet_products p 
+    LEFT JOIN 
+      pet_categories c ON p.category_id = c.category_id 
+    LEFT JOIN 
+      pet_suppliers s ON p.supplier_id = s.supplier_id 
+    WHERE 
+      p.product_id = ?;
+  `;
 
-      if (results.length === 0) {
-        return res.status(404).json({ error: "No Products Found" });
-      }
+  db.query(productsql, [id], (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Error retrieving products" });
+    }
 
-      res.json(results);
-    });
-  } catch (err) {
-    console.error("Database error:", err);
-    res.status(500).json({ error: "Error retrieving product" });
-  }
+    if (results.length === 0) {
+      return res.status(404).json({ error: "No product found" });
+    }
+
+    res.json(results[0]); // return single product
+  });
 });
-
-
-
-
 
 
 router.put("/productupdate", upload.single("image"), async (req, res) => {
