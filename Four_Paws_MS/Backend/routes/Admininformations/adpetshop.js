@@ -67,7 +67,7 @@ router.post("/addproduct", upload.single("image"), async (req, res) => {
             }
 
             const product_id = result.insertId;
-            const productUrl = `http://localhost:3001/api/adminpetshop/product/${product_id}`;
+            const productUrl = `adminpetshop/petshopproductoperations/${product_id}`;
 
             try {
               const qrDataUrl = await QRCode.toDataURL(productUrl);
@@ -128,28 +128,37 @@ router.get("/products", async (req, res) => {
 });
 
 
-router.get("/productsqr/:id", async (req, res) => {
+router.get("/productsqr/:id", (req, res) => {
   const { id } = req.params;
-  try {
-    const [product] = db.query(
-      `SELECT p.*, c.name AS category_name, s.name AS supplier_name
-       FROM products p
-       JOIN categories c ON p.category_id = c.id
-       JOIN suppliers s ON p.supplier_id = s.idcd
-       WHERE p.id = ?`, [id]
-    );
 
-    if (product) {
-      res.json(product);
-    } else {
-      res.status(404).json({ message: "Product not found" });
+  const productsql = `
+    SELECT 
+      p.*, 
+      c.category_name, 
+      s.name AS supplier_name 
+    FROM 
+      pet_products p 
+    LEFT JOIN 
+      pet_categories c ON p.category_id = c.category_id 
+    LEFT JOIN 
+      pet_suppliers s ON p.supplier_id = s.supplier_id 
+    WHERE 
+      p.product_id = ?;
+  `;
+
+  db.query(productsql, [id], (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Error retrieving products" });
     }
-  } catch (err) {
-    console.error("Error fetching product:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
 
+    if (results.length === 0) {
+      return res.status(404).json({ error: "No product found" });
+    }
+
+    res.json(results[0]); // return single product
+  });
+});
 
 
 router.put("/productupdate", upload.single("image"), async (req, res) => {

@@ -85,7 +85,7 @@ const App = () => {
         <Route path="/Adlogin" element={<Adlogin />} />
         <Route path="/Addashboard" element={<ProtectedRoutes allowedRoles={["Admin"]}><AdDashboard /></ProtectedRoutes>} />
         <Route path="/adprofile" element={<ProtectedRoutes allowedRoles={["Admin"]}><Adprofile /></ProtectedRoutes>} />
-        <Route path="/product/:id" element={<PsOperations />} />
+        <Route path="/Addashboard/adminpetshop/petshopproductoperations/:id" element={<ProtectedRoutes allowedRoles={["Admin"]}><PsOperations /></ProtectedRoutes>} />
 
 
         {/* Other user Routes  */}
