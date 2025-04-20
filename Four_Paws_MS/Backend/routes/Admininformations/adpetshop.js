@@ -67,7 +67,7 @@ router.post("/addproduct", upload.single("image"), async (req, res) => {
             }
 
             const product_id = result.insertId;
-            const productUrl = `http://localhost:3001/api/adminpetshop/product/${product_id}`;
+            const productUrl = `adminpetshop/petshopproductoperations/${product_id}`;
 
             try {
               const qrDataUrl = await QRCode.toDataURL(productUrl);
