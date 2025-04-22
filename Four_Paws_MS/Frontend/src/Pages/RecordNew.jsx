@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { FaUser, FaPaw, FaCalendarAlt, FaPlus, FaTimes, FaSearch } from 'react-icons/fa';
+import { FaUser, FaPaw, FaCalendarAlt, FaPlus, FaTimes, FaSearch, FaCheck } from 'react-icons/fa';
 
 const RecordNew = () => {
   const navigate = useNavigate();
@@ -30,12 +30,11 @@ const RecordNew = () => {
     error: null,
     noResults: false
   });
-
+  const [successMessage, setSuccessMessage] = useState(''); // New state for success message
 
   const getTodayDateString = () => {
     const now = new Date();
-    // Adjust for timezone offset to get the local date
-    const timezoneOffset = now.getTimezoneOffset() * 60000; // offset in milliseconds
+    const timezoneOffset = now.getTimezoneOffset() * 60000;
     const localDate = new Date(now.getTime() - timezoneOffset);
     return localDate.toISOString().split('T')[0];
   };
@@ -56,9 +55,7 @@ const RecordNew = () => {
     
     fetchOwners();
   }, []);
-
   // Filter owners based on search term
-// Filter owners based on search term
 useEffect(() => {
   if (ownerSearchTerm) {
     const search = async () => {
@@ -166,7 +163,7 @@ useEffect(() => {
     const newErrors = {};
     const today = getTodayDateString();
     
-    // Existing validations
+    // Required fields validation
     if (!formData.ownerId) newErrors.ownerId = 'Owner is required';
     if (!formData.petId) newErrors.petId = 'Pet is required';
     
@@ -179,6 +176,11 @@ useEffect(() => {
       newErrors.date = 'Future dates are not allowed';
     }
     
+    // At least one detail field validation
+    if (!formData.surgery && !formData.vaccination && !formData.other) {
+      newErrors.details = 'At least one detail field (Surgery, Vaccination, or Notes) is required';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -188,14 +190,38 @@ useEffect(() => {
     if (!validateForm()) return;
     
     setSubmitLoading(true);
+    setErrors({});
+    setSuccessMessage('');
+    
     try {
       const payload = {
         ...formData,
-        ownerId: formData.ownerId // Ensure ownerId is included
+        ownerId: formData.ownerId
       };
       
       await axios.post('http://localhost:3001/api/records', payload);
-      navigate('/records', { state: { success: 'Record added successfully!' } });
+      
+      // Show success message and reset form
+      setSuccessMessage('Medical record added successfully!');
+      
+      // Reset form after successful submission
+      setFormData({
+        ownerId: '',
+        petId: '',
+        date: new Date().toISOString().split('T')[0],
+        surgery: '',
+        vaccination: '',
+        other: ''
+      });
+      setSelectedOwner(null);
+      setOwnerSearchTerm('');
+      setPetSearchTerm('');
+      
+      // Hide success message after 5 seconds
+      setTimeout(() => {
+        setSuccessMessage('');
+      }, 5000);
+      
     } catch (error) {
       console.error('Error:', error.response?.data);
       setErrors({
@@ -214,7 +240,7 @@ useEffect(() => {
         <div className="bg-blue-600 px-6 py-4 flex justify-between items-center">
           <h1 className="text-xl font-bold text-white">Add New Medical Record</h1>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/docprofile')}
             className="text-white hover:text-blue-200"
           >
             <FaTimes size={20} />
@@ -222,6 +248,14 @@ useEffect(() => {
         </div>
         
         <div className="p-6">
+         {/* Success Message */}
+         {successMessage && (
+            <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded flex items-center">
+              <FaCheck className="mr-2 flex-shrink-0" />
+              <span>{successMessage}</span>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Owner Selection */}
 <div>
@@ -404,6 +438,13 @@ useEffect(() => {
                 placeholder="Enter any additional notes"
               />
             </div>
+
+            {/* Combined error for detail fields */}
+            {errors.details && (
+              <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                {errors.details}
+              </div>
+            )}
 
             {/* Submit Button */}
             <div className="pt-4">

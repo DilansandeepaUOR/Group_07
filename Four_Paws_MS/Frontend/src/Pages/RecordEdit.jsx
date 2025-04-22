@@ -16,6 +16,7 @@ const RecordEdit = () => {
   });
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [dateError, setDateError] = useState(''); // New state for date validation error
 
   // Fetch record data when component mounts
   useEffect(() => {
@@ -42,6 +43,18 @@ const RecordEdit = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    if (name === 'date') {
+      // Get today's date in YYYY-MM-DD format (timezone-safe)
+      const today = new Date().toISOString().split('T')[0];
+      
+      if (value > today) {
+        setDateError('Future dates are not allowed');
+      } else {
+        setDateError('');
+      }
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -51,6 +64,13 @@ const RecordEdit = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    // Date validation (string comparison)
+    const today = new Date().toISOString().split('T')[0];
+    if (formData.date > today) {
+    setDateError('Future dates are not allowed');
+    return;
+  }
+    
     setLoading(true);
     
     try {
@@ -61,7 +81,7 @@ const RecordEdit = () => {
       
       if (response.data.success) {
         setSuccess(true);
-        setTimeout(() => navigate('/records'), 1500); // Redirect after success
+        setTimeout(() => navigate('/recordsNew'), 1500); // Redirect after success
       }
     } catch (error) {
       console.error('Error updating record:', error);
@@ -72,7 +92,7 @@ const RecordEdit = () => {
   };
 
   const handleCancel = () => {
-    navigate('/records');
+    navigate(-1);
   };
 
   if (loading && !record) {
@@ -139,13 +159,18 @@ const RecordEdit = () => {
                 name="date"
                 value={formData.date}
                 onChange={handleChange}
-                className="pl-10 w-full p-2 border border-gray-300 rounded-md"
+                className={`pl-10 w-full p-2 border ${dateError ? 'border-red-500' : 'border-gray-300'} rounded-md`}
                 required
+                max={new Date().toISOString().split('T')[0]} // Set max date to today
               />
             </div>
+            {dateError && (
+              <p className="mt-1 text-sm text-red-600">{dateError}</p>
+            )}
           </div>
         </div>
 
+        {/* Rest of the form fields remain the same */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Surgery Details
@@ -207,7 +232,7 @@ const RecordEdit = () => {
           </button>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || dateError}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center"
           >
             {loading ? (
