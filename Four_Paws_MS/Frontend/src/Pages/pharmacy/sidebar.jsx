@@ -108,7 +108,7 @@ export default function Sidebar({ children }) {
               alignItems: "center",
             }}
           >
-            <img
+            {/**<img
               src="https://img.logoipsum.com/338.svg"
               style={{
                 overflow: "hidden",
@@ -116,7 +116,7 @@ export default function Sidebar({ children }) {
                 width: expanded || isMobile ? "128px" : "0",
               }}
               alt="Logo"
-            />
+            />**/}
             {!isMobile && (
               <button
                 onClick={() => setExpanded((curr) => !curr)}
@@ -215,8 +215,8 @@ export function SidebarItem({
           borderRadius: "6px",
           cursor: "pointer",
           transition: "background-color 150ms",
-          backgroundColor: active ? "#e0e7ff" : "transparent",
-          color: active ? "#3730a3" : "#4b5563",
+          backgroundColor: active ? "#dcfce7" : "transparent",
+          color: active ? "#166534" : "#4b5563",
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -266,7 +266,7 @@ export function SidebarItem({
               borderRadius: "6px",
               padding: "4px 8px",
               marginLeft: "24px",
-              backgroundColor: "#e0e7ff",
+              backgroundColor: "#dcfce7",
               color: "#3730a3",
               fontSize: "0.875rem",
               zIndex: 10,
@@ -306,8 +306,8 @@ export function SidebarSubItem({ text, active, section, onSectionChange }) {
         borderRadius: "6px",
         cursor: "pointer",
         transition: "background-color 150ms",
-        backgroundColor: active ? "#e0e7ff" : "transparent",
-        color: active ? "#3730a3" : "#4b5563",
+        backgroundColor: active ? "#dcfce7" : "transparent", 
+        color: active ? "#166534" : "#4b5563",
         fontSize: "0.875rem",
       }}
       onClick={() => onSectionChange && onSectionChange(section)}

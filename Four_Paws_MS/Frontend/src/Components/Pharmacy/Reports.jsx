@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend, PieChart, Pie, Cell
 } from "recharts";
 import { Download, PieChart as PieChartIcon, BarChart2, Users, Package, DollarSign } from "react-feather";
@@ -16,49 +16,47 @@ export default function ReportsSection() {
   });
   const [topMedicines, setTopMedicines] = useState([]);
   const [activeChart, setActiveChart] = useState('bar'); // 'bar' or 'pie'
+  const [timeRange, setTimeRange] = useState('monthly'); // 'monthly', 'quarterly', 'yearly'
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
   const handleDownloadPDF = () => {
-    window.open("http://localhost:3001/pharmacy/api/revenue/export/pdf", "_blank");
+    window.open("http://localhost:3001/pharmacy/api/reports/export/pdf", "_blank");
   };
 
   useEffect(() => {
     const fetchAllData = async () => {
       setIsLoading(true);
       try {
-        // Fetch all medicines first to get current stock and prices
-        const medsResponse = await fetch("http://localhost:3001/pharmacy/api/medicines");
-        if (!medsResponse.ok) throw new Error('Failed to fetch medicines');
-        const medicines = await medsResponse.json();
+        // Fetch all data in parallel
+        const [metricsResponse, revenueResponse, topMedicinesResponse] = await Promise.all([
+          fetch("http://localhost:3001/pharmacy/api/metrics"),
+          fetch(`http://localhost:3001/pharmacy/api/revenue?range=${timeRange}`),
+          fetch("http://localhost:3001/pharmacy/api/medicines/top-selling?limit=5")
+        ]);
 
-        // Calculate metrics from medicines data
-        const totalMedicine = medicines.length;
-        const totalRevenue = medicines.reduce((sum, med) => sum + (med.price * med.stock), 0);
+        if (!metricsResponse.ok || !revenueResponse.ok || !topMedicinesResponse.ok) {
+          throw new Error('Failed to fetch data');
+        }
 
-        // Create mock sales data based on current stock (for demo purposes)
-        const mockSales = medicines.map(med => ({
-          medicine_id: med.id,
-          medicine_name: med.name,
-          price: med.price,
-          quantity: Math.max(1, Math.floor(med.stock * 0.2)), // Assume 20% of stock was sold
-          created_at: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000)
-        }));
+        const [metrics, revenue, topMeds] = await Promise.all([
+          metricsResponse.json(),
+          revenueResponse.json(),
+          topMedicinesResponse.json()
+        ]);
 
-        // Calculate monthly revenue
-        const monthlyRevenue = calculateMonthlyRevenue(mockSales);
-        setRevenueData(monthlyRevenue);
-
-        // Get top selling medicines
-        const topMedicines = getTopSellingMedicines(mockSales);
-        setTopMedicines(topMedicines);
-
-        // Set key metrics
         setKeyMetrics({
-          totalUsers: 0, // Placeholder until you have users table
-          totalMedicine,
-          totalRevenue
+          totalUsers: metrics.totalUsers || 0,
+          totalMedicine: metrics.totalMedicine || 0,
+          totalRevenue: metrics.totalRevenue || 0
         });
+
+        setRevenueData(revenue);
+        setTopMedicines(topMeds.map(med => ({
+          name: med.name,
+          value: med.total_sold,
+          revenue: med.total_revenue
+        })));
 
       } catch (err) {
         console.error("Error fetching data", err);
@@ -69,75 +67,18 @@ export default function ReportsSection() {
     };
 
     fetchAllData();
-  }, []);
-
-  const calculateMonthlyRevenue = (salesData) => {
-    const monthlyData = {};
-    
-    salesData.forEach(sale => {
-      const date = new Date(sale.created_at);
-      const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      const monthName = date.toLocaleString('default', { month: 'short', year: 'numeric' });
-      
-      if (!monthlyData[monthYear]) {
-        monthlyData[monthYear] = {
-          month: monthName,
-          monthKey: monthYear,
-          revenue: 0
-        };
-      }
-      
-      monthlyData[monthYear].revenue += sale.price * sale.quantity;
-    });
-    
-    // Sort by month and ensure we have at least 6 months of data for the chart
-    const sortedData = Object.values(monthlyData).sort((a, b) => a.monthKey.localeCompare(b.monthKey));
-    
-    // Fill in missing months with zero revenue if we have less than 6 months
-    if (sortedData.length < 6) {
-      const months = [];
-      const currentDate = new Date();
-      for (let i = 5; i >= 0; i--) {
-        const date = new Date(currentDate);
-        date.setMonth(date.getMonth() - i);
-        const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        const monthName = date.toLocaleString('default', { month: 'short', year: 'numeric' });
-        
-        if (!sortedData.find(item => item.monthKey === monthYear)) {
-          months.push({
-            month: monthName,
-            monthKey: monthYear,
-            revenue: 0
-          });
-        }
-      }
-      return [...sortedData, ...months].sort((a, b) => a.monthKey.localeCompare(b.monthKey));
-    }
-    
-    return sortedData;
-  };
-
-  const getTopSellingMedicines = (salesData) => {
-    const medicineSales = {};
-    
-    salesData.forEach(sale => {
-      if (!medicineSales[sale.medicine_id]) {
-        medicineSales[sale.medicine_id] = {
-          name: sale.medicine_name,
-          value: 0
-        };
-      }
-      medicineSales[sale.medicine_id].value += sale.quantity;
-    });
-    
-    // Get top 5 medicines
-    return Object.values(medicineSales)
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5);
-  };
+  }, [timeRange]);
 
   const toggleChartView = () => {
     setActiveChart(prev => prev === 'bar' ? 'pie' : 'bar');
+  };
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2
+    }).format(value);
   };
 
   return (
@@ -180,7 +121,7 @@ export default function ReportsSection() {
               <div>
                 <div className="text-sm text-gray-500">Total Revenue</div>
                 <div className="font-semibold text-gray-800">
-                  ${keyMetrics.totalRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                  {formatCurrency(keyMetrics.totalRevenue)}
                 </div>
               </div>
             </div>
@@ -192,14 +133,33 @@ export default function ReportsSection() {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-700 flex items-center">
               <BarChart2 className="mr-2" size={18} />
-              Monthly Revenue
+              Revenue Overview
             </h2>
             <div className="flex space-x-2">
+              <select
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value)}
+                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 border border-gray-300"
+              >
+                <option value="monthly">Monthly</option>
+                <option value="quarterly">Quarterly</option>
+                <option value="yearly">Yearly</option>
+              </select>
               <button
                 onClick={toggleChartView}
                 className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200"
               >
-                {activeChart === 'bar' ? 'Show Pie Chart' : 'Show Bar Chart'}
+                {activeChart === 'bar' ? (
+                  <>
+                    <PieChartIcon className="inline mr-1" size={14} />
+                    Pie Chart
+                  </>
+                ) : (
+                  <>
+                    <BarChart2 className="inline mr-1" size={14} />
+                    Bar Chart
+                  </>
+                )}
               </button>
               <button
                 onClick={handleDownloadPDF}
@@ -226,13 +186,14 @@ export default function ReportsSection() {
                   <BarChart data={revenueData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis 
-                      dataKey="month" 
+                      dataKey="period" 
                       tick={{ fill: '#6b7280' }}
                       axisLine={{ stroke: '#e5e7eb' }}
                     />
                     <YAxis 
                       tick={{ fill: '#6b7280' }}
                       axisLine={{ stroke: '#e5e7eb' }}
+                      tickFormatter={(value) => `$${value.toLocaleString()}`}
                     />
                     <Tooltip 
                       contentStyle={{
@@ -241,12 +202,12 @@ export default function ReportsSection() {
                         borderRadius: '6px',
                         boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                       }}
-                      formatter={(value) => [`$${value.toFixed(2)}`, 'Revenue']}
+                      formatter={(value) => [formatCurrency(value), 'Revenue']}
                     />
                     <Legend />
                     <Bar 
                       dataKey="revenue" 
-                      name="Revenue ($)" 
+                      name="Revenue" 
                       fill="#10b981" 
                       radius={[4, 4, 0, 0]} 
                     />
@@ -255,7 +216,7 @@ export default function ReportsSection() {
                   <PieChart>
                     <Pie
                       data={revenueData.map(item => ({
-                        name: item.month,
+                        name: item.period,
                         value: item.revenue
                       }))}
                       cx="50%"
@@ -271,7 +232,7 @@ export default function ReportsSection() {
                       ))}
                     </Pie>
                     <Tooltip 
-                      formatter={(value) => [`$${value.toFixed(2)}`, 'Revenue']}
+                      formatter={(value) => [formatCurrency(value), 'Revenue']}
                       contentStyle={{
                         backgroundColor: '#fff',
                         border: '1px solid #e5e7eb',
@@ -289,10 +250,15 @@ export default function ReportsSection() {
 
         {/* Top Selling Medicines */}
         <div className="bg-white p-5 rounded-lg shadow-sm lg:col-span-3">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
-            <PieChartIcon className="mr-2" size={18} />
-            Top Selling Medicines
-          </h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-gray-700 flex items-center">
+              <PieChartIcon className="mr-2" size={18} />
+              Top Selling Medicines
+            </h2>
+            <div className="text-sm text-gray-500">
+              {topMedicines.length > 0 && `Total Sold: ${topMedicines.reduce((sum, med) => sum + med.value, 0).toLocaleString()} units`}
+            </div>
+          </div>
           <div className="h-80">
             {isLoading ? (
               <div className="h-full flex items-center justify-center bg-gray-50 rounded">
@@ -316,7 +282,10 @@ export default function ReportsSection() {
                     ))}
                   </Pie>
                   <Tooltip 
-                    formatter={(value) => [`${value} units sold`, 'Quantity']}
+                    formatter={(value, name, props) => [
+                      `${value} units sold`,
+                      `Revenue: ${formatCurrency(props.payload.revenue)}`
+                    ]}
                     contentStyle={{
                       backgroundColor: '#fff',
                       border: '1px solid #e5e7eb',
