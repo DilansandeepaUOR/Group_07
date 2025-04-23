@@ -22,6 +22,77 @@ const createNotification = async (title, description, type, related_id = null) =
   );
 };
 
+/*DashBoard */
+
+// Get total count of medicines
+router.get('/api/medicines/count', (req, res) => {
+  const sql = 'SELECT COUNT(*) AS count FROM medicines';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching medicine count:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json({ count: results[0].count });
+  });
+});
+
+// Get total number of medicine groups
+router.get('/api/medicine-groups/count', (req, res) => {
+  const sql = 'SELECT COUNT(*) AS count FROM medicine_groups';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching medicine group count:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json({ count: results[0].count });
+  });
+});
+
+router.get('/api/pet-owner/count', (req, res) => {
+  const sql = "SELECT COUNT(*) AS count FROM pet_owner";
+  db.query(sql, (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ count: result[0].count });
+  });
+});
+
+
+router.get('/api/employees/count', (req, res) => {
+  const sql = "SELECT COUNT(*) AS count FROM employee";
+  db.query(sql, (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ count: result[0].count });
+  });
+});
+
+
+// Get number of out-of-stock medicines
+router.get('/api/medicines/out-of-stock', (req, res) => {
+  const sql = 'SELECT COUNT(*) AS outOfStock FROM medicines WHERE stock = 0';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json({ outOfStock: results[0].outOfStock });
+  });
+});
+
+// Get number of low-stock medicines (stock ≤ 5)
+router.get('/api/medicines/low-stock', (req, res) => {
+  const sql = 'SELECT COUNT(*) AS lowStock FROM medicines WHERE stock <= 5';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json({ lowStock: results[0].lowStock });
+  });
+});
+
+
+/**--------------------------------------------------------------------------------- */
+
 // GET all medicines (with optional search and pagination)
 router.get('/api/medicines', (req, res) => {
   try {
@@ -886,5 +957,8 @@ router.get('/api/notifications/debug', async (req, res) => {
 
 /*Report section*/
  
+
+
+
 
 module.exports = router;

@@ -15,10 +15,26 @@ export default function ReportsSection() {
     totalRevenue: 0
   });
   const [topMedicines, setTopMedicines] = useState([]);
-  const [activeChart, setActiveChart] = useState('bar'); // 'bar' or 'pie'
-  const [timeRange, setTimeRange] = useState('monthly'); // 'monthly', 'quarterly', 'yearly'
+  const [activeChart, setActiveChart] = useState('bar');
+  const [timeRange, setTimeRange] = useState('monthly');
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+  // Color scheme
+  const colors = {
+    darkBackground: 'rgba(34,41,47,255)',
+    tealAccent: 'rgba(59,205,191,255)',
+    yellowAccent: '#FFD700',
+    lightText: '#f3f4f6',
+    darkText: '#111827',
+    cardBackground: 'rgba(44,51,57,255)'
+  };
+
+  const CHART_COLORS = [
+    colors.tealAccent, 
+    colors.yellowAccent, 
+    '#FF8042', 
+    '#8884d8', 
+    '#00C49F'
+  ];
 
   const handleDownloadPDF = () => {
     window.open("http://localhost:3001/pharmacy/api/reports/export/pdf", "_blank");
@@ -28,7 +44,6 @@ export default function ReportsSection() {
     const fetchAllData = async () => {
       setIsLoading(true);
       try {
-        // Fetch all data in parallel
         const [metricsResponse, revenueResponse, topMedicinesResponse] = await Promise.all([
           fetch("http://localhost:3001/pharmacy/api/metrics"),
           fetch(`http://localhost:3001/pharmacy/api/revenue?range=${timeRange}`),
@@ -82,45 +97,129 @@ export default function ReportsSection() {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Reports & Analytics</h1>
+    <div style={{
+      padding: "24px",
+      backgroundColor: colors.darkBackground,
+      minHeight: "100vh"
+    }}>
+      <h1 style={{ 
+        fontSize: "1.5rem", 
+        fontWeight: "bold", 
+        marginBottom: "24px",
+        color: colors.yellowAccent
+      }}>
+        Reports & Analytics
+      </h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "1fr",
+        gap: "24px"
+      }}>
         {/* Key Metrics */}
-        <div className="bg-white p-5 rounded-lg shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Key Metrics</h2>
-          <div className="space-y-4">
-            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-              <div className="p-2 bg-blue-100 rounded-full mr-3">
-                <Users className="text-blue-500" size={18} />
+        <div style={{
+          backgroundColor: colors.cardBackground,
+          padding: "20px",
+          borderRadius: "8px",
+          boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
+        }}>
+          <h2 style={{ 
+            fontSize: "1.125rem",
+            fontWeight: "600",
+            color: colors.lightText,
+            marginBottom: "16px"
+          }}>
+            Key Metrics
+          </h2>
+          <div style={{ display: "grid", gap: "16px" }}>
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              padding: "12px",
+              backgroundColor: "rgba(59,205,191,0.1)",
+              borderRadius: "8px"
+            }}>
+              <div style={{ 
+                padding: "8px",
+                backgroundColor: "rgba(59,205,191,0.2)",
+                borderRadius: "50%",
+                marginRight: "12px"
+              }}>
+                <Users color={colors.tealAccent} size={18} />
               </div>
               <div>
-                <div className="text-sm text-gray-500">Total Users</div>
-                <div className="font-semibold text-gray-800">
+                <div style={{ 
+                  fontSize: "0.875rem",
+                  color: colors.tealAccent
+                }}>
+                  Total Users
+                </div>
+                <div style={{ 
+                  fontWeight: "600",
+                  color: colors.lightText
+                }}>
                   {keyMetrics.totalUsers.toLocaleString()}
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-              <div className="p-2 bg-green-100 rounded-full mr-3">
-                <Package className="text-green-500" size={18} />
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              padding: "12px",
+              backgroundColor: "rgba(255,215,0,0.1)",
+              borderRadius: "8px"
+            }}>
+              <div style={{ 
+                padding: "8px",
+                backgroundColor: "rgba(255,215,0,0.2)",
+                borderRadius: "50%",
+                marginRight: "12px"
+              }}>
+                <Package color={colors.yellowAccent} size={18} />
               </div>
               <div>
-                <div className="text-sm text-gray-500">Total Medicine</div>
-                <div className="font-semibold text-gray-800">
+                <div style={{ 
+                  fontSize: "0.875rem",
+                  color: colors.yellowAccent
+                }}>
+                  Total Medicine
+                </div>
+                <div style={{ 
+                  fontWeight: "600",
+                  color: colors.lightText
+                }}>
                   {keyMetrics.totalMedicine.toLocaleString()}
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-              <div className="p-2 bg-purple-100 rounded-full mr-3">
-                <DollarSign className="text-purple-500" size={18} />
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              padding: "12px",
+              backgroundColor: "rgba(59,205,191,0.1)",
+              borderRadius: "8px"
+            }}>
+              <div style={{ 
+                padding: "8px",
+                backgroundColor: "rgba(59,205,191,0.2)",
+                borderRadius: "50%",
+                marginRight: "12px"
+              }}>
+                <DollarSign color={colors.tealAccent} size={18} />
               </div>
               <div>
-                <div className="text-sm text-gray-500">Total Revenue</div>
-                <div className="font-semibold text-gray-800">
+                <div style={{ 
+                  fontSize: "0.875rem",
+                  color: colors.tealAccent
+                }}>
+                  Total Revenue
+                </div>
+                <div style={{ 
+                  fontWeight: "600",
+                  color: colors.lightText
+                }}>
                   {formatCurrency(keyMetrics.totalRevenue)}
                 </div>
               </div>
@@ -128,18 +227,41 @@ export default function ReportsSection() {
           </div>
         </div>
 
-        {/* Revenue Chart - Takes 2 columns on larger screens */}
-        <div className="bg-white p-5 rounded-lg shadow-sm lg:col-span-2">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-700 flex items-center">
-              <BarChart2 className="mr-2" size={18} />
+        {/* Revenue Chart */}
+        <div style={{
+          backgroundColor: colors.cardBackground,
+          padding: "20px",
+          borderRadius: "8px",
+          boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
+        }}>
+          <div style={{ 
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "16px"
+          }}>
+            <h2 style={{ 
+              fontSize: "1.125rem",
+              fontWeight: "600",
+              color: colors.lightText,
+              display: "flex",
+              alignItems: "center"
+            }}>
+              <BarChart2 style={{ marginRight: "8px" }} color={colors.tealAccent} size={18} />
               Revenue Overview
             </h2>
-            <div className="flex space-x-2">
+            <div style={{ display: "flex", gap: "8px" }}>
               <select
                 value={timeRange}
                 onChange={(e) => setTimeRange(e.target.value)}
-                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 border border-gray-300"
+                style={{
+                  padding: "6px 12px",
+                  backgroundColor: colors.darkBackground,
+                  color: colors.lightText,
+                  borderRadius: "6px",
+                  border: `1px solid ${colors.tealAccent}`,
+                  fontSize: "0.875rem"
+                }}
               >
                 <option value="monthly">Monthly</option>
                 <option value="quarterly">Quarterly</option>
@@ -147,60 +269,96 @@ export default function ReportsSection() {
               </select>
               <button
                 onClick={toggleChartView}
-                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200"
+                style={{
+                  padding: "6px 12px",
+                  backgroundColor: colors.darkBackground,
+                  color: colors.lightText,
+                  borderRadius: "6px",
+                  border: `1px solid ${colors.tealAccent}`,
+                  fontSize: "0.875rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px"
+                }}
               >
                 {activeChart === 'bar' ? (
                   <>
-                    <PieChartIcon className="inline mr-1" size={14} />
+                    <PieChartIcon size={14} />
                     Pie Chart
                   </>
                 ) : (
                   <>
-                    <BarChart2 className="inline mr-1" size={14} />
+                    <BarChart2 size={14} />
                     Bar Chart
                   </>
                 )}
               </button>
               <button
                 onClick={handleDownloadPDF}
-                className="px-3 py-1 bg-green-500 text-white rounded-md text-sm hover:bg-green-600 flex items-center"
+                style={{
+                  padding: "6px 12px",
+                  backgroundColor: colors.yellowAccent,
+                  color: colors.darkText,
+                  borderRadius: "6px",
+                  border: "none",
+                  fontSize: "0.875rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  fontWeight: "500"
+                }}
               >
-                <Download className="mr-1" size={14} />
+                <Download size={14} />
                 Export PDF
               </button>
             </div>
           </div>
 
           {isLoading ? (
-            <div className="h-80 flex items-center justify-center bg-gray-50 rounded">
-              <div className="text-gray-500">Loading revenue data...</div>
+            <div style={{ 
+              height: "320px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(255,255,255,0.05)",
+              borderRadius: "8px"
+            }}>
+              <div style={{ color: colors.tealAccent }}>Loading revenue data...</div>
             </div>
           ) : error ? (
-            <div className="h-80 flex items-center justify-center bg-gray-50 rounded text-red-500">
+            <div style={{ 
+              height: "320px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(255,255,255,0.05)",
+              borderRadius: "8px",
+              color: "#ef4444"
+            }}>
               Error: {error}
             </div>
           ) : (
-            <div className="h-80">
+            <div style={{ height: "320px" }}>
               <ResponsiveContainer width="100%" height="100%">
                 {activeChart === 'bar' ? (
                   <BarChart data={revenueData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                     <XAxis 
                       dataKey="period" 
-                      tick={{ fill: '#6b7280' }}
-                      axisLine={{ stroke: '#e5e7eb' }}
+                      tick={{ fill: colors.lightText }}
+                      axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
                     />
                     <YAxis 
-                      tick={{ fill: '#6b7280' }}
-                      axisLine={{ stroke: '#e5e7eb' }}
+                      tick={{ fill: colors.lightText }}
+                      axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
                       tickFormatter={(value) => `$${value.toLocaleString()}`}
                     />
                     <Tooltip 
                       contentStyle={{
-                        backgroundColor: '#fff',
-                        border: '1px solid #e5e7eb',
+                        backgroundColor: colors.cardBackground,
+                        border: `1px solid ${colors.tealAccent}`,
                         borderRadius: '6px',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        color: colors.lightText
                       }}
                       formatter={(value) => [formatCurrency(value), 'Revenue']}
                     />
@@ -208,7 +366,7 @@ export default function ReportsSection() {
                     <Bar 
                       dataKey="revenue" 
                       name="Revenue" 
-                      fill="#10b981" 
+                      fill={colors.tealAccent}
                       radius={[4, 4, 0, 0]} 
                     />
                   </BarChart>
@@ -228,16 +386,19 @@ export default function ReportsSection() {
                       label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                     >
                       {revenueData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={CHART_COLORS[index % CHART_COLORS.length]} 
+                        />
                       ))}
                     </Pie>
                     <Tooltip 
                       formatter={(value) => [formatCurrency(value), 'Revenue']}
                       contentStyle={{
-                        backgroundColor: '#fff',
-                        border: '1px solid #e5e7eb',
+                        backgroundColor: colors.cardBackground,
+                        border: `1px solid ${colors.tealAccent}`,
                         borderRadius: '6px',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        color: colors.lightText
                       }}
                     />
                     <Legend />
@@ -249,20 +410,46 @@ export default function ReportsSection() {
         </div>
 
         {/* Top Selling Medicines */}
-        <div className="bg-white p-5 rounded-lg shadow-sm lg:col-span-3">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-700 flex items-center">
-              <PieChartIcon className="mr-2" size={18} />
+        <div style={{
+          backgroundColor: colors.cardBackground,
+          padding: "20px",
+          borderRadius: "8px",
+          boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
+        }}>
+          <div style={{ 
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "16px"
+          }}>
+            <h2 style={{ 
+              fontSize: "1.125rem",
+              fontWeight: "600",
+              color: colors.lightText,
+              display: "flex",
+              alignItems: "center"
+            }}>
+              <PieChartIcon style={{ marginRight: "8px" }} color={colors.yellowAccent} size={18} />
               Top Selling Medicines
             </h2>
-            <div className="text-sm text-gray-500">
+            <div style={{ 
+              fontSize: "0.875rem",
+              color: colors.tealAccent
+            }}>
               {topMedicines.length > 0 && `Total Sold: ${topMedicines.reduce((sum, med) => sum + med.value, 0).toLocaleString()} units`}
             </div>
           </div>
-          <div className="h-80">
+          <div style={{ height: "320px" }}>
             {isLoading ? (
-              <div className="h-full flex items-center justify-center bg-gray-50 rounded">
-                <div className="text-gray-500">Loading medicine data...</div>
+              <div style={{ 
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "rgba(255,255,255,0.05)",
+                borderRadius: "8px"
+              }}>
+                <div style={{ color: colors.tealAccent }}>Loading medicine data...</div>
               </div>
             ) : topMedicines.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -278,7 +465,10 @@ export default function ReportsSection() {
                     label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                   >
                     {topMedicines.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={CHART_COLORS[index % CHART_COLORS.length]} 
+                      />
                     ))}
                   </Pie>
                   <Tooltip 
@@ -287,18 +477,25 @@ export default function ReportsSection() {
                       `Revenue: ${formatCurrency(props.payload.revenue)}`
                     ]}
                     contentStyle={{
-                      backgroundColor: '#fff',
-                      border: '1px solid #e5e7eb',
+                      backgroundColor: colors.cardBackground,
+                      border: `1px solid ${colors.tealAccent}`,
                       borderRadius: '6px',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                      color: colors.lightText
                     }}
                   />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-full flex items-center justify-center bg-gray-50 rounded">
-                <div className="text-gray-500">No sales data available</div>
+              <div style={{ 
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "rgba(255,255,255,0.05)",
+                borderRadius: "8px"
+              }}>
+                <div style={{ color: colors.tealAccent }}>No sales data available</div>
               </div>
             )}
           </div>

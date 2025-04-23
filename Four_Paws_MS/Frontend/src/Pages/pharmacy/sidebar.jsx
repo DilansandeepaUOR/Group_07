@@ -3,7 +3,6 @@
 import { useContext, createContext, useState, useEffect } from "react"
 import { MoreVertical, ChevronLast, ChevronFirst, Menu, X, ChevronDown } from "lucide-react"
 
-
 const SidebarContext = createContext({ 
   expanded: true, 
   isMobile: false,
@@ -15,6 +14,7 @@ export default function Sidebar({ children }) {
   const [expanded, setExpanded] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [activeSection, setActiveSection] = useState("")
 
   useEffect(() => {
     const handleResize = () => {
@@ -37,6 +37,9 @@ export default function Sidebar({ children }) {
       setMobileOpen((prev) => !prev)
     } else {
       setExpanded((prev) => !prev)
+      if (expanded) {
+        setActiveSection("")
+      }
     }
   }
 
@@ -104,36 +107,38 @@ export default function Sidebar({ children }) {
               padding: "16px",
               paddingBottom: "8px",
               display: "flex",
-              justifyContent: "space-between",
+              justifyContent: "flex-end", // Changed from space-between to flex-end
               alignItems: "center",
             }}
           >
-            {/**<img
-              src="https://img.logoipsum.com/338.svg"
-              style={{
-                overflow: "hidden",
-                transition: "all 300ms",
-                width: expanded || isMobile ? "128px" : "0",
-              }}
-              alt="Logo"
-            />**/}
             {!isMobile && (
               <button
-                onClick={() => setExpanded((curr) => !curr)}
+                onClick={toggleSidebar}
                 style={{
-                  padding: "6px",
-                  borderRadius: "8px",
-                  backgroundColor: "#f9fafb",
+                  padding: "4px",
+                  borderRadius: "6px",
+                  backgroundColor: "#f3f4f6",
+                  border: "none",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
-                {expanded ? <ChevronFirst /> : <ChevronLast />}
+                {expanded ? (
+                  <ChevronFirst size={18} style={{ color: "#4b5563" }} />
+                ) : (
+                  <ChevronLast size={18} style={{ color: "#4b5563" }} />
+                )}
               </button>
             )}
           </div>
 
           <SidebarContext.Provider value={{ 
             expanded: isMobile ? true : expanded, 
-            isMobile 
+            isMobile,
+            activeSection,
+            setActiveSection
           }}>
             <ul style={{ 
               flexGrow: 1, 
@@ -185,20 +190,30 @@ export function SidebarItem({
   icon, 
   text, 
   active, 
-  alert, 
   children,
   section,
   onSectionChange 
 }) {
-  const { expanded, isMobile } = useContext(SidebarContext)
+  const { expanded, isMobile, activeSection, setActiveSection } = useContext(SidebarContext)
   const [isHovered, setIsHovered] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+
+  useEffect(() => {
+    // Close submenu when sidebar collapses
+    if (!expanded && !isMobile) {
+      setIsOpen(false)
+    }
+  }, [expanded, isMobile])
 
   const handleClick = () => {
     if (children) {
       setIsOpen(!isOpen)
-    } else if (section && onSectionChange) {
-      onSectionChange(section)
+      setActiveSection(isOpen ? "" : section)
+    } else if (section) {
+      setActiveSection(section)
+      if (onSectionChange) {
+        onSectionChange(section)
+      }
     }
   }
 
@@ -234,19 +249,6 @@ export function SidebarItem({
         >
           {text}
         </span>
-        {alert && (
-          <div
-            style={{
-              position: "absolute",
-              right: "8px",
-              top: expanded ? "auto" : "8px",
-              width: "8px",
-              height: "8px",
-              borderRadius: "50%",
-              backgroundColor: "#818cf8",
-            }}
-          />
-        )}
         {children && (
           <ChevronDown
             size={16}
@@ -293,7 +295,14 @@ export function SidebarItem({
 }
 
 export function SidebarSubItem({ text, active, section, onSectionChange }) {
-  const { expanded, isMobile } = useContext(SidebarContext)
+  const { expanded, isMobile, setActiveSection } = useContext(SidebarContext)
+
+  const handleClick = () => {
+    setActiveSection(section)
+    if (onSectionChange) {
+      onSectionChange(section)
+    }
+  }
 
   return (
     <div
@@ -310,7 +319,7 @@ export function SidebarSubItem({ text, active, section, onSectionChange }) {
         color: active ? "#166534" : "#4b5563",
         fontSize: "0.875rem",
       }}
-      onClick={() => onSectionChange && onSectionChange(section)}
+      onClick={handleClick}
     >
       {text}
     </div>

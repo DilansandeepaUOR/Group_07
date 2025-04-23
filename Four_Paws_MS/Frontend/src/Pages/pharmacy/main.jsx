@@ -15,8 +15,6 @@ import React, { useState, useEffect } from "react"
 
 // Placeholder components for other sections
 
-
-
 const Pharmacy = () => {
   const [isMobile, setIsMobile] = useState(false)
   const [activeSection, setActiveSection] = useState("dashboard")
@@ -109,20 +107,20 @@ const Pharmacy = () => {
           marginLeft: isMobile ? "0" : "72px",
           transition: "all 300ms",
           overflowY: "auto",
-          backgroundColor: "#f9fafb",
+          backgroundColor: "#22292f",
         }}
       >
         <div style={{ maxWidth: "56rem", margin: "0 auto" }}>
           <Header />
 
-          {activeSection === "dashboard" && (
+          {/**{activeSection === "dashboard" && (
             <>
               <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "4px" }}>Dashboard</h1>
               <h6 style={{ fontSize: "1.0rem", fontWeight: "initial", marginTop: "0px", marginBottom: "0px" }}>
                 A Quick Data Overview
               </h6>
             </>
-          )}
+          )}**/}
 
           {renderSection()}
         </div>

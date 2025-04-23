@@ -4,10 +4,19 @@ import axios from 'axios';
 export default function NotificationsSection() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [displayCount, setDisplayCount] = useState(5); // Start with 5 notifications
+  const [displayCount, setDisplayCount] = useState(5);
   const [totalNotifications, setTotalNotifications] = useState(0);
 
-  // Fetch notifications from API
+  // Color scheme
+  const colors = {
+    darkBackground: 'rgba(34,41,47,255)',       // Dark slate
+    tealAccent: 'rgba(59,205,191,255)',        // Bright teal
+    yellowAccent: '#FFD700',                    // Gold yellow
+    lightText: '#f3f4f6',                      // Light gray text
+    darkText: '#111827',                       // Dark text
+    unreadHighlight: 'rgba(59,205,191,0.1)'    // Teal highlight
+  };
+
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -22,18 +31,13 @@ export default function NotificationsSection() {
     };
 
     fetchNotifications();
-    
-    // Optional: Set up polling for updates every minute
     const interval = setInterval(fetchNotifications, 60000);
-    
     return () => clearInterval(interval);
   }, []);
 
   const markAsRead = async (id) => {
     try {
-      await axios.patch(
-        `http://localhost:3001/pharmacy/api/notifications/${id}/read`
-      );
+      await axios.patch(`http://localhost:3001/pharmacy/api/notifications/${id}/read`);
       setNotifications(notifications.map(notification => 
         notification.id === id ? { ...notification, is_read: true } : notification
       ));
@@ -44,9 +48,7 @@ export default function NotificationsSection() {
 
   const markAllAsRead = async () => {
     try {
-      await axios.patch(
-        'http://localhost:3001/pharmacy/api/notifications/mark-all-read'
-      );
+      await axios.patch('http://localhost:3001/pharmacy/api/notifications/mark-all-read');
       setNotifications(notifications.map(notification => 
         ({ ...notification, is_read: true })
       ));
@@ -56,73 +58,121 @@ export default function NotificationsSection() {
   };
 
   const loadMore = () => {
-    // Increase display count by 10, but not beyond 15
     setDisplayCount(prevCount => Math.min(prevCount + 10, 15));
   };
 
   if (loading) {
-    return <div>Loading notifications...</div>;
+    return <div style={{ color: colors.lightText }}>Loading notifications...</div>;
   }
 
-  // Get notifications to display based on displayCount
   const displayedNotifications = notifications.slice(0, displayCount);
 
   return (
     <>
-      <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "16px" }}>Notifications</h1>
-      <div
-        style={{
-          backgroundColor: "white",
-          padding: "16px",
-          borderRadius: "8px",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px", alignItems: "center" }}>
-          <h2 style={{ fontWeight: "600" }}>Recent Notifications</h2>
+      <h1 style={{ 
+        fontSize: "1.5rem", 
+        fontWeight: "bold", 
+        marginBottom: "16px",
+        color: colors.yellowAccent
+      }}>
+        Notifications
+      </h1>
+      
+      <div style={{
+        backgroundColor: colors.darkBackground,
+        padding: "16px",
+        borderRadius: "8px",
+        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+        border: `1px solid ${colors.tealAccent}`
+      }}>
+        <div style={{ 
+          display: "flex", 
+          justifyContent: "space-between", 
+          marginBottom: "16px", 
+          alignItems: "center" 
+        }}>
+          <h2 style={{ 
+            fontWeight: "600",
+            color: colors.lightText
+          }}>
+            Recent Notifications
+          </h2>
           <button
             onClick={markAllAsRead}
             style={{
-              backgroundColor: "#f3f4f6",
+              backgroundColor: colors.tealAccent,
+              color: colors.darkText,
               padding: "6px 12px",
               borderRadius: "6px",
               border: "none",
               cursor: "pointer",
+              fontWeight: "500",
+              transition: "all 0.2s",
+              ':hover': {
+                opacity: 0.9
+              }
             }}
           >
             Mark all as read
           </button>
         </div>
+        
         <div>
           {displayedNotifications.length === 0 ? (
-            <div style={{ padding: "16px", textAlign: "center" }}>No notifications available</div>
+            <div style={{ 
+              padding: "16px", 
+              textAlign: "center",
+              color: colors.lightText
+            }}>
+              No notifications available
+            </div>
           ) : (
             displayedNotifications.map((notification) => (
               <div
                 key={notification.id}
                 style={{
                   padding: "12px",
-                  borderBottom: "1px solid #e5e7eb",
-                  backgroundColor: notification.is_read ? "transparent" : "#f3f4f6",
-                  borderLeft: notification.is_read ? "none" : "3px solid #4f46e5",
+                  borderBottom: `1px solid ${colors.tealAccent}`,
+                  backgroundColor: notification.is_read ? "transparent" : colors.unreadHighlight,
+                  borderLeft: notification.is_read ? "none" : `3px solid ${colors.yellowAccent}`,
+                  marginBottom: "8px",
+                  borderRadius: "4px",
+                  transition: "all 0.2s"
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <h3 style={{ fontWeight: "600", marginBottom: "4px" }}>{notification.title}</h3>
-                  <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>
+                  <h3 style={{ 
+                    fontWeight: "600", 
+                    marginBottom: "4px",
+                    color: notification.is_read ? colors.lightText : colors.yellowAccent
+                  }}>
+                    {notification.title}
+                  </h3>
+                  <span style={{ 
+                    fontSize: "0.75rem", 
+                    color: colors.tealAccent
+                  }}>
                     {new Date(notification.created_at).toLocaleString()}
                   </span>
                 </div>
-                <p style={{ color: "#4b5563", marginBottom: "8px" }}>{notification.description}</p>
+                <p style={{ 
+                  color: colors.lightText, 
+                  marginBottom: "8px",
+                  fontSize: "0.875rem"
+                }}>
+                  {notification.description}
+                </p>
                 <div style={{ display: "flex", gap: "8px" }}>
                   <button
                     style={{
-                      backgroundColor: "#f9fafb",
+                      backgroundColor: colors.tealAccent,
+                      color: colors.darkText,
                       padding: "4px 8px",
                       borderRadius: "4px",
-                      border: "1px solid #e5e7eb",
+                      border: "none",
                       fontSize: "0.75rem",
                       cursor: "pointer",
+                      fontWeight: "500"
                     }}
                   >
                     View
@@ -131,12 +181,14 @@ export default function NotificationsSection() {
                     <button
                       onClick={() => markAsRead(notification.id)}
                       style={{
-                        backgroundColor: "#f9fafb",
+                        backgroundColor: colors.yellowAccent,
+                        color: colors.darkText,
                         padding: "4px 8px",
                         borderRadius: "4px",
-                        border: "1px solid #e5e7eb",
+                        border: "none",
                         fontSize: "0.75rem",
                         cursor: "pointer",
+                        fontWeight: "500"
                       }}
                     >
                       Mark as read
@@ -147,24 +199,33 @@ export default function NotificationsSection() {
             ))
           )}
         </div>
+        
         {notifications.length > displayCount && displayCount < 15 && (
           <div style={{ textAlign: "center", marginTop: "16px" }}>
             <button
               onClick={loadMore}
               style={{
-                backgroundColor: "#f9fafb",
+                backgroundColor: colors.yellowAccent,
+                color: colors.darkText,
                 padding: "8px 16px",
                 borderRadius: "6px",
-                border: "1px solid #e5e7eb",
+                border: "none",
                 cursor: "pointer",
+                fontWeight: "500"
               }}
             >
               Load more ({Math.min(10, 15 - displayCount)} more)
             </button>
           </div>
         )}
+        
         {displayCount >= 15 && totalNotifications > 15 && (
-          <div style={{ textAlign: "center", marginTop: "16px", color: "#6b7280", fontSize: "0.875rem" }}>
+          <div style={{ 
+            textAlign: "center", 
+            marginTop: "16px", 
+            color: colors.tealAccent, 
+            fontSize: "0.875rem" 
+          }}>
             Showing 15 of {totalNotifications} notifications
           </div>
         )}

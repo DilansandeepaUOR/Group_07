@@ -28,14 +28,18 @@ export default function ProductsSection() {
   })
   const itemsPerPage = 4
 
-  // Add this helper function to create notifications
-const createNotification = async (title, description, type, related_id = null) => {
-  await db.execute(
-    'INSERT INTO notifications (title, description, type, related_id) VALUES (?, ?, ?, ?)',
-    [title, description, type, related_id]
-  );
-};
-
+  // Color scheme
+  const colors = {
+    darkBackground: 'rgba(34,41,47,255)',
+    tealAccent: 'rgba(59,205,191,255)',
+    yellowAccent: '#FFD700',
+    lightText: '#f3f4f6',
+    darkText: '#111827',
+    cardBackground: 'rgba(44,51,57,255)',
+    warningRed: '#ef4444',
+    successGreen: '#10b981',
+    borderColor: 'rgba(255,255,255,0.1)'
+  };
 
   const getStockStatus = (stock) => {
     const stockCount = parseInt(stock);
@@ -257,16 +261,53 @@ const createNotification = async (title, description, type, related_id = null) =
   }
 
   return (
-    <div className="container">
-      <h1 className="title">List Of Medicine</h1>
+    <div style={{
+      padding: "24px",
+      backgroundColor: colors.darkBackground,
+      minHeight: "100vh"
+    }}>
+      <h1 style={{ 
+        fontSize: "1.5rem", 
+        fontWeight: "bold", 
+        marginBottom: "24px",
+        color: colors.yellowAccent
+      }}>
+        Medicine Inventory
+      </h1>
 
-      {error && <div className="error">Error: {error}</div>}
+      {error && (
+        <div style={{
+          color: colors.warningRed,
+          padding: "12px",
+          backgroundColor: "rgba(239,68,68,0.1)",
+          borderRadius: "6px",
+          marginBottom: "16px",
+          border: `1px solid ${colors.warningRed}`
+        }}>
+          Error: {error}
+        </div>
+      )}
 
-      <div className="searchAddContainer">
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        marginBottom: "24px",
+        gap: "16px",
+        flexWrap: "wrap"
+      }}>
         <input
           type="text"
           placeholder="Search medicines..."
-          className="searchInput"
+          style={{
+            flex: 1,
+            padding: "10px 16px",
+            backgroundColor: colors.cardBackground,
+            border: `1px solid ${colors.borderColor}`,
+            borderRadius: "6px",
+            color: colors.lightText,
+            maxWidth: "400px",
+            minWidth: "250px"
+          }}
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value)
@@ -274,7 +315,22 @@ const createNotification = async (title, description, type, related_id = null) =
           }}
         />
         <button 
-          className="primaryButton"
+          style={{
+            backgroundColor: colors.tealAccent,
+            color: colors.darkText,
+            padding: "10px 16px",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontWeight: "500",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            transition: "all 0.2s",
+            ':hover': {
+              opacity: 0.9
+            }
+          }}
           onClick={() => setShowAddForm(true)}
         >
           Add Medicine
@@ -282,88 +338,201 @@ const createNotification = async (title, description, type, related_id = null) =
       </div>
 
       {showAddForm && (
-        <div className="addForm">
-          <h2>Add New Medicine</h2>
-          <div className="formGroup">
-            <label className="formLabel">Name:</label>
-            <input
-              type="text"
-              name="name"
-              className="formInput"
-              value={addFormData.name}
-              onChange={(e) => handleFormChange(e, 'add')}
-              required
-            />
+        <div style={{
+          backgroundColor: colors.cardBackground,
+          padding: "20px",
+          borderRadius: "8px",
+          marginBottom: "24px",
+          border: `1px solid ${colors.tealAccent}`
+        }}>
+          <h2 style={{ 
+            fontSize: "1.25rem",
+            fontWeight: "600",
+            marginBottom: "16px",
+            color: colors.lightText
+          }}>
+            Add New Medicine
+          </h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
+            <div>
+              <label style={{ 
+                display: "block",
+                marginBottom: "8px",
+                color: colors.lightText,
+                fontSize: "0.875rem"
+              }}>
+                Name:
+              </label>
+              <input
+                type="text"
+                name="name"
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  backgroundColor: colors.darkBackground,
+                  border: `1px solid ${colors.borderColor}`,
+                  borderRadius: "4px",
+                  color: colors.lightText
+                }}
+                value={addFormData.name}
+                onChange={(e) => handleFormChange(e, 'add')}
+                required
+              />
+            </div>
+            <div>
+              <label style={{ 
+                display: "block",
+                marginBottom: "8px",
+                color: colors.lightText,
+                fontSize: "0.875rem"
+              }}>
+                Category:
+              </label>
+              <input
+                type="text"
+                name="category"
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  backgroundColor: colors.darkBackground,
+                  border: `1px solid ${colors.borderColor}`,
+                  borderRadius: "4px",
+                  color: colors.lightText
+                }}
+                value={addFormData.category}
+                onChange={(e) => handleFormChange(e, 'add')}
+                required
+              />
+            </div>
+            <div>
+              <label style={{ 
+                display: "block",
+                marginBottom: "8px",
+                color: colors.lightText,
+                fontSize: "0.875rem"
+              }}>
+                Price (Rs):
+              </label>
+              <input
+                type="number"
+                name="price"
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  backgroundColor: colors.darkBackground,
+                  border: `1px solid ${colors.borderColor}`,
+                  borderRadius: "4px",
+                  color: colors.lightText
+                }}
+                value={addFormData.price}
+                onChange={(e) => handleFormChange(e, 'add')}
+                step="0.01"
+                min="0"
+                required
+                onKeyDown={(e) => {
+                  if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                    e.preventDefault()
+                  }
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ 
+                display: "block",
+                marginBottom: "8px",
+                color: colors.lightText,
+                fontSize: "0.875rem"
+              }}>
+                Stock:
+              </label>
+              <input
+                type="number"
+                name="stock"
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  backgroundColor: colors.darkBackground,
+                  border: `1px solid ${colors.borderColor}`,
+                  borderRadius: "4px",
+                  color: colors.lightText
+                }}
+                value={addFormData.stock}
+                onChange={(e) => handleFormChange(e, 'add')}
+                min="0"
+                required
+                onKeyDown={(e) => {
+                  if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                    e.preventDefault()
+                  }
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ 
+                display: "block",
+                marginBottom: "8px",
+                color: colors.lightText,
+                fontSize: "0.875rem"
+              }}>
+                Status:
+              </label>
+              <select
+                name="status"
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  backgroundColor: colors.darkBackground,
+                  border: `1px solid ${colors.borderColor}`,
+                  borderRadius: "4px",
+                  color: colors.lightText
+                }}
+                value={addFormData.status}
+                onChange={(e) => handleFormChange(e, 'add')}
+              >
+                <option value="In Stock">In Stock</option>
+                <option value="Low Stock">Low Stock</option>
+                <option value="Out of Stock">Out of Stock</option>
+              </select>
+            </div>
           </div>
-          <div className="formGroup">
-            <label className="formLabel">Category:</label>
-            <input
-              type="text"
-              name="category"
-              className="formInput"
-              value={addFormData.category}
-              onChange={(e) => handleFormChange(e, 'add')}
-              required
-            />
-          </div>
-          <div className="formGroup">
-            <label className="formLabel">Price (Rs):</label>
-            <input
-              type="number"
-              name="price"
-              className="formInput"
-              value={addFormData.price}
-              onChange={(e) => handleFormChange(e, 'add')}
-              step="0.01"
-              min="0"
-              required
-              onKeyDown={(e) => {
-                if (e.key === '-' || e.key === 'e' || e.key === 'E') {
-                  e.preventDefault()
-                }
-              }}
-            />
-          </div>
-          <div className="formGroup">
-            <label className="formLabel">Stock:</label>
-            <input
-              type="number"
-              name="stock"
-              className="formInput"
-              value={addFormData.stock}
-              onChange={(e) => handleFormChange(e, 'add')}
-              min="0"
-              required
-              onKeyDown={(e) => {
-                if (e.key === '-' || e.key === 'e' || e.key === 'E') {
-                  e.preventDefault()
-                }
-              }}
-            />
-          </div>
-          <div className="formGroup">
-            <label className="formLabel">Status:</label>
-            <select
-              name="status"
-              className="formSelect"
-              value={addFormData.status}
-              onChange={(e) => handleFormChange(e, 'add')}
-            >
-              <option value="In Stock">In Stock</option>
-              <option value="Low Stock">Low Stock</option>
-              <option value="Out of Stock">Out of Stock</option>
-            </select>
-          </div>
-          <div className="formButtons">
+          <div style={{ 
+            display: "flex",
+            gap: "12px",
+            marginTop: "20px"
+          }}>
             <button 
-              className="primaryButton"
+              style={{
+                padding: "8px 16px",
+                backgroundColor: colors.tealAccent,
+                color: colors.darkText,
+                border: "none",
+                borderRadius: "6px",
+                fontWeight: "500",
+                cursor: "pointer",
+                transition: "all 0.2s",
+                ':hover': {
+                  opacity: 0.9
+                }
+              }}
               onClick={handleAddSubmit}
               disabled={loading}
             >
               {loading ? 'Saving...' : 'Save'}
             </button>
             <button 
-              className="actionButton deleteButton"
+              style={{
+                padding: "8px 16px",
+                backgroundColor: colors.cardBackground,
+                color: colors.lightText,
+                border: `1px solid ${colors.borderColor}`,
+                borderRadius: "6px",
+                fontWeight: "500",
+                cursor: "pointer",
+                transition: "all 0.2s",
+                ':hover': {
+                  backgroundColor: "rgba(255,255,255,0.1)"
+                }
+              }}
               onClick={handleCancelAdd}
               disabled={loading}
             >
@@ -374,56 +543,141 @@ const createNotification = async (title, description, type, related_id = null) =
       )}
 
       {loading ? (
-        <div className="loading">Loading medicines...</div>
+        <div style={{ 
+          textAlign: "center",
+          padding: "40px",
+          color: colors.tealAccent
+        }}>
+          Loading medicines...
+        </div>
       ) : (
         <>
-          <div className="tableWrapper">
-            <table className="medicineTable">
+          <div style={{ 
+            overflowX: "auto",
+            borderRadius: "8px",
+            backgroundColor: colors.cardBackground,
+            boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
+          }}>
+            <table style={{ 
+              width: "100%",
+              borderCollapse: "collapse"
+            }}>
               <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Category</th>
-                  <th>Price</th>
-                  <th>Stock</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                <tr style={{ 
+                  backgroundColor: "rgba(59,205,191,0.1)",
+                  borderBottom: `1px solid ${colors.borderColor}`
+                }}>
+                  <th style={{ 
+                    padding: "12px 16px",
+                    textAlign: "left",
+                    fontWeight: "600",
+                    color: colors.tealAccent
+                  }}>ID</th>
+                  <th style={{ 
+                    padding: "12px 16px",
+                    textAlign: "left",
+                    fontWeight: "600",
+                    color: colors.tealAccent
+                  }}>Name</th>
+                  <th style={{ 
+                    padding: "12px 16px",
+                    textAlign: "left",
+                    fontWeight: "600",
+                    color: colors.tealAccent
+                  }}>Category</th>
+                  <th style={{ 
+                    padding: "12px 16px",
+                    textAlign: "left",
+                    fontWeight: "600",
+                    color: colors.tealAccent
+                  }}>Price</th>
+                  <th style={{ 
+                    padding: "12px 16px",
+                    textAlign: "left",
+                    fontWeight: "600",
+                    color: colors.tealAccent
+                  }}>Stock</th>
+                  <th style={{ 
+                    padding: "12px 16px",
+                    textAlign: "left",
+                    fontWeight: "600",
+                    color: colors.tealAccent
+                  }}>Status</th>
+                  <th style={{ 
+                    padding: "12px 16px",
+                    textAlign: "left",
+                    fontWeight: "600",
+                    color: colors.tealAccent
+                  }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {medicines.length > 0 ? (
                   medicines.map((medicine) => (
-                    <tr key={medicine.id}>
-                      <td>{medicine.id}</td>
-                      <td>
+                    <tr key={medicine.id} style={{ 
+                      borderBottom: `1px solid ${colors.borderColor}`,
+                      ':hover': {
+                        backgroundColor: "rgba(255,255,255,0.05)"
+                      }
+                    }}>
+                      <td style={{ 
+                        padding: "12px 16px",
+                        color: colors.lightText
+                      }}>
+                        {medicine.id}
+                      </td>
+                      <td style={{ 
+                        padding: "12px 16px",
+                        color: colors.lightText
+                      }}>
                         {editingMedicine === medicine.id ? (
                           <input
                             type="text"
                             name="name"
                             value={editFormData.name}
                             onChange={(e) => handleFormChange(e, 'edit')}
-                            className="formInput"
+                            style={{
+                              width: "100%",
+                              padding: "8px 12px",
+                              backgroundColor: colors.darkBackground,
+                              border: `1px solid ${colors.borderColor}`,
+                              borderRadius: "4px",
+                              color: colors.lightText
+                            }}
                             required
                           />
                         ) : (
                           medicine.name
                         )}
                       </td>
-                      <td>
+                      <td style={{ 
+                        padding: "12px 16px",
+                        color: colors.lightText
+                      }}>
                         {editingMedicine === medicine.id ? (
                           <input
                             type="text"
                             name="category"
                             value={editFormData.category}
                             onChange={(e) => handleFormChange(e, 'edit')}
-                            className="formInput"
+                            style={{
+                              width: "100%",
+                              padding: "8px 12px",
+                              backgroundColor: colors.darkBackground,
+                              border: `1px solid ${colors.borderColor}`,
+                              borderRadius: "4px",
+                              color: colors.lightText
+                            }}
                             required
                           />
                         ) : (
                           medicine.category
                         )}
                       </td>
-                      <td>
+                      <td style={{ 
+                        padding: "12px 16px",
+                        color: colors.lightText
+                      }}>
                         {editingMedicine === medicine.id ? (
                           <input
                             type="number"
@@ -431,7 +685,14 @@ const createNotification = async (title, description, type, related_id = null) =
                             value={editFormData.price}
                             onChange={(e) => handleFormChange(e, 'edit')}
                             step="0.01"
-                            className="formInput"
+                            style={{
+                              width: "100%",
+                              padding: "8px 12px",
+                              backgroundColor: colors.darkBackground,
+                              border: `1px solid ${colors.borderColor}`,
+                              borderRadius: "4px",
+                              color: colors.lightText
+                            }}
                             min="0"
                             required
                             onKeyDown={(e) => {
@@ -444,14 +705,24 @@ const createNotification = async (title, description, type, related_id = null) =
                           `Rs ${medicine.price}`
                         )}
                       </td>
-                      <td>
+                      <td style={{ 
+                        padding: "12px 16px",
+                        color: colors.lightText
+                      }}>
                         {editingMedicine === medicine.id ? (
                           <input
                             type="number"
                             name="stock"
                             value={editFormData.stock}
                             onChange={(e) => handleFormChange(e, 'edit')}
-                            className="formInput"
+                            style={{
+                              width: "100%",
+                              padding: "8px 12px",
+                              backgroundColor: colors.darkBackground,
+                              border: `1px solid ${colors.borderColor}`,
+                              borderRadius: "4px",
+                              color: colors.lightText
+                            }}
                             min="0"
                             required
                             onKeyDown={(e) => {
@@ -464,40 +735,89 @@ const createNotification = async (title, description, type, related_id = null) =
                           medicine.stock
                         )}
                       </td>
-                      <td>
+                      <td style={{ 
+                        padding: "12px 16px",
+                        color: colors.lightText
+                      }}>
                         {editingMedicine === medicine.id ? (
                           <select
                             name="status"
                             value={editFormData.status}
                             onChange={(e) => handleFormChange(e, 'edit')}
-                            className="formSelect"
+                            style={{
+                              width: "100%",
+                              padding: "8px 12px",
+                              backgroundColor: colors.darkBackground,
+                              border: `1px solid ${colors.borderColor}`,
+                              borderRadius: "4px",
+                              color: colors.lightText
+                            }}
                           >
                             <option value="In Stock">In Stock</option>
                             <option value="Low Stock">Low Stock</option>
                             <option value="Out of Stock">Out of Stock</option>
                           </select>
                         ) : (
-                          <span className={`statusBadge ${
-                            medicine.status === "In Stock" ? 'inStock' :
-                            medicine.status === "Low Stock" ? 'lowStock' :
-                            'outOfStock'
-                          }`}>
+                          <span style={{
+                            padding: "4px 8px",
+                            borderRadius: "12px",
+                            fontSize: "0.75rem",
+                            fontWeight: "500",
+                            backgroundColor:
+                              medicine.status === "In Stock" ? "rgba(16,185,129,0.2)" :
+                              medicine.status === "Low Stock" ? "rgba(234,179,8,0.2)" :
+                              "rgba(239,68,68,0.2)",
+                            color:
+                              medicine.status === "In Stock" ? colors.successGreen :
+                              medicine.status === "Low Stock" ? colors.yellowAccent :
+                              colors.warningRed
+                          }}>
                             {medicine.status}
                           </span>
                         )}
                       </td>
-                      <td>
+                      <td style={{ 
+                        padding: "12px 16px",
+                        color: colors.lightText
+                      }}>
                         {editingMedicine === medicine.id ? (
-                          <div className="editFormButtons">
+                          <div style={{ 
+                            display: "flex",
+                            gap: "8px"
+                          }}>
                             <button 
-                              className="actionButton editButton"
+                              style={{
+                                padding: "6px 12px",
+                                backgroundColor: colors.tealAccent,
+                                color: colors.darkText,
+                                border: "none",
+                                borderRadius: "4px",
+                                fontWeight: "500",
+                                cursor: "pointer",
+                                transition: "all 0.2s",
+                                ':hover': {
+                                  opacity: 0.9
+                                }
+                              }}
                               onClick={() => handleEditSubmit(medicine.id)}
                               disabled={loading}
                             >
                               {loading ? 'Saving...' : 'Save'}
                             </button>
                             <button 
-                              className="actionButton deleteButton"
+                              style={{
+                                padding: "6px 12px",
+                                backgroundColor: colors.cardBackground,
+                                color: colors.lightText,
+                                border: `1px solid ${colors.borderColor}`,
+                                borderRadius: "4px",
+                                fontWeight: "500",
+                                cursor: "pointer",
+                                transition: "all 0.2s",
+                                ':hover': {
+                                  backgroundColor: "rgba(255,255,255,0.1)"
+                                }
+                              }}
                               onClick={handleCancelEdit}
                               disabled={loading}
                             >
@@ -505,29 +825,60 @@ const createNotification = async (title, description, type, related_id = null) =
                             </button>
                           </div>
                         ) : (
-                          <>
+                          <div style={{ 
+                            display: "flex",
+                            gap: "8px"
+                          }}>
                             <button 
-                              className="actionButton editButton"
+                              style={{
+                                padding: "6px 12px",
+                                backgroundColor: "rgba(59,205,191,0.2)",
+                                color: colors.tealAccent,
+                                border: "none",
+                                borderRadius: "4px",
+                                fontWeight: "500",
+                                cursor: "pointer",
+                                transition: "all 0.2s",
+                                ':hover': {
+                                  backgroundColor: "rgba(59,205,191,0.3)"
+                                }
+                              }}
                               onClick={() => handleEditClick(medicine)}
                               disabled={loading}
                             >
                               Edit
                             </button>
                             <button 
-                              className="actionButton deleteButton"
+                              style={{
+                                padding: "6px 12px",
+                                backgroundColor: "rgba(239,68,68,0.2)",
+                                color: colors.warningRed,
+                                border: "none",
+                                borderRadius: "4px",
+                                fontWeight: "500",
+                                cursor: "pointer",
+                                transition: "all 0.2s",
+                                ':hover': {
+                                  backgroundColor: "rgba(239,68,68,0.3)"
+                                }
+                              }}
                               onClick={() => handleDelete(medicine.id)}
                               disabled={loading}
                             >
                               Delete
                             </button>
-                          </>
+                          </div>
                         )}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>
+                    <td colSpan="7" style={{ 
+                      textAlign: "center", 
+                      padding: "40px",
+                      color: colors.lightText
+                    }}>
                       No medicines found
                     </td>
                   </tr>
@@ -537,20 +888,54 @@ const createNotification = async (title, description, type, related_id = null) =
           </div>
 
           {/* Pagination controls */}
-          <div className="paginationControls">
+          <div style={{ 
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            marginTop: "24px",
+            padding: "16px",
+            backgroundColor: colors.cardBackground,
+            borderRadius: "8px",
+            gap: "16px"
+          }}>
             <button
-              className={`paginationButton ${currentPage === 1 ? 'disabled' : ''}`}
+              style={{
+                padding: "8px 16px",
+                backgroundColor: currentPage === 1 ? "rgba(255,255,255,0.1)" : colors.tealAccent,
+                color: currentPage === 1 ? colors.lightText : colors.darkText,
+                border: "none",
+                borderRadius: "6px",
+                fontWeight: "500",
+                cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                transition: "all 0.2s",
+                opacity: currentPage === 1 ? 0.7 : 1
+              }}
               onClick={goToPrevPage}
               disabled={currentPage === 1 || loading}
             >
               Previous
             </button>
             
-            <div className="pageNumbers">
+            <div style={{ 
+              display: "flex",
+              gap: "8px"
+            }}>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                 <button
                   key={page}
-                  className={`pageNumber ${currentPage === page ? 'active' : ''}`}
+                  style={{
+                    padding: "8px 12px",
+                    backgroundColor: currentPage === page ? colors.tealAccent : colors.cardBackground,
+                    color: currentPage === page ? colors.darkText : colors.lightText,
+                    border: currentPage === page ? "none" : `1px solid ${colors.borderColor}`,
+                    borderRadius: "6px",
+                    fontWeight: "500",
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                    ':hover': {
+                      backgroundColor: currentPage === page ? colors.tealAccent : "rgba(255,255,255,0.1)"
+                    }
+                  }}
                   onClick={() => goToPage(page)}
                   disabled={loading}
                 >
@@ -560,7 +945,17 @@ const createNotification = async (title, description, type, related_id = null) =
             </div>
             
             <button
-              className={`paginationButton ${currentPage === totalPages ? 'disabled' : ''}`}
+              style={{
+                padding: "8px 16px",
+                backgroundColor: currentPage === totalPages ? "rgba(255,255,255,0.1)" : colors.tealAccent,
+                color: currentPage === totalPages ? colors.lightText : colors.darkText,
+                border: "none",
+                borderRadius: "6px",
+                fontWeight: "500",
+                cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+                transition: "all 0.2s",
+                opacity: currentPage === totalPages ? 0.7 : 1
+              }}
               onClick={goToNextPage}
               disabled={currentPage === totalPages || loading}
             >
@@ -569,229 +964,6 @@ const createNotification = async (title, description, type, related_id = null) =
           </div>
         </>
       )}
-
-      <style jsx>{`
-        .container {
-          padding: 1.5rem;
-          background-color: #f9fafb;
-        }
-        
-        .title {
-          font-size: 1.5rem;
-          font-weight: bold;
-          margin-bottom: 1.25rem;
-        }
-        
-        .searchAddContainer {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 1.25rem;
-          gap: 1rem;
-        }
-        
-        .searchInput {
-          flex: 1;
-          padding: 0.5rem 0.75rem;
-          border: 1px solid #e2e8f0;
-          border-radius: 0.375rem;
-          max-width: 24rem;
-        }
-        
-        .primaryButton {
-          background-color: #4f46e5;
-          color: white;
-          padding: 0.5rem 1rem;
-          border: none;
-          border-radius: 0.375rem;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-        
-        .primaryButton:hover {
-          background-color: #4338ca;
-        }
-        
-        .tableWrapper {
-          overflow-x: auto;
-          border-radius: 0.5rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          background-color: white;
-          padding: 1rem;
-        }
-        
-        .medicineTable {
-          width: 100%;
-          border-collapse: collapse;
-        }
-        
-        .medicineTable th {
-          background-color: #f8fafc;
-          padding: 0.75rem 1rem;
-          text-align: left;
-          font-weight: 600;
-          color: #64748b;
-          border-bottom: 1px solid #e2e8f0;
-        }
-        
-        .medicineTable td {
-          padding: 0.75rem 1rem;
-          border-bottom: 1px solid #e2e8f0;
-          color: #334155;
-        }
-        
-        .statusBadge {
-          padding: 0.25rem 0.5rem;
-          border-radius: 0.75rem;
-          font-size: 0.75rem;
-          font-weight: 500;
-        }
-        
-        .inStock {
-          background-color: #dcfce7;
-          color: #166534;
-        }
-        
-        .lowStock {
-          background-color: #fef9c3;
-          color: #854d0e;
-        }
-        
-        .outOfStock {
-          background-color: #fee2e2;
-          color: #991b1b;
-        }
-        
-        .actionButton {
-          padding: 0.25rem 0.5rem;
-          border: none;
-          border-radius: 0.25rem;
-          cursor: pointer;
-          margin-right: 0.5rem;
-        }
-        
-        .editButton {
-          background-color: #e0f2fe;
-          color: #0369a1;
-        }
-        
-        .deleteButton {
-          background-color: #fee2e2;
-          color: #b91c1c;
-        }
-        
-        .loading {
-          text-align: center;
-          padding: 2rem;
-          color: #64748b;
-        }
-        
-        .error {
-          color: #ef4444;
-          padding: 1rem;
-          background-color: #fee2e2;
-          border-radius: 0.375rem;
-          margin-bottom: 1rem;
-        }
-        
-        .addForm {
-          background-color: #f8fafc;
-          padding: 1rem;
-          margin-bottom: 1rem;
-          border-radius: 0.5rem;
-          border: 1px solid #e2e8f0;
-        }
-        
-        .formGroup {
-          margin-bottom: 1rem;
-        }
-        
-        .formLabel {
-          display: block;
-          margin-bottom: 0.5rem;
-          font-weight: 500;
-          color: #334155;
-        }
-        
-        .formInput {
-          width: 100%;
-          padding: 0.5rem 0.75rem;
-          border: 1px solid #e2e8f0;
-          border-radius: 0.375rem;
-        }
-        
-        .formSelect {
-          width: 100%;
-          padding: 0.5rem 0.75rem;
-          border: 1px solid #e2e8f0;
-          border-radius: 0.375rem;
-          background-color: white;
-        }
-        
-        .formButtons {
-          display: flex;
-          gap: 0.5rem;
-          margin-top: 1rem;
-        }
-
-        .paginationControls {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          margin-top: 1.5rem;
-          padding: 1rem;
-          background-color: white;
-          border-radius: 0.5rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          gap: 1rem;
-        }
-        
-        .paginationButton {
-          background-color: #4f46e5;
-          color: white;
-          padding: 0.5rem 1rem;
-          border: none;
-          border-radius: 0.375rem;
-          font-size: 0.875rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          min-width: 100px;
-        }
-        
-        .paginationButton:hover:not(.disabled) {
-          background-color: #4338ca;
-        }
-        
-        .paginationButton.disabled {
-          background-color: #e2e8f0;
-          color: #94a3b8;
-          cursor: not-allowed;
-        }
-        
-        .pageNumbers {
-          display: flex;
-          gap: 0.5rem;
-        }
-        
-        .pageNumber {
-          padding: 0.5rem 0.75rem;
-          border: 1px solid #e2e8f0;
-          border-radius: 0.375rem;
-          background-color: white;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        
-        .pageNumber:hover {
-          background-color: #f1f5f9;
-        }
-        
-        .pageNumber.active {
-          background-color: #4f46e5;
-          color: white;
-          border-color: #4f46e5;
-        }
-      `}</style>
     </div>
   )
 }
