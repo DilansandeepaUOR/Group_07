@@ -35,6 +35,7 @@ router.post('/search-owners', async (req, res) => {
   
   if (!searchTerm || searchTerm.trim() === '') {
     return res.status(400).json({ 
+      success: false,
       error: 'Search term is required',
       details: 'Please enter a name to search for owners' 
     });
@@ -48,16 +49,21 @@ router.post('/search-owners', async (req, res) => {
     );
     
     if (rows.length === 0) {
-      return res.status(404).json({ 
-        error: 'No owners found',
-        details: `No owners found matching "${searchTerm}"` 
+      return res.json({ 
+        success: false,
+        message: 'No matching owners found',
+        data: []
       });
     }
     
-    res.json(rows);
+    res.json({
+      success: true,
+      data: rows
+    });
   } catch (error) {
     console.error('Error searching owners:', error);
     res.status(500).json({ 
+      success: false,
       error: 'Error searching owners',
       details: error.message 
     });
@@ -503,17 +509,15 @@ router.post('/search-owners', async (req, res) => {
       [`%${searchTerm}%`]
     );
     
-    if (rows.length === 0) {
-      return res.status(404).json({ 
-        error: 'No owners found',
-        details: `No owners found matching "${searchTerm}"` 
-      });
-    }
-    
-    res.json(rows);
+    res.json({
+      success: true,
+      data: rows,
+      message: rows.length === 0 ? 'No matching owners found' : ''
+    });
   } catch (error) {
     console.error('Error searching owners:', error);
     res.status(500).json({ 
+      success: false,
       error: 'Error searching owners',
       details: error.message 
     });

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { FaUser, FaPaw, FaCalendarAlt, FaPlus, FaTimes, FaSearch } from 'react-icons/fa';
+import { FaUser, FaPaw, FaCalendarAlt, FaPlus, FaTimes, FaSearch, FaCheck } from 'react-icons/fa';
 
 const RecordNew = () => {
   const navigate = useNavigate();
@@ -25,6 +25,19 @@ const RecordNew = () => {
   const [petSearchTerm, setPetSearchTerm] = useState('');
   const [errors, setErrors] = useState({});
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [searchStatus, setSearchStatus] = useState({
+    loading: false,
+    error: null,
+    noResults: false
+  });
+  const [successMessage, setSuccessMessage] = useState(''); // New state for success message
+
+  const getTodayDateString = () => {
+    const now = new Date();
+    const timezoneOffset = now.getTimezoneOffset() * 60000;
+    const localDate = new Date(now.getTime() - timezoneOffset);
+    return localDate.toISOString().split('T')[0];
+  };
 
   // Fetch all owners on component mount
   useEffect(() => {
@@ -42,30 +55,51 @@ const RecordNew = () => {
     
     fetchOwners();
   }, []);
-
   // Filter owners based on search term
-  useEffect(() => {
-    if (ownerSearchTerm) {
-      const search = async () => {
-        try {
-          const response = await axios.post('http://localhost:3001/api/search-owners', {
-            searchTerm: ownerSearchTerm
-          });
-          setFilteredOwners(response.data);
-        } catch (error) {
-          console.error('Error searching owners:', error);
+useEffect(() => {
+  if (ownerSearchTerm) {
+    const search = async () => {
+      setSearchStatus(prev => ({ ...prev, loading: true, error: null, noResults: false }));
+      
+      try {
+        const response = await axios.post('http://localhost:3001/api/search-owners', {
+          searchTerm: ownerSearchTerm
+        });
+        
+        if (response.data.success) {
+          setFilteredOwners(response.data.data);
+          setSearchStatus(prev => ({ ...prev, loading: false, noResults: false }));
+        } else {
+          setFilteredOwners([]);
+          setSearchStatus(prev => ({ 
+            ...prev, 
+            loading: false, 
+            noResults: true,
+            error: response.data.message || 'No results found'
+          }));
         }
-      };
-      
-      const timer = setTimeout(() => {
-        search();
-      }, 300);
-      
-      return () => clearTimeout(timer);
-    } else {
-      setFilteredOwners(allOwners);
-    }
-  }, [ownerSearchTerm, allOwners]);
+      } catch (error) {
+        console.error('Error searching owners:', error);
+        setFilteredOwners([]);
+        setSearchStatus(prev => ({ 
+          ...prev, 
+          loading: false, 
+          noResults: true,
+          error: error.response?.data?.message || 'Error searching owners'
+        }));
+      }
+    };
+    
+    const timer = setTimeout(() => {
+      search();
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  } else {
+    setFilteredOwners(allOwners);
+    setSearchStatus(prev => ({ ...prev, loading: false, error: null, noResults: false }));
+  }
+}, [ownerSearchTerm, allOwners]);
 
   // Fetch pets when owner is selected
   useEffect(() => {
@@ -101,6 +135,24 @@ const RecordNew = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    if (name === 'date') {
+      const today = getTodayDateString();
+      
+      if (value > today) {
+        setErrors(prev => ({
+          ...prev,
+          date: 'Future dates are not allowed'
+        }));
+        return; // Don't update the form data
+      } else {
+        setErrors(prev => ({
+          ...prev,
+          date: ''
+        }));
+      }
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -109,6 +161,9 @@ const RecordNew = () => {
 
   const validateForm = () => {
     const newErrors = {};
+    const today = getTodayDateString();
+    
+    // Required fields validation
     if (!formData.ownerId) newErrors.ownerId = 'Owner is required';
     if (!formData.petId) newErrors.petId = 'Pet is required';
     
@@ -117,6 +172,13 @@ const RecordNew = () => {
       newErrors.date = 'Date is required';
     } else if (!/^\d{4}-\d{2}-\d{2}$/.test(formData.date)) {
       newErrors.date = 'Invalid date format (YYYY-MM-DD required)';
+    } else if (formData.date > today) {
+      newErrors.date = 'Future dates are not allowed';
+    }
+    
+    // At least one detail field validation
+    if (!formData.surgery && !formData.vaccination && !formData.other) {
+      newErrors.details = 'At least one detail field (Surgery, Vaccination, or Notes) is required';
     }
     
     setErrors(newErrors);
@@ -128,14 +190,38 @@ const RecordNew = () => {
     if (!validateForm()) return;
     
     setSubmitLoading(true);
+    setErrors({});
+    setSuccessMessage('');
+    
     try {
       const payload = {
         ...formData,
-        ownerId: formData.ownerId // Ensure ownerId is included
+        ownerId: formData.ownerId
       };
       
       await axios.post('http://localhost:3001/api/records', payload);
-      navigate('/records', { state: { success: 'Record added successfully!' } });
+      
+      // Show success message and reset form
+      setSuccessMessage('Medical record added successfully!');
+      
+      // Reset form after successful submission
+      setFormData({
+        ownerId: '',
+        petId: '',
+        date: new Date().toISOString().split('T')[0],
+        surgery: '',
+        vaccination: '',
+        other: ''
+      });
+      setSelectedOwner(null);
+      setOwnerSearchTerm('');
+      setPetSearchTerm('');
+      
+      // Hide success message after 5 seconds
+      setTimeout(() => {
+        setSuccessMessage('');
+      }, 5000);
+      
     } catch (error) {
       console.error('Error:', error.response?.data);
       setErrors({
@@ -154,7 +240,7 @@ const RecordNew = () => {
         <div className="bg-blue-600 px-6 py-4 flex justify-between items-center">
           <h1 className="text-xl font-bold text-white">Add New Medical Record</h1>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/docprofile')}
             className="text-white hover:text-blue-200"
           >
             <FaTimes size={20} />
@@ -162,67 +248,86 @@ const RecordNew = () => {
         </div>
         
         <div className="p-6">
+         {/* Success Message */}
+         {successMessage && (
+            <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded flex items-center">
+              <FaCheck className="mr-2 flex-shrink-0" />
+              <span>{successMessage}</span>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Owner Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                <FaUser className="inline mr-2" />
-                Owner
-              </label>
-              
-              {/* Owner Search Input */}
-              <div className="relative mt-1">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaSearch className="text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search owners..."
-                  value={ownerSearchTerm}
-                  onChange={(e) => setOwnerSearchTerm(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              
-              {/* Owner Dropdown */}
-              <select
-  name="ownerId"
-  value={formData.ownerId}
-  onChange={handleChange}
-  className={`mt-2 block w-full pl-10 p-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
-    errors.ownerId ? 'border-red-500' : 'border-gray-300'
-  }`}
-  disabled={loading.owners}
->
-  <option value="">Select Owner</option>
-  {filteredOwners.map(owner => {
-    const address = owner.Owner_address || 'No address provided';
-    return (
-      <option 
-        key={owner.Owner_id} 
-        value={owner.Owner_id} 
-        title={`${owner.Owner_name} - ${address}`}
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    <FaUser className="inline mr-2" />
+    Owner
+  </label>
+  
+  {/* Owner Search Input */}
+  <div className="relative mt-1">
+    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <FaSearch className="text-gray-400" />
+    </div>
+    <input
+      type="text"
+      placeholder="Search owners..."
+      value={ownerSearchTerm}
+      onChange={(e) => setOwnerSearchTerm(e.target.value)}
+      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+    />
+  </div>
+  
+  {/* Search status messages */}
+  {searchStatus.loading && (
+    <p className="mt-2 text-sm text-gray-600">Searching...</p>
+  )}
+  {searchStatus.noResults && !searchStatus.loading && (
+    <p className="mt-2 text-sm text-red-600">{searchStatus.error}</p>
+  )}
+  
+  {/* Only show dropdown if there are results and we're not loading */}
+  {!searchStatus.loading && !searchStatus.noResults && filteredOwners.length > 0 && (
+    <>
+      <select
+        name="ownerId"
+        value={formData.ownerId}
+        onChange={handleChange}
+        className={`mt-2 block w-full pl-10 p-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+          errors.ownerId ? 'border-red-500' : 'border-gray-300'
+        }`}
+        disabled={loading.owners}
       >
-        {owner.Owner_name} - {address.length > 30 
-          ? `${address.substring(0, 30)}...` 
-          : address}
-      </option>
-    );
-  })}
-</select>
-              {errors.ownerId && (
-                <p className="mt-1 text-sm text-red-600">{errors.ownerId}</p>
-              )}
-              
-              {/* Selected Owner Info */}
-              {selectedOwner && (
-                <div className="mt-2 p-3 bg-gray-50 rounded-md">
-                  <h4 className="font-medium text-gray-800">{selectedOwner.Owner_name}</h4>
-                  <p className="text-sm text-gray-600">{selectedOwner.Owner_Address}</p>
-                </div>
-              )}
-            </div>
-
+        <option value="">Select Owner</option>
+        {filteredOwners.map(owner => {
+          const address = owner.Owner_address || 'No address provided';
+          return (
+            <option 
+              key={owner.Owner_id} 
+              value={owner.Owner_id} 
+              title={`${owner.Owner_name} - ${address}`}
+            >
+              {owner.Owner_name} - {address.length > 30 
+                ? `${address.substring(0, 30)}...` 
+                : address}
+            </option>
+          );
+        })}
+      </select>
+      {errors.ownerId && (
+        <p className="mt-1 text-sm text-red-600">{errors.ownerId}</p>
+      )}
+    </>
+  )}
+  
+  {/* Selected Owner Info */}
+  {selectedOwner && (
+    <div className="mt-2 p-3 bg-gray-50 rounded-md">
+      <h4 className="font-medium text-gray-800">{selectedOwner.Owner_name}</h4>
+      <p className="text-sm text-gray-600">{selectedOwner.Owner_Address}</p>
+    </div>
+  )}
+</div>
             {/* Pet Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -269,26 +374,26 @@ const RecordNew = () => {
               )}
             </div>
 
-            {/* Date Field */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                <FaCalendarAlt className="inline mr-2" />
-                Date
-              </label>
-              <input
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleChange}
-                className={`mt-1 block w-full pl-10 p-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.date ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
-              {errors.date && (
-                <p className="mt-1 text-sm text-red-600">{errors.date}</p>
-              )}
-            </div>
-
+{/* Date Field */}
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    <FaCalendarAlt className="inline mr-2" />
+    Date
+  </label>
+  <input
+    type="date"
+    name="date"
+    value={formData.date}
+    onChange={handleChange}
+    max={getTodayDateString()} // This will set max to today's date
+    className={`mt-1 block w-full pl-10 p-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+      errors.date ? 'border-red-500' : 'border-gray-300'
+    }`}
+  />
+  {errors.date && (
+    <p className="mt-1 text-sm text-red-600">{errors.date}</p>
+  )}
+</div>
             {/* Surgery Details */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -333,6 +438,13 @@ const RecordNew = () => {
                 placeholder="Enter any additional notes"
               />
             </div>
+
+            {/* Combined error for detail fields */}
+            {errors.details && (
+              <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                {errors.details}
+              </div>
+            )}
 
             {/* Submit Button */}
             <div className="pt-4">

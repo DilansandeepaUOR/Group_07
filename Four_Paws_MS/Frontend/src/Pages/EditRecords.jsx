@@ -38,7 +38,7 @@ const EditRecords = () => {
       } catch (error) {
         console.error('Error fetching record:', error);
         alert('Failed to load record');
-        navigate('/records');
+        navigate('/records/edit/:id');
       }
     };
     fetchRecord();
@@ -90,7 +90,7 @@ const EditRecords = () => {
   
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:3001/record/${id}`, {
+      const response = await fetch(`http://localhost:3001/api/update-record/:id`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(record)
@@ -99,7 +99,7 @@ const EditRecords = () => {
       if (!response.ok) throw new Error('Failed to update record');
       
       setSuccessMessage('Record updated successfully!');
-      setTimeout(() => navigate('/records'), 1500);
+      setTimeout(() => navigate('/recordsNew'), 1500);
     } catch (error) {
       console.error('Error updating record:', error);
       alert('Failed to update record');
@@ -108,7 +108,7 @@ const EditRecords = () => {
     }
   };
 
-  const handleCancel = () => navigate('/records');
+  const handleCancel = () => navigate('/recordsNew');
 
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-gradient-to-b from-[#E3FDFD] via-[#71C9CE] to-[#A6E3E9] z-50 p-4 overflow-y-auto">
