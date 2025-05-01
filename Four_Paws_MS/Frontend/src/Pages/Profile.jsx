@@ -368,6 +368,15 @@ function Profile() {
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
                     />
                   </div>
+                  <div>
+                <label className="block text-gray-300 mb-1">Address</label>
+                <textarea
+                  name="Owner_address"
+                  value={editForm.Owner_address}
+                  onChange={handleEditChange}
+                  className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600 h-24"
+                />
+              </div>
                 </div>
               </div>
 
@@ -428,15 +437,7 @@ function Profile() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-gray-300 mb-1">Address</label>
-                <textarea
-                  name="Owner_address"
-                  value={editForm.Owner_address}
-                  onChange={handleEditChange}
-                  className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600 h-24"
-                />
-              </div>
+              
 
               <div className="flex justify-end mt-6">
                 <button

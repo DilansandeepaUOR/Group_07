@@ -50,7 +50,7 @@ const RegUserMgt = () => {
             setShowForm(true);
           }}
         >
-          <FaPlus className="mr-2" /> Add Admin User
+          <FaPlus className="mr-2" /> Add Regular User
         </Button>
       </div>
       <div className="">
