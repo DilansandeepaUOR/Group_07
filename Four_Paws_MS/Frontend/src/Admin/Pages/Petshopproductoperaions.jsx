@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { FaArrowLeft } from "react-icons/fa";
 
 const ProductOperations = () => {
   const { id } = useParams(); // Get product_id from URL
@@ -35,7 +36,7 @@ const ProductOperations = () => {
   const handleSave = async () => {
     try {
       await axios.put(
-        `http://localhost:3001/api/adminpetshop/productsqr/${id}`,
+        `http://localhost:3001/api/adminpetshop/productupdate?product_id=${id}`,
         formData
       );
       alert("Product updated successfully!");
@@ -51,7 +52,7 @@ const ProductOperations = () => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
         await axios.delete(
-          `http://localhost:3001/api/adminpetshop/productsqr/${id}`
+          `http://localhost:3001/api/adminpetshop/productdelete?product_id=${id}`
         );
         alert("Product deleted successfully!");
         navigate("/admin/petshop"); // Redirect to the pet shop page
@@ -63,16 +64,20 @@ const ProductOperations = () => {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto bg-white shadow-lg rounded-lg">
+    <div className="p-6 max-w-4xl mx-auto bg-gradient-to-b from-[#E3FDFD] via-[#71C9CE] to-[#A6E3E9] shadow-lg rounded-lg">
+      <div>
+      <button
+          onClick={() => window.history.back()}
+          className="flex items-center mb-6 text-gray-900 hover:text-gray-400 cursor-pointer"
+        >
+          <FaArrowLeft className="w-5 h-5 mr-2" /> Back
+        </button>
+      </div>
       <h2 className="text-3xl font-bold mb-6 text-center text-[#028478]">
         {isEditing ? "Edit Product" : product.name}
       </h2>
       <div className="flex flex-col lg:flex-row items-center gap-6">
-        <img
-          src={`http://localhost:3001${product.product_image}`}
-          alt={product.name}
-          className="w-48 h-48 object-cover rounded-lg shadow-md"
-        />
+        
         {isEditing ? (
           <div className="w-full space-y-4">
             <div>
@@ -86,7 +91,9 @@ const ProductOperations = () => {
               />
             </div>
             <div>
-              <label className="block font-bold mb-1 text-gray-700">Brand</label>
+              <label className="block font-bold mb-1 text-gray-700">
+                Brand
+              </label>
               <input
                 type="text"
                 name="brand"
@@ -132,7 +139,9 @@ const ProductOperations = () => {
               />
             </div>
             <div>
-              <label className="block font-bold mb-1 text-gray-700">Price</label>
+              <label className="block font-bold mb-1 text-gray-700">
+                Price
+              </label>
               <input
                 type="number"
                 name="unit_price"
@@ -153,15 +162,17 @@ const ProductOperations = () => {
               ></textarea>
             </div>
             <div>
-              <label className="block font-bold mb-1 text-gray-700">Status</label>
+              <label className="block font-bold mb-1 text-gray-700">
+                Status
+              </label>
               <select
                 name="status"
                 value={formData.status || ""}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded focus:ring-2 focus:ring-[#028478]"
               >
-                <option value="Available">Available</option>
-                <option value="Out of Stock">Out of Stock</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">In Active</option>
               </select>
             </div>
             <div className="flex gap-4">
