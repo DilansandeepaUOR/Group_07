@@ -38,7 +38,33 @@ router.get('/', async (req, res) => {
 
   try {
     const [results] = await db.promise().query(
-      'SELECT * FROM appointments WHERE owner_id = ?', 
+      'SELECT appointments.*, pet.Pet_name FROM appointments JOIN pet ON appointments.pet_type = pet.Pet_id WHERE appointments.owner_id = ?', 
+      [id]
+    );
+    
+    if (results.length === 0) {
+      // The frontend expects { msg: false } when no appointments are found
+      return res.json({ msg: false });
+    }
+    
+    // Return the results directly as an array when appointments exist
+    res.json(results);
+  } catch (err) {
+    console.error('Database error:', err);
+    res.status(500).json({ error: 'Error retrieving appointment' });
+  }
+});
+
+router.get('/pets', async (req, res) => {
+  const { id } = req.query;
+  
+  if (!id) {
+    return res.status(400).json({ error: 'ID query parameter is required' });
+  }
+
+  try {
+    const [results] = await db.promise().query(
+      'SELECT Pet_id,Pet_name FROM pet WHERE owner_id = ?', 
       [id]
     );
     
@@ -100,10 +126,10 @@ router.get('/reasons', async (req, res) => {
 });
 
 router.post('/appointment', async (req, res) => {
-  const { petType, time, date, reason, user_id, additional_note } = req.body;
-  console.log(petType, date, time, reason, additional_note, user_id);
+  const { pet_id, time, date, reason, user_id, additional_note } = req.body;
+  console.log(pet_id, date, time, reason, additional_note, user_id);
   
-  if (!petType || !time || !date || !reason) {
+  if (!pet_id || !time || !date || !reason) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
@@ -121,20 +147,20 @@ router.post('/appointment', async (req, res) => {
         `INSERT INTO appointments 
          (pet_type, appointment_time, appointment_date, reason, owner_id) 
          VALUES (?, ?, ?, ?, ?)`,
-        [petType, mysqlTime, date, reason, user_id]
+        [pet_id, mysqlTime, date, reason, user_id]
       );
     } else {
       [result] = await db.promise().query(
         `INSERT INTO appointments 
          (pet_type, appointment_time, appointment_date, reason, additional_note, owner_id) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [petType, mysqlTime, date, reason, additional_note, user_id]
+        [pet_id, mysqlTime, date, reason, additional_note, user_id]
       );
     }
     
     // Fetch the newly created appointment to return complete data
     const [newAppointment] = await db.promise().query(
-      'SELECT * FROM appointments WHERE appointment_id = ?',
+      'SELECT appointments.*, pet.Pet_name FROM appointments JOIN pet ON appointments.pet_type = pet.Pet_id WHERE appointment_id = ?',
       [result.insertId]
     );
     
@@ -143,10 +169,11 @@ router.post('/appointment', async (req, res) => {
       message: 'Appointment added successfully',
       appointment_id: result.insertId,
       status: 'Scheduled',
-      petType: petType,
+      petType: newAppointment[0].Pet_name,
       date: date,
       time: mysqlTime,
       reason: reason,
+      Pet_name: newAppointment[0].Pet_name,
       additional_note: additional_note || null
     });
     
@@ -200,6 +227,32 @@ router.put('/cancel/:id', async (req, res) => {
   } catch (err) {
     console.error('Database error:', err);
     res.status(500).json({ error: 'Error cancelling appointment' });
+  }
+});
+
+// Add pet endpoint
+router.post('/pets', async (req, res) => {
+  const { Pet_name, Pet_type, gender, dob, user_id } = req.body;
+
+  if (!Pet_name || !Pet_type || !gender || !dob || !user_id) {
+    return res.status(400).json({ message: 'All fields are required.' });
+  }
+
+  try {
+    // const sql = `
+    //   INSERT INTO pet (Pet_name, Pet_type, Pet_gender, Pet_dob, Owner_id)
+    //   VALUES (?, ?, ?, ?, ?)
+    // `;
+    // await db.execute(sql, [Pet_name, Pet_type, gender, dob, user_id]);
+    [result] = await db.promise().query(
+      ' INSERT INTO pet (Pet_name, Pet_type, Pet_gender, Pet_dob, Owner_id) VALUES (?, ?, ?, ?, ?)',
+      [Pet_name, Pet_type, gender, dob, user_id]
+    );
+
+    res.status(201).json({ message: 'Pet added successfully.' });
+  } catch (err) {
+    console.error('Database error:', err);
+    res.status(500).json({ message: 'Failed to add pet. Server error.' });
   }
 });
 
