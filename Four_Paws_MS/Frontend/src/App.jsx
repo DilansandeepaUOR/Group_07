@@ -98,7 +98,7 @@ const App = () => {
         <Route path="/assistdashboard" element={<ProtectedRoutes allowedRoles={["Assistant Doctor"]}><AssistDashboard /></ProtectedRoutes>} />
         <Route path="/assistprofile" element={<ProtectedRoutes allowedRoles={["Assistant Doctor"]}><Assistprofile /></ProtectedRoutes>} />
 
-        <Route path="/Pharmacy" element={<ProtectedRoutes allowedRolesUser={["Pharmacist"]} ><Pharmacy /></ProtectedRoutes>} />
+        <Route path="/Pharmacy" element={<Pharmacy />}></Route>
         
 
         <Route path="/unauth" element={<Unauth/>} />

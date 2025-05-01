@@ -238,7 +238,8 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
+    <div className="bg-white/30 backdrop-blur-md p-20">
+      <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
       <h2 className="text-xl font-semibold mb-4 text-[#028478]">
         {editingProduct ? "Edit" : "Register New"} Product
       </h2>
@@ -405,6 +406,7 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
       <button onClick={closeForm} className="mt-4 text-red-500 hover:underline">
         Cancel
       </button>
+    </div>
     </div>
   );
 };
