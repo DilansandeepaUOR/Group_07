@@ -165,6 +165,7 @@ const SupplierForm = ({ closeForm, editingsuppliers, refreshsuppliers }) => {
   };
 
   return (
+    <div className="bg-white/30 backdrop-blur-md p-20">
     <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
       <h2 className="text-xl font-semibold mb-4 text-[#028478]">
         {editingsuppliers ? "Edit" : "Register New"} Supplier
@@ -253,6 +254,7 @@ const SupplierForm = ({ closeForm, editingsuppliers, refreshsuppliers }) => {
       <button onClick={closeForm} className="mt-4 text-red-500 hover:underline">
         Cancel
       </button>
+    </div>
     </div>
   );
 };

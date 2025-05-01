@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaTimes } from "react-icons/fa";
+import logo from "../../assets/logo.png"; // Adjust the path to your logo
 
 const ProductOperations = () => {
   const { id } = useParams(); // Get product_id from URL
@@ -64,14 +65,24 @@ const ProductOperations = () => {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto bg-gradient-to-b from-[#E3FDFD] via-[#71C9CE] to-[#A6E3E9] shadow-lg rounded-lg">
+    <div className="min-h-screen bg-gradient-to-b from-[#E3FDFD] via-[#71C9CE] to-[#A6E3E9] flex items-center justify-center">
+      <div className="absolute top-5 left-5 object-cover w-[200px]">
+              <img src={logo} alt="logo" />
+            </div>
+      <div className="p-6 max-w-4xl mx-auto bg-gradient-to-b from-[#E3FDFD] via-[#71C9CE] to-[#A6E3E9] shadow-lg rounded-lg">
       <div>
-      <button
+      {isEditing ? <button
+          onClick={() => setIsEditing(false)}
+          className="flex items-center mb-6 text-gray-900 hover:text-gray-400 cursor-pointer"
+        >
+          <FaTimes className="w-5 h-5 mr-2" /> Back
+        </button> : <button
           onClick={() => window.history.back()}
           className="flex items-center mb-6 text-gray-900 hover:text-gray-400 cursor-pointer"
         >
           <FaArrowLeft className="w-5 h-5 mr-2" /> Back
-        </button>
+        </button>}
+      
       </div>
       <h2 className="text-3xl font-bold mb-6 text-center text-[#028478]">
         {isEditing ? "Edit Product" : product.name}
@@ -230,6 +241,7 @@ const ProductOperations = () => {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 };
