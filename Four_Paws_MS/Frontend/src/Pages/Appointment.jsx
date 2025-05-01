@@ -65,7 +65,7 @@ const AddPetModal = ({ onPetAdded, userId }) => {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="petName">Pet Name</Label>
+            <Label htmlFor="petName" className="pb-2">Pet Name</Label>
             <Input
               id="petName"
               value={petName}
@@ -74,7 +74,7 @@ const AddPetModal = ({ onPetAdded, userId }) => {
             />
           </div>
           <div>
-            <Label htmlFor="petType">Pet Type</Label>
+            <Label htmlFor="petType" className="pb-2">Pet Type</Label>
             <Select value={petType} onValueChange={setPetType}>
               <SelectTrigger>
                 <SelectValue placeholder="Select pet type" />
@@ -82,13 +82,12 @@ const AddPetModal = ({ onPetAdded, userId }) => {
               <SelectContent>
                 <SelectItem value="Dog">Dog</SelectItem>
                 <SelectItem value="Cat">Cat</SelectItem>
-                <SelectItem value="Bird">Bird</SelectItem>
                 <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label htmlFor="gender">Gender</Label>
+            <Label htmlFor="gender" className="pb-2">Gender</Label>
             <Select value={gender} onValueChange={setGender}>
               <SelectTrigger>
                 <SelectValue placeholder="Gender" />
@@ -101,11 +100,12 @@ const AddPetModal = ({ onPetAdded, userId }) => {
             </Select>
           </div>
           <div>
-            <Label htmlFor="dob">Date of Birth</Label>
+            <Label htmlFor="dob" className="pb-2">Date of Birth</Label>
             <Input
               type="date"
               id="dob"
               value={dob}
+              min={new Date().toISOString().split("T")[0]}
               onChange={(e) => setDob(e.target.value)}
             />
           </div>
@@ -113,7 +113,7 @@ const AddPetModal = ({ onPetAdded, userId }) => {
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} className="bg-[#008879] hover:bg-[#07776b] text-white">
               {isSubmitting ? "Adding..." : "Add Pet"}
             </Button>
           </DialogFooter>
