@@ -60,6 +60,10 @@ app.use('/uploads', express.static('uploads'));
 const pharmacy =require('./routes/Pharmacy/pharmacy');
 app.use('/pharmacy', pharmacy);
 
+//assistant doctor
+const assistantdoctorRoutes =require('./routes/Assitdoctor/assistantdoctor');
+app.use('/api/assistantdoctor', assistantdoctorRoutes);
+
 //Contact info routes
 const contactInfoRoutes = require('./routes/Contactinfo/contact');
 app.use('/contact', contactInfoRoutes);

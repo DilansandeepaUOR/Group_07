@@ -12,7 +12,7 @@ import Register from "./Pages/Register";
 import Appointment from "./Pages/Appointment";
 import RecordsEntry from "./Pages/RecordsEntry";
 import Adlogin from "./Admin/Pages/Adlogin";
-
+import Mobileservice from "./Pages/MobileService";
 
 
 import EditRecords from "./Pages/EditRecords";
@@ -103,6 +103,7 @@ const App = () => {
 
         <Route path="/unauth" element={<Unauth/>} />
         <Route path="*" element={<h1>404 Not Found</h1>} />
+        <Route path="/mobileservice" element={<Mobileservice />} />
       </Routes>
     </>
   );
