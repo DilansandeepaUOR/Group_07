@@ -1,13 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../../db");
+const bcrypt= require('bcrypt');
 const upload = require("../../validations/imgvalidator");
 const e = require("express");
 
 //Manage regular user registration
 //register new user
 router.post("/reguserregister", upload.single("image"), async (req, res) => {
-  const { name, address, phone, email, confirmPassword } = req.body;
+  const { Owner_name, Owner_address, Phone_number, E_mail, confirmPassword } = req.body;
+  console.log("Request Body:", req.body); // Log the request body to check the data being sent
 
   const imagePath = req.file ? `/uploads/propics/${req.file.filename}` : null;
 
@@ -15,7 +17,7 @@ router.post("/reguserregister", upload.single("image"), async (req, res) => {
     //existance of email
     db.query(
       "SELECT * FROM pet_owner WHERE E_mail = ?",
-      [email],
+      [E_mail],
       async (err, results) => {
         if (err) {
           console.error(err);
@@ -33,7 +35,7 @@ router.post("/reguserregister", upload.single("image"), async (req, res) => {
 
         db.query(
           ownersql,
-          [name, address, phone, email, hashedPassword, imagePath],
+          [Owner_name, Owner_address, Phone_number, E_mail, hashedPassword, imagePath],
           (err, ownerResult) => {
             if (err) {
               return res
@@ -43,23 +45,25 @@ router.post("/reguserregister", upload.single("image"), async (req, res) => {
 
             const ownerid = ownerResult.insertId;
 
-            const { petName, petDob, petType, petGender } = req.body;
+            const { Pet_name, Pet_type, Pet_dob, Pet_gender } = req.body;
             const petsql =
               "INSERT INTO pet (Owner_id, Pet_name, Pet_type, Pet_dob, Pet_gender) VALUES (?, ?, ?, ?, ?)";
 
             db.query(
               petsql,
-              [ownerid, petName, petType, petDob, petGender],
+              [ownerid, Pet_name, Pet_type, Pet_dob, Pet_gender],
               (err) => {
                 if (err) {
                   console.error("Error inserting pet", err);
                   return res.status(500).json({ error: "Error inserting pet" });
                 }
-              }
-            );
-            res
-              .status(201)
+                res
+              .status(200)
               .json({ message: "pet and pet owner added successfully" });
+              }
+              
+            );
+            
           }
         );
       }
@@ -73,7 +77,7 @@ router.post("/reguserregister", upload.single("image"), async (req, res) => {
 //get all registered users
 router.get("/regusers", async (req, res) => {
   const petinfosql =
-    "SELECT po.Owner_name, po.E_mail, po.Phone_number, po.Owner_address, p.Pet_id, p.Pet_name, p.Pet_type, p.Pet_dob, p.Pet_gender FROM pet_owner po JOIN pet p ON po.Owner_id = p.Owner_id;";
+    "SELECT po.*, p.Pet_id, p.Pet_name, p.Pet_type, p.Pet_dob, p.Pet_gender FROM pet_owner po JOIN pet p ON po.Owner_id = p.Owner_id;";
   try {
     db.query(petinfosql, (err, results) => {
       if (err) {
@@ -118,11 +122,11 @@ router.put("/reguserupdate", upload.single("image"), async (req, res) => {
     db.query(
       petinfosql,
       [
-        Owner_name, E_mail, Phone_number, Owner_address, Account_status, imagePath
+        Owner_name, E_mail, Phone_number, Owner_address, Account_status, imagePath, Owner_id
       ],
       (err, results) => {
         if (err) {
-          return res.status(500).json({ error: "Error inserting pet owner" });
+          return res.status(500).json({ error: "Error updating pet owner" });
         }
         if (results.affectedRows === 0) {
           return res.status(404).json({ error: "Pet owner not found" });
@@ -131,7 +135,7 @@ router.put("/reguserupdate", upload.single("image"), async (req, res) => {
         const { Pet_name, Pet_type, Pet_dob, Pet_gender } = req.body;
         const petsql =
           "UPDATE pet SET Pet_name = ?, Pet_type = ?, Pet_dob = ?, Pet_gender =? WHERE Owner_id = ?";
-        db.query(petsql, [Pet_name, Pet_type, Pet_dob, Pet_gender, id], (err, results) => {
+        db.query(petsql, [Pet_name, Pet_type, Pet_dob, Pet_gender, Owner_id], (err, results) => {
           if (err) {
             return res.status(500).json({ error: "Error inserting pet" });
           }

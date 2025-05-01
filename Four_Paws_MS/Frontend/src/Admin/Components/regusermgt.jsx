@@ -9,7 +9,7 @@ import paw from "../../assets/paw_vector.png";
 const RegUserMGT = () => {
   const [users, setUsers] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [editinguser, setEditingUser] = useState(null);
+  const [editingUser, setEditingUser] = useState(null);
 
   const fetchUsers = async () => {
     const res = await axios.get(
@@ -29,7 +29,7 @@ const RegUserMGT = () => {
           `http://localhost:3001/api/adreguserform/userdelete?Owner_id=${Owner_id}`
         );
         alert(response.data.message);
-        fetchProducts();
+        fetchUsers();
       }
     } catch (error) {
       alert(error.response?.data?.error || "An error occurred while deleting.");
@@ -108,7 +108,7 @@ const RegUserMGT = () => {
           {showForm && (
             <UserForm
               closeForm={() => setShowForm(false)}
-              editingUser={editinguser}
+              editingUser={editingUser}
               refreshUsers={fetchUsers}
             />
           )}
@@ -125,8 +125,8 @@ const UserForm = ({ closeForm, editingUser, refreshUsers }) => {
     Owner_address: "",
     Phone_number: "",
     Pet_name: "",
-    Pet_type: "",
-    Pet_gender: "",
+    Pet_type: "Dog",
+    Pet_gender: "Male",
     Pet_dob: "",
     Account_status: "Active",
     confirmPassword: "",
@@ -168,7 +168,7 @@ const UserForm = ({ closeForm, editingUser, refreshUsers }) => {
     submitData.append("Phone_number", formData.Phone_number);
     submitData.append("Pet_name", formData.Pet_name);
     submitData.append("Pet_type", formData.Pet_type);
-    submitData.append("Pet_gender", formData.Pet_dob);
+    submitData.append("Pet_dob", formData.Pet_dob);
     submitData.append("Pet_gender", formData.Pet_gender);
     submitData.append("Account_status", formData.Account_status);
     submitData.append("confirmPassword", formData.confirmPassword);

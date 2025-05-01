@@ -73,7 +73,15 @@ const AdUserMgt = () => {
                   </td>
                   <td className="p-3">{u.email}</td>
                   <td className="p-3">{u.role}</td>
-                  <td className="p-3">{u.status}</td>
+                  <td
+                    className={`p-3 ${
+                      u.status != "Inactive"
+                        ? "text-[#71C9CE] font-bold"
+                        : "font-bold text-red-500"
+                    }`}
+                  >
+                    {u.status}
+                  </td>
                   <td className="p-3 space-x-2">
                     <Button
                       size="sm"
