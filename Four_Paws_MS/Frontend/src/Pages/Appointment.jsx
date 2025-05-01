@@ -541,7 +541,7 @@ const AppointmentDetails = () => {
                         <div className="flex justify-between items-start mb-3">
                           <div>
                             <h3 className="font-medium">Appointment ID: #{appointment.appointment_id}</h3>
-                            <p className="text-sm text-gray-500">Pet: {appointment.pet_name || appointment.petType}</p>
+                            <p className="text-sm text-gray-500">Pet: {appointment.Pet_name || appointment.petType}</p>
                           </div>
                           <Badge className={getStatusColor(appointment.status)}>
                             {appointment.status}
@@ -635,24 +635,31 @@ const AppointmentDetails = () => {
                 <div>
                   <Label htmlFor="petType" className="text-sm font-medium">Pet</Label>
                   <div className="flex items-center gap-2 mt-1">
-                    <Select value={petType} onValueChange={setPetType} required>
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Select Pet" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {pets.length > 0 ? (
-                          pets.map((pet) => (
-                            <SelectItem key={pet.Pet_id} value={pet.Pet_id.toString()}>
-                              {pet.Pet_name} ({pet.Pet_type})
+                  
+                  <Select value={petType} 
+                        onValueChange={(value) => setPetType(value)}
+                        required
+                      >
+                        <SelectTrigger className="h-10">
+                          <SelectValue placeholder="Select Pet" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {pets.length > 0 ? (
+                            pets.map((pet) => (
+                              <SelectItem 
+                                key={pet.Pet_id} 
+                                value={pet.Pet_id.toString()} // Ensure string type
+                              >
+                                {pet.Pet_name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="" disabled>
+                              No pets found
                             </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="" disabled>
-                            No pets found
-                          </SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
+                          )}
+                        </SelectContent>
+                      </Select>
                     <AddPetModal 
                       onPetAdded={refreshPets}
                       userId={user.id} 
