@@ -9,12 +9,7 @@ const Patients = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold text-[#028478]">Patients</h2>
-        <Button
-          className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900 flex items-center"
-          onClick={() => setShowAddPatient(true)}
-        >
-          <FaPlus className="mr-2" /> Add Patient
-        </Button>
+        
       </div>
 
       {showAddPatient && (
