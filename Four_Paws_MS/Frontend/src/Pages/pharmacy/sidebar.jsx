@@ -1,6 +1,6 @@
 "use client"
 
-import { useContext, createContext, useState, useEffect } from "react"
+import React, { useContext, createContext, useState, useEffect } from "react"
 import { MoreVertical, ChevronLast, ChevronFirst, Menu, X, ChevronDown } from "lucide-react"
 
 const SidebarContext = createContext({ 
@@ -15,6 +15,14 @@ export default function Sidebar({ children }) {
   const [isMobile, setIsMobile] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [activeSection, setActiveSection] = useState("")
+
+  const colors = {
+    darkBackground: '#22292f',
+    tealAccent: '#3bcdbf',
+    yellowAccent: '#FFD700',
+    lightText: '#f3f4f6',
+    cardBackground: '#2c3339'
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -44,7 +52,7 @@ export default function Sidebar({ children }) {
   }
 
   return (
-    <>
+    <React.Fragment>
       {isMobile && mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
@@ -54,7 +62,7 @@ export default function Sidebar({ children }) {
             right: 0,
             bottom: 0,
             left: 0,
-            backgroundColor: "rgba(0,0,0,0.5)",
+            backgroundColor: "rgba(0,0,0,0.7)",
             zIndex: 40,
           }}
         />
@@ -70,11 +78,13 @@ export default function Sidebar({ children }) {
             zIndex: 50,
             padding: "8px",
             borderRadius: "8px",
-            backgroundColor: "white",
+            backgroundColor: colors.cardBackground,
+            color: colors.lightText,
+            border: `1px solid ${colors.tealAccent}`,
             boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)",
           }}
         >
-          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          {mobileOpen ? <X size={20} color={colors.tealAccent} /> : <Menu size={20} color={colors.tealAccent} />}
         </button>
       )}
 
@@ -86,7 +96,7 @@ export default function Sidebar({ children }) {
           position: isMobile ? "fixed" : "relative",
           top: isMobile ? "0" : "auto",
           left: isMobile ? "0" : "auto",
-          zIndex: isMobile ? "50" : "auto",
+          zIndex: isMobile ? 50 : "auto",
           width: "auto",
         }}
       >
@@ -95,9 +105,9 @@ export default function Sidebar({ children }) {
             height: "100%",
             display: "flex",
             flexDirection: "column",
-            backgroundColor: "white",
-            borderRight: "1px solid #e5e7eb",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+            backgroundColor: colors.darkBackground,
+            borderRight: `1px solid ${colors.tealAccent}`,
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
             width: isMobile ? "280px" : expanded ? "240px" : "72px",
             transition: "width 300ms",
           }}
@@ -107,7 +117,7 @@ export default function Sidebar({ children }) {
               padding: "16px",
               paddingBottom: "8px",
               display: "flex",
-              justifyContent: "flex-end", // Changed from space-between to flex-end
+              justifyContent: "flex-end",
               alignItems: "center",
             }}
           >
@@ -117,8 +127,8 @@ export default function Sidebar({ children }) {
                 style={{
                   padding: "4px",
                   borderRadius: "6px",
-                  backgroundColor: "#f3f4f6",
-                  border: "none",
+                  backgroundColor: colors.cardBackground,
+                  border: `1px solid ${colors.tealAccent}`,
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
@@ -126,9 +136,9 @@ export default function Sidebar({ children }) {
                 }}
               >
                 {expanded ? (
-                  <ChevronFirst size={18} style={{ color: "#4b5563" }} />
+                  <ChevronFirst size={18} color={colors.tealAccent} />
                 ) : (
-                  <ChevronLast size={18} style={{ color: "#4b5563" }} />
+                  <ChevronLast size={18} color={colors.tealAccent} />
                 )}
               </button>
             )}
@@ -141,10 +151,11 @@ export default function Sidebar({ children }) {
             setActiveSection
           }}>
             <ul style={{ 
-              flexGrow: 1, 
+              flex: 1, 
               padding: "0 12px",
               overflowY: "auto",
-              overflowX: "hidden"
+              overflowX: "hidden",
+              margin: 0,
             }}>
               {children}
             </ul>
@@ -152,15 +163,20 @@ export default function Sidebar({ children }) {
 
           <div
             style={{
-              borderTop: "1px solid #e5e7eb",
+              borderTop: `1px solid ${colors.tealAccent}`,
               display: "flex",
               padding: "12px",
             }}
           >
             <img
-              src="https://ui-avatars.com/api/?background=c7d2fe&color=3730a3&bold=true"
+              src="https://ui-avatars.com/api/?background=3bcdbf&color=ffffff&bold=true"
               alt="User avatar"
-              style={{ width: "40px", height: "40px", borderRadius: "6px" }}
+              style={{ 
+                width: "40px", 
+                height: "40px", 
+                borderRadius: "6px",
+                border: `1px solid ${colors.tealAccent}`
+              }}
             />
             <div
               style={{
@@ -171,35 +187,36 @@ export default function Sidebar({ children }) {
                 transition: "all 300ms",
                 width: expanded || isMobile ? "calc(100% - 52px)" : "0",
                 marginLeft: expanded || isMobile ? "12px" : "0",
+                color: colors.lightText
               }}
             >
               <div style={{ lineHeight: "1rem" }}>
-                <h4 style={{ fontWeight: "600" }}>John Doe</h4>
-                <span style={{ fontSize: "0.75rem", color: "#4b5563" }}>johndoe@gmail.com</span>
+                <h4 style={{ fontWeight: "600", color: colors.yellowAccent, margin: 0 }}>John Doe</h4>
+                <span style={{ fontSize: "0.75rem", color: colors.tealAccent }}>johndoe@gmail.com</span>
               </div>
-              <MoreVertical size={20} />
+              <MoreVertical size={20} color={colors.tealAccent} />
             </div>
           </div>
         </nav>
       </aside>
-    </>
+    </React.Fragment>
   )
 }
 
-export function SidebarItem({ 
-  icon, 
-  text, 
-  active, 
-  children,
-  section,
-  onSectionChange 
-}) {
+export function SidebarItem({ icon, text, active, children, section, onSectionChange }) {
   const { expanded, isMobile, activeSection, setActiveSection } = useContext(SidebarContext)
   const [isHovered, setIsHovered] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
 
+  const colors = {
+    darkBackground: '#22292f',
+    tealAccent: '#3bcdbf',
+    yellowAccent: '#FFD700',
+    lightText: '#f3f4f6',
+    cardBackground: '#2c3339'
+  };
+
   useEffect(() => {
-    // Close submenu when sidebar collapses
     if (!expanded && !isMobile) {
       setIsOpen(false)
     }
@@ -218,26 +235,30 @@ export function SidebarItem({
   }
 
   return (
-    <li style={{ listStyle: "none" }}>
+    <li style={{ listStyle: "none", margin: 0, padding: 0 }}>
       <div
         style={{
           position: "relative",
           display: "flex",
           alignItems: "center",
-          padding: "8px 12px",
+          padding: "12px",
           margin: "4px 0",
           fontWeight: "500",
           borderRadius: "6px",
           cursor: "pointer",
-          transition: "background-color 150ms",
-          backgroundColor: active ? "#dcfce7" : "transparent",
-          color: active ? "#166534" : "#4b5563",
+          transition: "all 150ms",
+          backgroundColor: active ? colors.cardBackground : "transparent",
+          color: active ? colors.yellowAccent : colors.lightText,
+          border: active ? `1px solid ${colors.tealAccent}` : "none",
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={handleClick}
       >
-        {icon}
+        {icon && React.cloneElement(icon, { 
+          color: active ? colors.yellowAccent : colors.tealAccent,
+          size: 20 
+        })}
         <span
           style={{
             overflow: "hidden",
@@ -252,6 +273,7 @@ export function SidebarItem({
         {children && (
           <ChevronDown
             size={16}
+            color={active ? colors.yellowAccent : colors.tealAccent}
             style={{
               marginLeft: "auto",
               transition: "transform 200ms",
@@ -266,12 +288,14 @@ export function SidebarItem({
               position: "absolute",
               left: "100%",
               borderRadius: "6px",
-              padding: "4px 8px",
-              marginLeft: "24px",
-              backgroundColor: "#dcfce7",
-              color: "#3730a3",
+              padding: "8px 12px",
+              marginLeft: "12px",
+              backgroundColor: colors.cardBackground,
+              color: colors.yellowAccent,
               fontSize: "0.875rem",
               zIndex: 10,
+              border: `1px solid ${colors.tealAccent}`,
+              boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
             }}
           >
             {text}
@@ -296,6 +320,14 @@ export function SidebarItem({
 
 export function SidebarSubItem({ text, active, section, onSectionChange }) {
   const { expanded, isMobile, setActiveSection } = useContext(SidebarContext)
+  
+  const colors = {
+    darkBackground: '#22292f',
+    tealAccent: '#3bcdbf',
+    yellowAccent: '#FFD700',
+    lightText: '#f3f4f6',
+    cardBackground: '#2c3339'
+  };
 
   const handleClick = () => {
     setActiveSection(section)
@@ -309,14 +341,15 @@ export function SidebarSubItem({ text, active, section, onSectionChange }) {
       style={{
         display: "flex",
         alignItems: "center",
-        padding: "8px 12px",
+        padding: "10px 12px",
         margin: "4px 0",
         fontWeight: "500",
         borderRadius: "6px",
         cursor: "pointer",
-        transition: "background-color 150ms",
-        backgroundColor: active ? "#dcfce7" : "transparent", 
-        color: active ? "#166534" : "#4b5563",
+        transition: "all 150ms",
+        backgroundColor: active ? colors.cardBackground : "transparent",
+        color: active ? colors.yellowAccent : colors.lightText,
+        border: active ? `1px solid ${colors.tealAccent}` : "none",
         fontSize: "0.875rem",
       }}
       onClick={handleClick}
