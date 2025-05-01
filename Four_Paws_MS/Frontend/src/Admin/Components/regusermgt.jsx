@@ -1,23 +1,19 @@
-//adminuser management section
 import React, { useState, useEffect } from "react";
-import {
-  FaPlus,
-  FaEdit,
-  FaTrash,
-} from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { FaCamera } from "react-icons/fa";
+import paw from "../../assets/paw_vector.png";
 
-
-
-const RegUserMgt = () => {
+const RegUserMGT = () => {
   const [users, setUsers] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
+  const [editinguser, setEditingUser] = useState(null);
 
   const fetchUsers = async () => {
     const res = await axios.get(
-      "http://localhost:3001/api/adregform/employees"
+      "http://localhost:3001/api/adreguserform/regusers"
     );
     setUsers(res.data);
   };
@@ -26,22 +22,21 @@ const RegUserMgt = () => {
     fetchUsers();
   }, []);
 
-  const deleteUser = async (employee_id) => {
+  const deleteUser = async (Owner_id) => {
     try {
       if (window.confirm("Are you sure you want to delete this user?")) {
         const response = await axios.delete(
-          `http://localhost:3001/api/adregform/empdelete?employee_id=${employee_id}`
+          `http://localhost:3001/api/adreguserform/userdelete?Owner_id=${Owner_id}`
         );
         alert(response.data.message);
-        fetchUsers();
+        fetchProducts();
       }
     } catch (error) {
       alert(error.response?.data?.error || "An error occurred while deleting.");
     }
   };
-
   return (
-    <div className="relative">
+    <div>
       <div className="flex justify-end mb-4">
         <Button
           className="bg-[#71C9CE] hover:bg-gray-50 text-gray-900 flex items-center"
@@ -50,30 +45,42 @@ const RegUserMgt = () => {
             setShowForm(true);
           }}
         >
-          <FaPlus className="mr-2" /> Add Regular User
+          <FaPlus className="mr-2" /> Add New Regular User
         </Button>
       </div>
       <div className="">
         <div className="overflow-y-auto max-h-[400px]">
-          <table className="w-full text-left bg-gray-50 shadow-md rounded">
+          <table className="w-full text-left bg-gray-50 shadow-md">
             <thead className="bg-[#71C9CE] text-gray-900 sticky top-0 z-10">
               <tr>
-                <th className="p-3">Name</th>
-                <th className="p-3">Email</th>
-                <th className="p-3">Role</th>
-                <th className="p-3">Status</th>
-                <th className="p-3">Actions</th>
+                <th className="p-3 border-l-2">Owner Name</th>
+                <th className="p-3 border-l-2">Owner E-mail</th>
+                <th className="p-3 border-l-2">Address</th>
+                <th className="p-3 border-l-2">Phone</th>
+                <th className="p-3 border-l-2">Pet Name</th>
+                <th className="p-3 border-l-2">Status</th>
+                <th className="p-3 border-l-2">Actioins</th>
               </tr>
             </thead>
             <tbody>
               {users.map((u) => (
-                <tr key={u.employee_id} className="border-t">
-                  <td className="p-3">
-                    {u.first_name} {u.last_name}
+                <tr key={u.Owner_id} className="border-t">
+                  <td className="p-3 ">{u.Owner_name}</td>
+                  <td className="p-3">{u.E_mail}</td>
+                  <td className="p-3">{u.Owner_address}</td>
+                  <td className="p-3">{u.Phone_number}</td>
+                  <td className="p-3">{u.Pet_name}</td>
+
+                  <td
+                    className={`p-3 ${
+                      u.Account_status != "Inactive"
+                        ? "text-[#71C9CE] font-bold"
+                        : "font-bold text-red-500"
+                    }`}
+                  >
+                    {u.Account_status}
                   </td>
-                  <td className="p-3">{u.email}</td>
-                  <td className="p-3">{u.role}</td>
-                  <td className="p-3">{u.status}</td>
+
                   <td className="p-3 space-x-2">
                     <Button
                       size="sm"
@@ -87,7 +94,7 @@ const RegUserMgt = () => {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => deleteUser(u.employee_id)}
+                      onClick={() => deleteUser(u.Owner_id)}
                     >
                       <FaTrash />
                     </Button>
@@ -99,9 +106,9 @@ const RegUserMgt = () => {
         </div>
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full max-w-2xl z-20 p-4 rounded-md">
           {showForm && (
-            <EmployeeRegistrationForm
+            <UserForm
               closeForm={() => setShowForm(false)}
-              editingUser={editingUser}
+              editingUser={editinguser}
               refreshUsers={fetchUsers}
             />
           )}
@@ -111,42 +118,83 @@ const RegUserMgt = () => {
   );
 };
 
-const EmployeeRegistrationForm = ({ closeForm, editingUser, refreshUsers }) => {
+const UserForm = ({ closeForm, editingUser, refreshUsers }) => {
   const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone_number: "",
-    date_of_birth: "",
-    gender: "Male",
-    role: "Admin",
-    address: "",
-    password: "",
-    status: "Active",
+    Owner_name: "",
+    E_mail: "",
+    Owner_address: "",
+    Phone_number: "",
+    Pet_name: "",
+    Pet_type: "",
+    Pet_gender: "",
+    Pet_dob: "",
+    Account_status: "Active",
+    confirmPassword: "",
+    image: null,
+    oldImage: "",
   });
 
   useEffect(() => {
-    if (editingUser) setFormData(editingUser);
+    if (editingUser) {
+      setFormData({
+        ...editingUser,
+        image: null, // clear input
+        oldImage: editingUser.Pro_pic || "", // set old image path
+      });
+    }
   }, [editingUser]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, files } = e.target;
+    if (name === "image") {
+      setFormData({ ...formData, image: files[0] });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const submitData = new FormData();
+
+    // Append all form fields
+    // Always send this
+    submitData.append("Owner_id", editingUser?.Owner_id);
+
+    // Append non-file fields explicitly
+    submitData.append("Owner_name", formData.Owner_name);
+    submitData.append("E_mail", formData.E_mail);
+    submitData.append("Owner_address", formData.Owner_address);
+    submitData.append("Phone_number", formData.Phone_number);
+    submitData.append("Pet_name", formData.Pet_name);
+    submitData.append("Pet_type", formData.Pet_type);
+    submitData.append("Pet_gender", formData.Pet_dob);
+    submitData.append("Pet_gender", formData.Pet_gender);
+    submitData.append("Account_status", formData.Account_status);
+    submitData.append("confirmPassword", formData.confirmPassword);
+
+    // Handle image logic
+    if (formData.image instanceof File) {
+      submitData.append("image", formData.image);
+    } else if (formData.oldImage) {
+      submitData.append("oldImage", formData.oldImage);
+    }
+
     try {
       if (editingUser) {
         await axios.put(
-          `http://localhost:3001/api/adregform/empupdate?employee_id=${editingUser.employee_id}`,
-          formData
+          `http://localhost:3001/api/adreguserform/reguserupdate?Owner_id=${editingUser.Owner_id}`,
+          submitData,
+          { headers: { "Content-Type": "multipart/form-data" } }
         );
-        alert("profile updated!");
+        alert("User updated!");
       } else {
         await axios.post(
-          "http://localhost:3001/api/adregform/empregister",
-          formData
+          "http://localhost:3001/api/adreguserform/reguserregister",
+          submitData,
+          { headers: { "Content-Type": "multipart/form-data" } }
         );
+        alert("User added");
       }
       refreshUsers();
       closeForm();
@@ -171,128 +219,219 @@ const EmployeeRegistrationForm = ({ closeForm, editingUser, refreshUsers }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
-      <h2 className="text-xl font-semibold mb-4 text-[#028478]">
-        {editingUser ? "Edit" : "Register New"} Employee
-      </h2>
-      <form
-        className="grid grid-cols-1 md:grid-cols-2 gap-4"
-        onSubmit={handleSubmit}
-      >
-        <input
-          type="text"
-          name="first_name"
-          placeholder="First Name"
-          className="p-2 border rounded-md"
-          onChange={handleChange}
-          value={formData.first_name}
-          required
-        />
-        <input
-          type="text"
-          name="last_name"
-          placeholder="Last Name"
-          className="p-2 border rounded-md"
-          onChange={handleChange}
-          value={formData.last_name}
-          required
-        />
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          className="p-2 border rounded-md"
-          onChange={handleChange}
-          value={formData.email}
-          required
-        />
-        <input
-          type="text"
-          name="phone_number"
-          placeholder="Phone Number"
-          className="p-2 border rounded-md"
-          onChange={handleChange}
-          value={formData.phone_number}
-          required
-        />
-        <input
-          type="date"
-          name="date_of_birth"
-          className="p-2 border rounded-md"
-          onChange={handleChange}
-          value={
-            formData.date_of_birth
-              ? new Date(formData.date_of_birth).toISOString().split("T")[0]
-              : ""
-          }
-          required
-        />
-        <select
-          name="gender"
-          className="p-2 border rounded-md"
-          onChange={handleChange}
-          value={formData.gender}
-          required
+    <div className="bg-white/30 backdrop-blur-md p-20">
+      <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
+        <h2 className="text-xl font-semibold mb-4 text-[#028478]">
+          {editingUser ? "Edit" : "Register New"} Product
+        </h2>
+        <form
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          onSubmit={handleSubmit}
         >
-          <option>Male</option>
-          <option>Female</option>
-          <option>Other</option>
-        </select>
-        <select
-          name="role"
-          className="p-2 border rounded-md"
-          onChange={handleChange}
-          value={formData.role}
-          required
-        >
-          <option>Admin</option>
-          <option>Doctor</option>
-          <option>Assistant Doctor</option>
-          <option>Pharmacist</option>
-          <option>Pet Shopper</option>
-        </select>
-        { editingUser && (<select
-          name="status"
-          className="p-2 border rounded-md"
-          onChange={handleChange}
-          value={formData.status}
-          required
-        >
-          <option>Active</option>
-          <option>Inactive</option>
-        </select>)}
-        <input
-          type="text"
-          name="address"
-          placeholder="Address"
-          className="p-2 border rounded-md col-span-2"
-          onChange={handleChange}
-          value={formData.address}
-          required
-        />
-        {!editingUser && (
+          <div className="">
+            {editingUser && (
+              <label className="flex font-bold" htmlFor="name">
+                Owner Name
+              </label>
+            )}
+            <input
+              type="text"
+              name="Owner_name"
+              placeholder="Owner Name"
+              className="flex p-2 border rounded-md"
+              onChange={handleChange}
+              value={formData.Owner_name}
+              required
+            />
+          </div>
+
+          <div>
+            {editingUser && (
+              <label className="flex font-bold" htmlFor="Category id">
+                Owner E-mail
+              </label>
+            )}
+            <input
+              type="text"
+              name="E_mail"
+              placeholder="Owner E_mail"
+              className="p-2 border rounded-md"
+              onChange={handleChange}
+              value={formData.E_mail}
+              required
+            />
+          </div>
+
+          <div>
+            {editingUser && (
+              <label className="flex font-bold" htmlFor="Brand Name">
+                Owner Address
+              </label>
+            )}
+            <input
+              type="text"
+              name="Owner_address"
+              placeholder="Owner Address"
+              className="p-2 border rounded-md"
+              onChange={handleChange}
+              value={formData.Owner_address}
+              required
+            />
+          </div>
+
+          <div>
+            {editingUser && (
+              <label className="flex font-bold" htmlFor="Unit Price">
+                Phone Number
+              </label>
+            )}
+            <input
+              type="text"
+              name="Phone_number"
+              placeholder="Phone Number"
+              className="p-2 border rounded-md"
+              onChange={handleChange}
+              value={formData.Phone_number}
+              required
+            />
+          </div>
+
+          <div>
+            {editingUser && (
+              <label className="flex font-bold" htmlFor="Unit Price">
+                Pet Name
+              </label>
+            )}
+            <input
+              type="text"
+              name="Pet_name"
+              placeholder="Pet Name"
+              className="p-2 border rounded-md"
+              onChange={handleChange}
+              value={formData.Pet_name}
+              required
+            />
+          </div>
+
+          <div>
+            {editingUser && (
+              <label className="flex font-bold" htmlFor="status">
+                Pet Type
+              </label>
+            )}
+            <select
+              name="Pet_type"
+              className="p-2 border rounded-md"
+              onChange={handleChange}
+              value={formData.Pet_type}
+              required
+            >
+              <option>Dog</option>
+              <option>Cat</option>
+              <option>Cow</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div>
+            {editingUser && (
+              <label className="flex font-bold" htmlFor="Product Description">
+                Pet DOB
+              </label>
+            )}
+            <input
+              type="date"
+              name="Pet_dob"
+              className="p-2 border rounded-md"
+              onChange={handleChange}
+              value={
+                formData.Pet_dob
+                  ? new Date(formData.Pet_dob).toISOString().split("T")[0]
+                  : ""
+              }
+              required
+            />
+          </div>
+
+          <div>
+            {editingUser && (
+              <label className="flex font-bold" htmlFor="status">
+                Pet Gender
+              </label>
+            )}
+            <select
+              name="Pet_gender"
+              className="p-2 border rounded-md"
+              onChange={handleChange}
+              value={formData.Pet_gender}
+              required
+            >
+              <option>Male</option>
+              <option>Female</option>
+            </select>
+          </div>
+
+          {editingUser && (
+            <div>
+              {editingUser && (
+                <label className="flex font-bold" htmlFor="status">
+                  Account Status
+                </label>
+              )}
+              <select
+                name="Account_status"
+                className="p-2 border rounded-md"
+                onChange={handleChange}
+                value={formData.Account_status}
+                required
+              >
+                <option>Active</option>
+                <option>Inactive</option>
+              </select>
+            </div>
+          )}
+
+<div>
+          {!editingUser && (
           <input
             type="password"
-            name="password"
+            name="confirmPassword"
             placeholder="Password"
             className="p-2 border rounded-md col-span-2"
             onChange={handleChange}
-            value={formData.password}
+            value={formData.confirmPassword}
             required
           />
         )}
-        <Button
-          type="submit"
-          className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900 col-span-2"
+          </div>
+
+          <div className="col-span-2 flex items-center">
+            <FaCamera className="mr-2 text-gray-500" />
+            <input
+              type="file"
+              name="image"
+              accept="image/*"
+              className="p-2 border rounded-md"
+              onChange={handleChange}
+            />
+          </div>
+
+          <Button
+            type="submit"
+            className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900 col-span-2"
+          >
+            {editingUser ? "Update" : "Add"}
+          </Button>
+        </form>
+        <button
+          onClick={closeForm}
+          className="mt-4 text-red-500 hover:underline"
         >
-          {editingUser ? "Update" : "Register"}
-        </Button>
-      </form>
-      <button onClick={closeForm} className="mt-4 text-red-500 hover:underline">
-        Cancel
-      </button>
+          Cancel
+        </button>
+      </div>
     </div>
   );
 };
 
-export default RegUserMgt;
+export default RegUserMGT;
