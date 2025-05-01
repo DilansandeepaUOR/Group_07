@@ -971,7 +971,7 @@ router.get('/api/sales', async (req, res) => {
       WHERE s.change_type = 'STOCK_OUT'
       GROUP BY m.id
       ORDER BY total_sold DESC
-      LIMIT 5
+      LIMIT 10
     `);
     res.json(result);
   } catch (err) {
