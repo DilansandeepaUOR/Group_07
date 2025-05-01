@@ -14,38 +14,50 @@ router.use((req, res, next) => {
 });
 
 router.get('/', async (req, res) => {
-    
-    
-    try {
-        const [counts] = await db.promise().query(`
-            SELECT
-              COUNT(*) AS total,
-              SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) AS completed,
-              SUM(CASE WHEN status = 'Scheduled' THEN 1 ELSE 0 END) AS scheduled,
-              SUM(CASE WHEN status = 'Cancelled' THEN 1 ELSE 0 END) AS cancelled
-            FROM appointments
-            WHERE DATE(appointment_date) = CURDATE()
-          `);
-          
-          const [appointments] = await db.promise().query(`
-            SELECT * FROM appointments
-            WHERE DATE(appointment_date) = CURDATE()
-          `);
-          
-          res.json({
-            total: counts[0].total,
-            completed: counts[0].completed,
-            scheduled: counts[0].scheduled,
-            cancelled: counts[0].cancelled,
-            appointments: appointments
-          });
-          
-    } catch (err) {
-        console.error('Database error:', err);
-        res.status(500).json({ error: 'Error retrieving appointment' });
-    }
-
-})
+  try {
+      // Get counts (unchanged)
+      const [counts] = await db.promise().query(`
+          SELECT
+            COUNT(*) AS total,
+            SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) AS completed,
+            SUM(CASE WHEN status = 'Scheduled' THEN 1 ELSE 0 END) AS scheduled,
+            SUM(CASE WHEN status = 'Cancelled' THEN 1 ELSE 0 END) AS cancelled
+          FROM appointments
+          WHERE DATE(appointment_date) = CURDATE()
+      `);
+      
+      // Modified appointments query with LEFT JOIN and debugging info
+      const [appointments] = await db.promise().query(`
+          SELECT 
+    a.*, 
+    p.Pet_name,
+    po.Owner_name,
+    p.Pet_id as pet_table_id,
+    po.Owner_address,
+    po.Phone_number,
+    po.E_mail,
+    po.Owner_id as owner_table_id
+FROM appointments a
+LEFT JOIN pet p ON a.pet_type = p.Pet_id
+LEFT JOIN pet_owner po ON a.owner_id = po.Owner_id
+WHERE DATE(a.appointment_date) = CURDATE()
+      `);
+      
+      console.log('Fetched appointments:', appointments); // Debug log
+      
+      res.json({
+          total: counts[0].total,
+          completed: counts[0].completed,
+          scheduled: counts[0].scheduled,
+          cancelled: counts[0].cancelled,
+          appointments: appointments
+      });
+      
+  } catch (err) {
+      console.error('Database error:', err);
+      res.status(500).json({ error: 'Error retrieving appointments' });
+  }
+});
 
 router.get('/all', async (req, res) => {
     try {
@@ -65,7 +77,18 @@ router.get('/all', async (req, res) => {
           
         // Get paginated appointments
         const [appointments] = await db.promise().query(`
-            SELECT * FROM appointments
+            SELECT 
+                  a.*, 
+                  p.Pet_name,
+                  po.Owner_name,
+                  p.Pet_id as pet_table_id,
+                  po.Owner_address,
+                  po.Phone_number,
+                  po.E_mail,
+                  po.Owner_id as owner_table_id
+              FROM appointments a
+              LEFT JOIN pet p ON a.pet_type = p.Pet_id
+              LEFT JOIN pet_owner po ON a.owner_id = po.Owner_id
             ORDER BY appointment_date DESC, appointment_time DESC
             LIMIT ? OFFSET ?
         `, [limit, offset]);

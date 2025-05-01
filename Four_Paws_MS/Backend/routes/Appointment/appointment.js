@@ -126,10 +126,10 @@ router.get('/reasons', async (req, res) => {
 });
 
 router.post('/appointment', async (req, res) => {
-  const { petType, time, date, reason, user_id, additional_note } = req.body;
-  console.log(petType, date, time, reason, additional_note, user_id);
+  const { pet_id, time, date, reason, user_id, additional_note } = req.body;
+  console.log(pet_id, date, time, reason, additional_note, user_id);
   
-  if (!petType || !time || !date || !reason) {
+  if (!pet_id || !time || !date || !reason) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
@@ -147,14 +147,14 @@ router.post('/appointment', async (req, res) => {
         `INSERT INTO appointments 
          (pet_type, appointment_time, appointment_date, reason, owner_id) 
          VALUES (?, ?, ?, ?, ?)`,
-        [petType, mysqlTime, date, reason, user_id]
+        [pet_id, mysqlTime, date, reason, user_id]
       );
     } else {
       [result] = await db.promise().query(
         `INSERT INTO appointments 
          (pet_type, appointment_time, appointment_date, reason, additional_note, owner_id) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [petType, mysqlTime, date, reason, additional_note, user_id]
+        [pet_id, mysqlTime, date, reason, additional_note, user_id]
       );
     }
     
@@ -169,7 +169,7 @@ router.post('/appointment', async (req, res) => {
       message: 'Appointment added successfully',
       appointment_id: result.insertId,
       status: 'Scheduled',
-      petType: petType,
+      petType: newAppointment[0].Pet_name,
       date: date,
       time: mysqlTime,
       reason: reason,

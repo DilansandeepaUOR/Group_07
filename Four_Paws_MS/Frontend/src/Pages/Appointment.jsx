@@ -525,89 +525,96 @@ const AppointmentDetails = () => {
                 </div>
                 <CardDescription>View and manage your pet appointments</CardDescription>
               </CardHeader>
-              <CardContent className="p-0">
-                {noAppointments ? (
-                  <div className="py-12 text-center space-y-4">
-                    <p className="text-gray-500">No appointments found</p>
-                  </div>
-                ) : getFilteredAppointments().length === 0 ? (
-                  <div className="py-12 text-center">
-                    <p className="text-gray-500">No appointments found with the selected filter</p>
-                  </div>
-                ) : (
-                  <div className="divide-y">
-                    {getFilteredAppointments().map(appointment => (
-                      <div key={appointment.appointment_id} className="p-4 hover:bg-slate-50">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h3 className="font-medium">Appointment ID: #{appointment.appointment_id}</h3>
-                            <p className="text-sm text-gray-500">Pet: {appointment.Pet_name || appointment.petType}</p>
-                          </div>
-                          <Badge className={getStatusColor(appointment.status)}>
-                            {appointment.status}
-                          </Badge>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 mb-3">
-                          <div>
-                            <p className="text-sm text-gray-500">Date</p>
-                            <p className="font-medium">{formatDate(appointment.appointment_date)}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-500">Time</p>
-                            <p className="font-medium">{convertTimeFormat(appointment.appointment_time)}</p>
-                          </div>
-                        </div>
-                        <div className="mb-3">
-                          <p className="text-sm text-gray-500">Reason</p>
-                          <p className="font-medium">{appointment.reason}</p>
-                        </div>
-                        {appointment.additional_note && (
-                          <div className="mb-3">
-                            <p className="text-sm text-gray-500">Note</p>
-                            <p className="text-sm">{appointment.additional_note}</p>
-                          </div>
-                        )}
-                        {appointment.status === "Scheduled" && (
-                          <div className="flex justify-end">
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
-                                  className="flex items-center text-red-600 border-red-200 bg-red-50 hover:bg-red-100 hover:text-red-700"
-                                >
-                                  Cancel
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to cancel this appointment? This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Go Back</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleCancelAppointment(appointment.appointment_id)}
-                                    disabled={isCancelling && cancellingAppointmentId === appointment.appointment_id}
-                                    className="bg-red-600 hover:bg-red-700 text-white"
-                                  >
-                                    {isCancelling && cancellingAppointmentId === appointment.appointment_id 
-                                      ? "Cancelling..." 
-                                      : "Yes, Cancel Appointment"
-                                    }
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
+              <CardContent className="p-4">
+  {noAppointments ? (
+    <div className="py-8 text-center space-y-2">
+      <p className="text-gray-500 text-sm">No appointments found</p>
+    </div>
+  ) : getFilteredAppointments().length === 0 ? (
+    <div className="py-8 text-center">
+      <p className="text-gray-500 text-sm">No appointments found with the selected filter</p>
+    </div>
+  ) : (
+    <div className="space-y-3">
+      {getFilteredAppointments().map((appointment) => (
+        <div
+          key={appointment.appointment_id}
+          className="p-3 border border-gray-200 rounded-lg hover:bg-slate-50 transition-colors"
+        >
+          <div className="flex justify-between items-center mb-2">
+            <div className="text-sm font-semibold text-gray-800">
+              #{appointment.appointment_id} - {appointment.Pet_name || appointment.petType}
+            </div>
+            <Badge className={`text-xs px-2 py-0.5 ${getStatusColor(appointment.status)}`}>
+              {appointment.status}
+            </Badge>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 text-sm text-gray-600 gap-2 mb-2">
+            <div>
+              <span className="block text-gray-400">Date</span>
+              {formatDate(appointment.appointment_date)}
+            </div>
+            <div>
+              <span className="block text-gray-400">Time</span>
+              {convertTimeFormat(appointment.appointment_time)}
+            </div>
+            <div className="col-span-2 sm:col-span-1">
+              <span className="block text-gray-400">Reason</span>
+              {appointment.reason}
+            </div>
+            {appointment.additional_note && (
+              <div className="col-span-2">
+                <span className="block text-gray-400">Note</span>
+                {appointment.additional_note}
+              </div>
+            )}
+          </div>
+
+          {appointment.status === "Scheduled" && (
+            <div className="flex justify-end mt-2">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    size="xs"
+                    variant="outline"
+                    className="text-red-600 border-red-300 bg-red-50 hover:bg-red-100 hover:text-red-700"
+                  >
+                    Cancel
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to cancel this appointment? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Go Back</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => handleCancelAppointment(appointment.appointment_id)}
+                      disabled={
+                        isCancelling && cancellingAppointmentId === appointment.appointment_id
+                      }
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      {isCancelling && cancellingAppointmentId === appointment.appointment_id
+                        ? "Cancelling..."
+                        : "Yes, Cancel"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  )}
+</CardContent>
+
+
               <CardFooter className="bg-slate-50 border-t p-4">
                 <Button 
                   onClick={() => setActiveTab("actions")}

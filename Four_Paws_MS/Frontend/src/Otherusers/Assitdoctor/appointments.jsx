@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { Eye, Pencil, XCircle } from 'lucide-react';
+
 
 const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
@@ -72,7 +74,7 @@ const Appointments = () => {
     setShowModal(true);
   };
 
-  const handleEdit = async (appointmentId) => {
+  const handleCancel = async (appointmentId) => {
     const confirmCancel = window.confirm("Are you sure you want to cancel this appointment?");
     if (!confirmCancel) return;
   
@@ -83,6 +85,25 @@ const Appointments = () => {
   
       const updatedAppointments = appointments.map((a) =>
         a.appointment_id === appointmentId ? { ...a, status: 'Cancelled' } : a
+      );
+      setAppointments(updatedAppointments);
+    } catch (error) {
+      console.error('Error updating appointment status:', error);
+    }
+  };
+
+
+  const handleEdit = async (appointmentId) => {
+    const confirmCancel = window.confirm("Are you sure you want to Complete this appointment?");
+    if (!confirmCancel) return;
+  
+    try {
+      await axios.put(`http://localhost:3001/api/assistantdoctor/${appointmentId}`, {
+        status: 'Completed'
+      });
+  
+      const updatedAppointments = appointments.map((a) =>
+        a.appointment_id === appointmentId ? { ...a, status: 'Completed' } : a
       );
       setAppointments(updatedAppointments);
     } catch (error) {
@@ -128,7 +149,7 @@ const Appointments = () => {
         <table className="min-w-full">
           <thead className="bg-[#71C9CE]">
             <tr>
-              {['Pet Type', 'Owner ID', 'Date & Time', 'Reason', 'Status', 'Actions'].map((h) => (
+              {['Appointment  ID', 'Owner Name', 'Date & Time', 'Reason', 'Status', 'Actions'].map((h) => (
                 <th key={h} className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                   {h}
                 </th>
@@ -138,8 +159,8 @@ const Appointments = () => {
           <tbody className="divide-y divide-gray-200">
             {appointments.map((appointment) => (
               <tr key={appointment.appointment_id}>
-                <td className="px-6 py-4 text-sm text-gray-900">{appointment.pet_type}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{appointment.owner_id}</td>
+                <td className="px-6 py-4 text-sm text-gray-900">{appointment.appointment_id}</td>
+                <td className="px-6 py-4 text-sm text-gray-900">{appointment.Owner_name}</td>
                 <td className="px-6 py-4 text-sm text-gray-900">
                   {new Date(appointment.appointment_date).toLocaleDateString()} at {appointment.appointment_time}
                 </td>
@@ -149,16 +170,34 @@ const Appointments = () => {
                     {appointment.status}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-sm font-medium">
-                  <button onClick={() => handleView(appointment)} className="text-[#028478] hover:text-[#71C9CE] mr-3">
-                    View
-                  </button>
-                  {appointment.status.toLowerCase() !== 'cancelled' && appointment.status.toLowerCase() !== 'completed' && (
-                    <button onClick={() => handleEdit(appointment.appointment_id)} className="text-[#028478] hover:text-[#71C9CE]">
-                      Cancel
+                <td className="px-6 py-4 text-sm font-medium flex gap-3 items-center">
+                    <button 
+                      onClick={() => handleView(appointment)} 
+                      className="flex items-center text-[#028478] hover:text-[#71C9CE]">
+                      <Eye className="w-4 h-4 mr-1" />  
                     </button>
-                  )}
-                </td>
+
+                    {appointment.status.toLowerCase() !== 'cancelled' &&
+                    appointment.status.toLowerCase() !== 'completed' && (
+                      <>
+                        <button 
+                          onClick={() => handleEdit(appointment.appointment_id)} 
+                          className="flex items-center text-[#028478] hover:text-[#71C9CE]"
+                        >
+                          <Pencil className="w-4 h-4 mr-1" />
+                          
+                        </button>
+                        <button 
+                          onClick={() => handleCancel(appointment.appointment_id)} 
+                          className="flex items-center text-red-600 hover:text-red-700"
+                        >
+                          <XCircle className="w-4 h-4 mr-1" />
+                          
+                        </button>
+                      </>
+                    )}
+                  </td>
+
               </tr>
             ))}
           </tbody>
@@ -197,40 +236,54 @@ const Appointments = () => {
 
       {/* View Modal */}
       {showModal && selectedAppointment && (
-  <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
-      <h3 className="text-2xl font-bold mb-4 text-[#028478]">Appointment Details</h3>
-      <div className="space-y-2 text-gray-800">
-        <DetailRow label="Pet Type" value={selectedAppointment.pet_type} />
-        <DetailRow label="Owner ID" value={selectedAppointment.owner_id} />
-        <DetailRow
-          label="Appointment Date & Time"
-          value={`${new Date(selectedAppointment.appointment_date).toLocaleDateString()} at ${selectedAppointment.appointment_time}`}
-        />
-        <DetailRow label="Reason" value={selectedAppointment.reason} />
-        <DetailRow
-          label="Status"
-          value={
-            <span className={`px-2 inline-flex text-xs font-semibold rounded-full ${getStatusClass(selectedAppointment.status)}`}>
-              {selectedAppointment.status}
-            </span>
-          }
-        />
+  <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm px-4">
+  <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8">
+    <h3 className="text-2xl font-semibold text-[#028478] mb-6 text-center">
+      Appointment Id: #{selectedAppointment.appointment_id}
+    </h3>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm text-gray-800">
+      <DetailRow label="Pet Name" value={selectedAppointment.Pet_name} />
+      <DetailRow label="Owner Name" value={selectedAppointment.Owner_name} />
+      <DetailRow label="Address" value={selectedAppointment.Owner_address} />
+      <DetailRow label="Phone Number" value={selectedAppointment.Phone_number} />
+      <DetailRow label="Email" value={selectedAppointment.E_mail} />
+      <DetailRow
+        label="Date & Time"
+        value={`${new Date(selectedAppointment.appointment_date).toLocaleDateString()} at ${selectedAppointment.appointment_time}`}
+      />
+      <DetailRow label="Reason" value={selectedAppointment.reason} />
+      <DetailRow
+        label="Status"
+        value={
+          <span
+            className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusClass(
+              selectedAppointment.status
+            )}`}
+          >
+            {selectedAppointment.status}
+          </span>
+        }
+      />
+      <div className="sm:col-span-2">
         <DetailRow
           label="Additional Note"
-          value={selectedAppointment.additional_note || 'No additional notes available.'}
+          value={
+            selectedAppointment.additional_note || 'No additional notes available.'
+          }
         />
       </div>
-      <div className="flex justify-end mt-6">
-        <button
-          onClick={closeModal}
-          className="bg-[#028478] text-white px-4 py-2 rounded hover:bg-[#046a5b]"
-        >
-          Close
-        </button>
-      </div>
+    </div>
+    <div className="flex justify-end mt-8">
+      <button
+        onClick={closeModal}
+        className="bg-[#028478] text-white px-5 py-2 rounded-md hover:bg-[#046a5b] transition"
+      >
+        Close
+      </button>
     </div>
   </div>
+</div>
+
 )}
 
     </div>
