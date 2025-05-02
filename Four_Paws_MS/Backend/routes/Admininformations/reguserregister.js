@@ -31,7 +31,7 @@ router.post("/reguserregister", upload.single("image"), async (req, res) => {
         // Hash password
         const hashedPassword = await bcrypt.hash(confirmPassword, 10);
         const ownersql =
-          "INSERT INTO pet_owner (Owner_name, Owner_address, Phone_number, E_mail, Password, Pro_pic) VALUES (?, ?, ?, ?, ?, ?)";
+          "INSERT INTO pet_owner (Owner_name, Owner_address, Phone_number, E_mail, Password, Pro_pic) VALUES (?, ?, ?, ?, ?, ?);";
 
         db.query(
           ownersql,
