@@ -661,9 +661,7 @@ const AppointmentDetails = () => {
                               </SelectItem>
                             ))
                           ) : (
-                            <SelectItem value="" disabled>
-                              No pets found
-                            </SelectItem>
+                            <div className="text-sm text-gray-500 p-2"><p>No pets found. Please add a pet.</p></div>
                           )}
                         </SelectContent>
                       </Select>

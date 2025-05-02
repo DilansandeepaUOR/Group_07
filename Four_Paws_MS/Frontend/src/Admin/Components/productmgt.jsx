@@ -24,7 +24,7 @@ const ProductManagement = () => {
 
   const deleteProduct = async (product_id) => {
     try {
-      if (window.confirm("Are you sure you want to delete this user?")) {
+      if (window.confirm("Are you sure you want to delete this product?")) {
         const response = await axios.delete(
           `http://localhost:3001/api/adminpetshop/productdelete?product_id=${product_id}`
         );
