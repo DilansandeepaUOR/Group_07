@@ -1,8 +1,12 @@
+"use client"
+
 import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, Sector } from "recharts";
-import { PieChart as PieChartIcon } from "react-feather";
+import { PieChart as PieChartIcon } from "lucide-react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function ReportsSection() {
   const [isLoading, setIsLoading] = useState(true);
@@ -15,20 +19,12 @@ export default function ReportsSection() {
   const [loadingRevenue, setLoadingRevenue] = useState(false);
   const [errorRevenue, setErrorRevenue] = useState(null);
 
-  const colors = {
-    darkBackground: 'rgba(34,41,47,255)',
-    tealAccent: 'rgba(59,205,191,255)',
-    yellowAccent: '#FFD700',
-    lightText: '#f3f4f6',
-    cardBackground: 'rgba(44,51,57,255)'
-  };
-
   const CHART_COLORS = [
-    colors.tealAccent,
-    colors.yellowAccent,
-    '#FF8042',
-    '#8884d8',
-    '#00C49F'
+    '#71C9CE',  // Teal accent
+    '#A6E3E9',  // Light teal
+    '#FFD700',  // Yellow
+    '#FF8042',  // Orange
+    '#8884d8'   // Purple
   ];
 
   const periods = [
@@ -138,7 +134,7 @@ export default function ReportsSection() {
 
     return (
       <g>
-        <text x={cx} y={cy} dy={8} textAnchor="middle" fill="#fff">{payload.name}</text>
+        <text x={cx} y={cy} dy={8} textAnchor="middle" fill="#333">{payload.name}</text>
         <Sector
           cx={cx}
           cy={cy}
@@ -150,205 +146,121 @@ export default function ReportsSection() {
         />
         <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
         <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
-        <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#ccc">{`${value} units`}</text>
-        <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey + 20} textAnchor={textAnchor} fill="#ccc">{(percent * 100).toFixed(2)}%</text>
+        <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#555">{`${value} units`}</text>
+        <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey + 20} textAnchor={textAnchor} fill="#555">{(percent * 100).toFixed(2)}%</text>
       </g>
     );
   };
 
   return (
-    <div style={{
-      padding: "24px",
-      backgroundColor: colors.darkBackground,
-      minHeight: "100vh"
-    }}>
-      <h1 style={{
-        fontSize: "1.5rem",
-        fontWeight: "bold",
-        marginBottom: "24px",
-        color: colors.yellowAccent
-      }}>
-        Reports & Analytics
-      </h1>
+    <div className="min-h-screen bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">Reports & Analytics</h1>
 
-      {/* Top Selling Medicines */}
-      <div style={{
-        backgroundColor: colors.cardBackground,
-        padding: "20px",
-        borderRadius: "8px",
-        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-        marginBottom: "24px"
-      }}>
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "16px"
-        }}>
-          <h2 style={{
-            fontSize: "1.125rem",
-            fontWeight: "600",
-            color: colors.lightText,
-            display: "flex",
-            alignItems: "center"
-          }}>
-            <PieChartIcon style={{ marginRight: "8px" }} color={colors.yellowAccent} size={18} />
-            Top Selling Medicines
-          </h2>
-          {topMedicines.length > 0 && (
-            <div style={{
-              fontSize: "0.875rem",
-              color: colors.tealAccent
-            }}>
-              Total Sold: {topMedicines.reduce((sum, med) => sum + med.value, 0).toLocaleString()} units
-            </div>
-          )}
+        {/* Top Selling Medicines */}
+        <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg p-6 mb-6 border border-[#71C9CE]">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
+            <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+              <PieChartIcon className="mr-2 text-[#71C9CE]" size={20} />
+              Top Selling Medicines
+            </h2>
+            {topMedicines.length > 0 && (
+              <div className="text-sm text-[#71C9CE] font-medium">
+                Total Sold: {topMedicines.reduce((sum, med) => sum + med.value, 0).toLocaleString()} units
+              </div>
+            )}
+          </div>
+
+          <div className="h-80">
+            {isLoading ? (
+              <div className="h-full flex items-center justify-center bg-white/20 rounded-lg">
+                <div className="text-[#71C9CE]">Loading medicine data...</div>
+              </div>
+            ) : error ? (
+              <div className="h-full flex items-center justify-center bg-white/20 rounded-lg text-red-500">
+                Error: {error}
+              </div>
+            ) : topMedicines.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    activeIndex={activeIndex}
+                    activeShape={renderActiveShape}
+                    data={topMedicines}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    nameKey="name"
+                    onMouseEnter={(_, index) => setActiveIndex(index)}
+                    onMouseLeave={() => setActiveIndex(null)}
+                    animationDuration={800}
+                  >
+                    {topMedicines.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={CHART_COLORS[index % CHART_COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value, name, props) => [
+                      `${value} units sold`,
+                      `Revenue: ${formatCurrency(props.payload.revenue)}`
+                    ]}
+                    contentStyle={{
+                      backgroundColor: 'rgba(255,255,255,0.9)',
+                      border: `1px solid #71C9CE`,
+                      borderRadius: '6px',
+                      color: '#333'
+                    }}
+                  />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center bg-white/20 rounded-lg">
+                <div className="text-[#71C9CE]">No sales data available</div>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div style={{ height: "320px" }}>
-          {isLoading ? (
-            <div style={{
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "rgba(255,255,255,0.05)",
-              borderRadius: "8px"
-            }}>
-              <div style={{ color: colors.tealAccent }}>Loading medicine data...</div>
-            </div>
-          ) : error ? (
-            <div style={{
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "rgba(255,255,255,0.05)",
-              borderRadius: "8px",
-              color: "#ef4444"
-            }}>
-              Error: {error}
-            </div>
-          ) : topMedicines.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  activeIndex={activeIndex}
-                  activeShape={renderActiveShape}
-                  data={topMedicines}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  nameKey="name"
-                  onMouseEnter={(_, index) => setActiveIndex(index)}
-                  onMouseLeave={() => setActiveIndex(null)}
-                  animationDuration={800}
-                >
-                  {topMedicines.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={CHART_COLORS[index % CHART_COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value, name, props) => [
-                    `${value} units sold`,
-                    `Revenue: ${formatCurrency(props.payload.revenue)}`
-                  ]}
-                  contentStyle={{
-                    backgroundColor: colors.cardBackground,
-                    border: `1px solid ${colors.tealAccent}`,
-                    borderRadius: '6px',
-                    color: colors.lightText
-                  }}
-                />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div style={{
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "rgba(255,255,255,0.05)",
-              borderRadius: "8px"
-            }}>
-              <div style={{ color: colors.tealAccent }}>No sales data available</div>
-            </div>
-          )}
-        </div>
-      </div>
+        {/* Sales Revenue Report */}
+        <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg p-6 border border-[#71C9CE]">
+          <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
+            <Select value={period} onValueChange={setPeriod}>
+              <SelectTrigger className="w-[180px] bg-white/70">
+                <SelectValue placeholder="Select period" />
+              </SelectTrigger>
+              <SelectContent>
+                {periods.map(opt => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-      {/* Sales Revenue Report */}
-      <div style={{
-        backgroundColor: colors.cardBackground,
-        padding: "20px",
-        borderRadius: "8px",
-        boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
-      }}>
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "16px",
-          marginBottom: "20px"
-        }}>
-          <select
-            value={period}
-            onChange={(e) => setPeriod(e.target.value)}
-            style={{
-              padding: "8px 12px",
-              borderRadius: "8px",
-              border: "1px solid #6B7280",
-              backgroundColor: "#374151",
-              color: "#f3f4f6",
-              cursor: "pointer"
-            }}
-          >
-            {periods.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
+            <Button 
+              onClick={exportPDF}
+              className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
+            >
+              Export as PDF
+            </Button>
+          </div>
 
-          <button
-            onClick={exportPDF}
-            style={{
-              padding: "8px 20px",
-              backgroundColor: colors.tealAccent,
-              color: colors.darkBackground,
-              border: "none",
-              borderRadius: "8px",
-              fontWeight: "600",
-              cursor: "pointer"
-            }}
-          >
-            Export as PDF
-          </button>
-        </div>
-
-        <div style={{
-          padding: "24px",
-          backgroundColor: "#374151",
-          borderRadius: "10px",
-          minHeight: "120px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          fontSize: "1.5rem",
-          fontWeight: "bold",
-          color: colors.tealAccent
-        }}>
-          {loadingRevenue ? (
-            <div>Loading revenue...</div>
-          ) : errorRevenue ? (
-            <div style={{ color: "#ef4444" }}>Error: {errorRevenue}</div>
-          ) : (
-            <div>Total Revenue: LKR {revenue?.toFixed(2)}</div>
-          )}
+          <div className="p-6 bg-white/50 rounded-lg shadow-inner flex justify-center items-center min-h-32">
+            {loadingRevenue ? (
+              <div className="text-[#71C9CE]">Loading revenue...</div>
+            ) : errorRevenue ? (
+              <div className="text-red-500">Error: {errorRevenue}</div>
+            ) : (
+              <div className="text-2xl font-bold text-[#71C9CE]">
+                Total Revenue: LKR {revenue?.toFixed(2)}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

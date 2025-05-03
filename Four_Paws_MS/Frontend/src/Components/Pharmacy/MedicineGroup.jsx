@@ -2,24 +2,12 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { Plus, Edit, Trash2, X, Search, Eye, ChevronLeft, ChevronRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export default function MedicineGroupSection() {
   const API_BASE_URL = "http://localhost:3001/pharmacy/api/medicine-groups";
   const MEDICINES_API_URL = "http://localhost:3001/pharmacy/api/medicines";
   
-  // Color scheme
-  const colors = {
-    darkBackground: 'rgba(34,41,47,255)',
-    tealAccent: 'rgba(59,205,191,255)',
-    yellowAccent: '#FFD700',
-    lightText: '#f3f4f6',
-    darkText: '#111827',
-    cardBackground: 'rgba(44,51,57,255)',
-    warningRed: '#ef4444',
-    successGreen: '#10b981',
-    borderColor: 'rgba(255,255,255,0.1)'
-  };
-
   // State declarations
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false)
   const [showViewGroupModal, setShowViewGroupModal] = useState(false)
@@ -49,11 +37,12 @@ export default function MedicineGroupSection() {
   const itemsPerPage = 5
 
   // Memoized filtered groups
-  const filteredGroups = useMemo(() => {
-    return medicineGroups.filter(group =>
-      group.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  }, [medicineGroups, searchTerm])
+const filteredGroups = useMemo(() => {
+  return medicineGroups.filter(group =>
+    group.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+}, [medicineGroups, searchTerm]);
+
 
   // Fetch medicine groups
   useEffect(() => {
@@ -106,10 +95,8 @@ export default function MedicineGroupSection() {
         throw new Error(errorData.error || 'Failed to add medicines to group');
       }
   
-      // Get the updated group data from the response
       const result = await response.json();
       
-      // Update the groups list with the new count
       setMedicineGroups(prevGroups => 
         prevGroups.map(group => 
           group.id === selectedGroup.id 
@@ -122,7 +109,6 @@ export default function MedicineGroupSection() {
         )
       );
       
-      // Also update the selectedGroup if the view modal is open
       if (showViewGroupModal) {
         setSelectedGroup(prev => ({
           ...prev,
@@ -189,7 +175,6 @@ export default function MedicineGroupSection() {
   
       const data = await response.json()
       
-      // Refresh the groups list
       const fetchResponse = await fetch(
         `${API_BASE_URL}?search=${searchTerm}&page=${currentPage}&limit=${itemsPerPage}`
       )
@@ -197,7 +182,6 @@ export default function MedicineGroupSection() {
       
       setMedicineGroups(fetchData.data || fetchData)
       
-      // Reset form
       setNewGroupName("")
       setNewGroupDescription("")
       setShowCreateGroupModal(false)
@@ -263,11 +247,9 @@ export default function MedicineGroupSection() {
       
       if (!response.ok) throw new Error('Failed to remove medicine from group')
       
-      // Refresh the group data
       const groupResponse = await fetch(`${API_BASE_URL}/${groupId}`)
       const updatedGroup = await groupResponse.json()
       
-      // Update in the groups list
       const updatedGroups = medicineGroups.map(group => {
         if (group.id === groupId) {
           return {
@@ -304,11 +286,9 @@ export default function MedicineGroupSection() {
         })
       ))
       
-      // Refresh the group data
       const groupResponse = await fetch(`${API_BASE_URL}/${groupId}`)
       const updatedGroup = await groupResponse.json()
       
-      // Update in the groups list
       const updatedGroups = medicineGroups.map(group => {
         if (group.id === groupId) {
           return {
@@ -415,708 +395,103 @@ export default function MedicineGroupSection() {
     }
   }, [fetchAvailableMedicines])
 
-  // Render checkbox for medicine selection
-  const renderMedicineCheckbox = useCallback((medicine) => (
-    <td style={{ padding: "12px 16px" }}>
-      <div style={{ display: "flex", alignItems: "center" }}>
-        <input
-          type="checkbox"
-          style={{
-            width: "16px",
-            height: "16px",
-            borderRadius: "4px",
-            border: `1px solid ${colors.borderColor}`,
-            backgroundColor: colors.cardBackground,
-            accentColor: colors.tealAccent
-          }}
-          checked={selectedMedicines.includes(medicine.id)}
-          onChange={() => toggleSelectItem(medicine.id)}
-          disabled={loading}
-          id={`medicine-${medicine.id}`}
-        />
-        <label htmlFor={`medicine-${medicine.id}`} style={{ display: "none" }}>
-          Select {medicine.name}
-        </label>
-      </div>
-    </td>
-  ), [selectedMedicines, loading, toggleSelectItem, colors])
-
   return (
-    <div style={{
-      padding: "24px",
-      backgroundColor: colors.darkBackground,
-      minHeight: "100vh"
-    }}>
-      <h1 style={{ 
-        fontSize: "1.5rem", 
-        fontWeight: "bold", 
-        marginBottom: "24px",
-        color: colors.yellowAccent
-      }}>
-        Medicine Groups
-      </h1>
+    <div className="min-h-screen bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">Medicine Groups</h1>
 
-      {error && (
-        <div style={{
-          color: colors.warningRed,
-          padding: "12px",
-          backgroundColor: "rgba(239,68,68,0.1)",
-          borderRadius: "6px",
-          marginBottom: "16px",
-          border: `1px solid ${colors.warningRed}`
-        }}>
-          Error: {error}
-        </div>
-      )}
-
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        marginBottom: "24px",
-        gap: "16px",
-        flexWrap: "wrap"
-      }}>
-        <input
-          type="text"
-          placeholder="Search group..."
-          style={{
-            flex: 1,
-            padding: "10px 16px",
-            backgroundColor: colors.cardBackground,
-            border: `1px solid ${colors.borderColor}`,
-            borderRadius: "6px",
-            color: colors.lightText,
-            maxWidth: "400px",
-            minWidth: "250px"
-          }}
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value)
-            setCurrentPage(1)
-          }}
-        />
-        <button 
-          style={{
-            backgroundColor: colors.tealAccent,
-            color: colors.darkText,
-            padding: "10px 16px",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontWeight: "500",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            transition: "all 0.2s",
-            ':hover': {
-              opacity: 0.9
-            }
-          }}
-          onClick={() => setShowCreateGroupModal(true)}
-          disabled={loading}
-        >
-          <Plus size={16} />
-          Create Group
-        </button>
-      </div>
-
-      {loading ? (
-        <div style={{ 
-          textAlign: "center",
-          padding: "40px",
-          color: colors.tealAccent
-        }}>
-          Loading medicine groups...
-        </div>
-      ) : (
-        <>
-          <div style={{ 
-            overflowX: "auto",
-            borderRadius: "8px",
-            backgroundColor: colors.cardBackground,
-            boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
-          }}>
-            <table style={{ 
-              width: "100%",
-              borderCollapse: "collapse",
-              minWidth: "800px"
-            }}>
-              <thead>
-                <tr style={{ 
-                  backgroundColor: "rgba(59,205,191,0.1)",
-                  borderBottom: `1px solid ${colors.borderColor}`
-                }}>
-                  <th style={{ 
-                    padding: "14px 20px",
-                    textAlign: "left",
-                    fontWeight: "600",
-                    color: colors.tealAccent
-                  }}>Group Name</th>
-                  <th style={{ 
-                    padding: "14px 20px",
-                    textAlign: "left",
-                    fontWeight: "600",
-                    color: colors.tealAccent
-                  }}>Medicines</th>
-                  <th style={{ 
-                    padding: "14px 20px",
-                    textAlign: "left",
-                    fontWeight: "600",
-                    color: colors.tealAccent
-                  }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredGroups.length > 0 ? (
-                  filteredGroups.map((group) => (
-                    <tr key={group.id} style={{ 
-                      borderBottom: `1px solid ${colors.borderColor}`,
-                      ':hover': {
-                        backgroundColor: "rgba(255,255,255,0.05)"
-                      }
-                    }}>
-                      <td style={{ 
-                        padding: "12px 20px",
-                        color: colors.lightText,
-                        fontWeight: "500"
-                      }}>{group.name}</td>
-                      <td style={{ padding: "12px 20px" }}>
-                        <span style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          padding: "4px 12px",
-                          borderRadius: "9999px",
-                          fontSize: "0.75rem",
-                          fontWeight: "500",
-                          backgroundColor: "rgba(59,205,191,0.2)",
-                          color: colors.tealAccent
-                        }}>{group.count || 0} items</span>
-                      </td>
-                      <td style={{ padding: "12px 20px" }}>
-                        <div style={{ 
-                          display: "flex",
-                          gap: "8px",
-                          flexWrap: "wrap"
-                        }}>
-                          <button
-                            style={{
-                              padding: "8px 12px",
-                              backgroundColor: "rgba(59,205,191,0.2)",
-                              color: colors.tealAccent,
-                              border: "none",
-                              borderRadius: "6px",
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "6px",
-                              fontSize: "0.875rem",
-                              transition: "all 0.2s",
-                              ':hover': {
-                                backgroundColor: "rgba(59,205,191,0.3)"
-                              }
-                            }}
-                            onClick={() => openViewGroup(group)}
-                            disabled={loading}
-                          >
-                            <Eye size={16} />
-                            View
-                          </button>
-                          <button
-                            style={{
-                              padding: "8px 12px",
-                              backgroundColor: "rgba(255,215,0,0.2)",
-                              color: colors.yellowAccent,
-                              border: "none",
-                              borderRadius: "6px",
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "6px",
-                              fontSize: "0.875rem",
-                              transition: "all 0.2s",
-                              ':hover': {
-                                backgroundColor: "rgba(255,215,0,0.3)"
-                              }
-                            }}
-                            onClick={() => openEditGroup(group)}
-                            disabled={loading}
-                          >
-                            <Edit size={16} />
-                            Edit
-                          </button>
-                          <button
-                            style={{
-                              padding: "8px 12px",
-                              backgroundColor: "rgba(59,205,191,0.2)",
-                              color: colors.tealAccent,
-                              border: "none",
-                              borderRadius: "6px",
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "6px",
-                              fontSize: "0.875rem",
-                              transition: "all 0.2s",
-                              ':hover': {
-                                backgroundColor: "rgba(59,205,191,0.3)"
-                              }
-                            }}
-                            onClick={() => openAddMedicineModal(group)}
-                            disabled={loading}
-                          >
-                            <Plus size={16} />
-                            Add Medicines
-                          </button>
-                          <button
-                            style={{
-                              padding: "8px 12px",
-                              backgroundColor: "rgba(239,68,68,0.2)",
-                              color: colors.warningRed,
-                              border: "none",
-                              borderRadius: "6px",
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "6px",
-                              fontSize: "0.875rem",
-                              transition: "all 0.2s",
-                              ':hover': {
-                                backgroundColor: "rgba(239,68,68,0.3)"
-                              }
-                            }}
-                            onClick={() => {
-                              if (group.count > 0) {
-                                openRemoveItemModal(group)
-                              } else {
-                                setSelectedGroup(group)
-                                setShowDeleteGroupModal(true)
-                              }
-                            }}
-                            disabled={loading}
-                          >
-                            <Trash2 size={16} />
-                            {group.count > 0 ? 'Remove Items' : 'Delete Group'}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="3" style={{ 
-                      textAlign: 'center', 
-                      padding: '2rem',
-                      color: colors.lightText
-                    }}>
-                      No medicine groups found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+        {error && (
+          <div className="p-3 mb-6 bg-red-100 border border-red-400 text-red-700 rounded">
+            Error: {error}
           </div>
+        )}
 
-          <div style={{ 
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: "24px",
-            color: colors.lightText,
-            fontSize: "0.875rem"
-          }}>
-            <div>Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredGroups.length)} of {filteredGroups.length} groups</div>
-            <div style={{ 
-              display: "flex",
-              gap: "8px"
-            }}>
-              <button 
-                style={{
-                  padding: "8px",
-                  backgroundColor: currentPage === 1 ? "rgba(255,255,255,0.1)" : colors.tealAccent,
-                  color: currentPage === 1 ? colors.lightText : colors.darkText,
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: currentPage === 1 ? "not-allowed" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  transition: "all 0.2s",
-                  opacity: currentPage === 1 ? 0.7 : 1
-                }}
-                onClick={goToPrevPage}
-                disabled={currentPage === 1 || loading}
-              >
-                <ChevronLeft size={16} />
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                <button
-                  key={page}
-                  style={{
-                    padding: "8px 12px",
-                    backgroundColor: currentPage === page ? colors.tealAccent : colors.cardBackground,
-                    color: currentPage === page ? colors.darkText : colors.lightText,
-                    border: currentPage === page ? "none" : `1px solid ${colors.borderColor}`,
-                    borderRadius: "6px",
-                    fontWeight: "500",
-                    cursor: "pointer",
-                    transition: "all 0.2s",
-                    ':hover': {
-                      backgroundColor: currentPage === page ? colors.tealAccent : "rgba(255,255,255,0.1)"
-                    }
-                  }}
-                  onClick={() => goToPage(page)}
-                  disabled={loading}
-                >
-                  {page}
-                </button>
-              ))}
-              <button 
-                style={{
-                  padding: "8px",
-                  backgroundColor: currentPage === totalPages ? "rgba(255,255,255,0.1)" : colors.tealAccent,
-                  color: currentPage === totalPages ? colors.lightText : colors.darkText,
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: currentPage === totalPages ? "not-allowed" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  transition: "all 0.2s",
-                  opacity: currentPage === totalPages ? 0.7 : 1
-                }}
-                onClick={goToNextPage}
-                disabled={currentPage === totalPages || loading}
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Create Group Modal */}
-      {showCreateGroupModal && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: "rgba(0,0,0,0.5)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          zIndex: 50,
-          padding: "1rem"
-        }}>
-          <div style={{
-            backgroundColor: colors.cardBackground,
-            borderRadius: "8px",
-            width: "100%",
-            maxWidth: "32rem",
-            boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)"
-          }}>
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "20px 24px",
-              borderBottom: `1px solid ${colors.borderColor}`
-            }}>
-              <h2 style={{ 
-                fontSize: "1.125rem",
-                fontWeight: "600",
-                color: colors.lightText
-              }}>
-                Create New Group
-              </h2>
-              <button 
-                style={{
-                  color: colors.lightText,
-                  transition: "color 0.2s",
-                  ':hover': {
-                    color: colors.tealAccent
-                  }
-                }}
-                onClick={() => setShowCreateGroupModal(false)}
-                disabled={loading}
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div style={{ padding: "24px" }}>
-              <label style={{ 
-                display: "block",
-                marginBottom: "8px",
-                color: colors.lightText,
-                fontSize: "0.875rem",
-                fontWeight: "500"
-              }}>
-                Group Name
-              </label>
-              <input
-                type="text"
-                style={{
-                  width: "100%",
-                  padding: "10px 16px",
-                  backgroundColor: colors.darkBackground,
-                  border: `1px solid ${colors.borderColor}`,
-                  borderRadius: "6px",
-                  color: colors.lightText,
-                  marginBottom: "16px"
-                }}
-                placeholder="Enter group name"
-                value={newGroupName}
-                onChange={(e) => setNewGroupName(e.target.value)}
-                disabled={loading}
-              />
-              <label style={{ 
-                display: "block",
-                marginBottom: "8px",
-                color: colors.lightText,
-                fontSize: "0.875rem",
-                fontWeight: "500"
-              }}>
-                Description
-              </label>
-              <textarea
-                style={{
-                  width: "100%",
-                  padding: "10px 16px",
-                  backgroundColor: colors.darkBackground,
-                  border: `1px solid ${colors.borderColor}`,
-                  borderRadius: "6px",
-                  color: colors.lightText,
-                  marginBottom: "16px",
-                  minHeight: "100px"
-                }}
-                placeholder="Enter group description (optional)"
-                value={newGroupDescription}
-                onChange={(e) => setNewGroupDescription(e.target.value)}
-                disabled={loading}
-              />
-            </div>
-            <div style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              padding: "20px 24px",
-              borderTop: `1px solid ${colors.borderColor}`,
-              gap: "12px"
-            }}>
-              <button
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: colors.cardBackground,
-                  color: colors.lightText,
-                  border: `1px solid ${colors.borderColor}`,
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                  ':hover': {
-                    backgroundColor: "rgba(255,255,255,0.1)"
-                  }
-                }}
-                onClick={() => setShowCreateGroupModal(false)}
-                disabled={loading}
-              >
-                Cancel
-              </button>
-              <button
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: colors.tealAccent,
-                  color: colors.darkText,
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  fontWeight: "500",
-                  transition: "all 0.2s",
-                  ':hover': {
-                    opacity: 0.9
-                  }
-                }}
-                onClick={handleCreateGroup}
-                disabled={loading}
-              >
-                {loading ? 'Creating...' : 'Create Group'}
-              </button>
-            </div>
-          </div>
+        <div className="flex justify-between items-center mb-6">
+          <input
+            type="text"
+            placeholder="Search group..."
+            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#71C9CE] flex-1 max-w-md"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value)
+              setCurrentPage(1)
+            }}
+          />
+          <Button
+            className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900 flex items-center"
+            onClick={() => setShowCreateGroupModal(true)}
+          >
+            <Plus className="mr-2" /> Create Group
+          </Button>
         </div>
-      )}
 
-      {/* View Group Modal */}
-      {showViewGroupModal && selectedGroup && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: "rgba(0,0,0,0.5)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          zIndex: 50,
-          padding: "1rem"
-        }}>
-          <div style={{
-            backgroundColor: colors.cardBackground,
-            borderRadius: "8px",
-            width: "100%",
-            maxWidth: "48rem",
-            maxHeight: "80vh",
-            overflow: "auto"
-          }}>
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "20px 24px",
-              borderBottom: `1px solid ${colors.borderColor}`
-            }}>
-              <h2 style={{ 
-                fontSize: "1.125rem",
-                fontWeight: "600",
-                color: colors.lightText
-              }}>
-                {selectedGroup.name} Details
-              </h2>
-              <button 
-                style={{
-                  color: colors.lightText,
-                  transition: "color 0.2s",
-                  ':hover': {
-                    color: colors.tealAccent
-                  }
-                }}
-                onClick={() => setShowViewGroupModal(false)}
-                disabled={loading}
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div style={{ padding: "24px" }}>
-              <p style={{ 
-                color: "#9ca3af",
-                marginBottom: "16px"
-              }}>
-                {selectedGroup.description || 'No description available'}
-              </p>
-              <span style={{
-                display: "inline-flex",
-                alignItems: "center",
-                padding: "4px 12px",
-                borderRadius: "9999px",
-                fontSize: "0.75rem",
-                fontWeight: "500",
-                backgroundColor: "rgba(59,205,191,0.2)",
-                color: colors.tealAccent
-              }}>
-                {selectedGroup.count} medicines
-              </span>
-              
-              <h3 style={{ 
-                fontWeight: "600",
-                margin: "24px 0 16px",
-                color: colors.lightText
-              }}>
-                Medicines in this group
-              </h3>
-              <div style={{ 
-                overflowX: "auto",
-                borderRadius: "8px",
-                backgroundColor: colors.darkBackground,
-                boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
-              }}>
-                <table style={{ 
-                  width: "100%",
-                  borderCollapse: "collapse"
-                }}>
-                  <thead>
-                    <tr style={{ 
-                      backgroundColor: "rgba(59,205,191,0.1)",
-                      borderBottom: `1px solid ${colors.borderColor}`
-                    }}>
-                      <th style={{ 
-                        padding: "12px 16px",
-                        textAlign: "left",
-                        fontWeight: "600",
-                        color: colors.tealAccent
-                      }}>ID</th>
-                      <th style={{ 
-                        padding: "12px 16px",
-                        textAlign: "left",
-                        fontWeight: "600",
-                        color: colors.tealAccent
-                      }}>Name</th>
-                      <th style={{ 
-                        padding: "12px 16px",
-                        textAlign: "left",
-                        fontWeight: "600",
-                        color: colors.tealAccent
-                      }}>Dosage</th>
-                      <th style={{ 
-                        padding: "12px 16px",
-                        textAlign: "left",
-                        fontWeight: "600",
-                        color: colors.tealAccent
-                      }}>Action</th>
+        {loading ? (
+          <div className="text-center p-10 text-[#71C9CE]">Loading medicine groups...</div>
+        ) : (
+          <>
+            <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-[#71C9CE] text-gray-900 sticky top-0">
+                    <tr>
+                      <th className="p-3 border-l-2">Group Name</th>
+                      <th className="p-3 border-l-2">Medicines</th>
+                      <th className="p-3 border-l-2">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedGroup.medicines && selectedGroup.medicines.length > 0 ? (
-                      selectedGroup.medicines.map((medicine) => (
-                        <tr key={medicine.id} style={{ 
-                          borderBottom: `1px solid ${colors.borderColor}`,
-                          ':hover': {
-                            backgroundColor: "rgba(255,255,255,0.05)"
-                          }
-                        }}>
-                          <td style={{ 
-                            padding: "12px 16px",
-                            color: colors.lightText
-                          }}>{medicine.id}</td>
-                          <td style={{ 
-                            padding: "12px 16px",
-                            color: colors.lightText
-                          }}>{medicine.name}</td>
-                          <td style={{ 
-                            padding: "12px 16px",
-                            color: colors.lightText
-                          }}>{medicine.dosage || 'N/A'}</td>
-                          <td style={{ padding: "12px 16px" }}>
-                            <button
-                              style={{
-                                padding: "6px 12px",
-                                backgroundColor: "rgba(239,68,68,0.2)",
-                                color: colors.warningRed,
-                                border: "none",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                                fontWeight: "500",
-                                transition: "all 0.2s",
-                                ':hover': {
-                                  backgroundColor: "rgba(239,68,68,0.3)"
+                    {filteredGroups.length > 0 ? (
+                      filteredGroups.map((group) => (
+                        <tr key={group.id} className="border-t hover:bg-gray-50/50">
+                          <td className="p-3 font-medium">{group.name}</td>
+                          <td className="p-3">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#71C9CE]/20 text-[#028478]">
+                              {group.count || 0} items
+                            </span>
+                          </td>
+                          <td className="p-3 space-x-2">
+                            <Button
+                              size="sm"
+                              onClick={() => openViewGroup(group)}
+                            >
+                              <Eye className="mr-1" /> View
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openEditGroup(group)}
+                            >
+                              <Edit className="mr-1" /> Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
+                              onClick={() => openAddMedicineModal(group)}
+                            >
+                              <Plus className="mr-1" /> Add Medicines
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => {
+                                if (group.count > 0) {
+                                  openRemoveItemModal(group)
+                                } else {
+                                  setSelectedGroup(group)
+                                  setShowDeleteGroupModal(true)
                                 }
                               }}
-                              onClick={() => handleRemoveItem(selectedGroup.id, medicine.id)}
-                              disabled={loading}
                             >
-                              <Trash2 size={16} style={{ marginRight: "4px" }} />
-                              Remove
-                            </button>
+                              <Trash2 className="mr-1" />
+                              {group.count > 0 ? 'Remove Items' : 'Delete Group'}
+                            </Button>
                           </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="4" style={{ 
-                          textAlign: "center", 
-                          padding: "1rem",
-                          color: colors.lightText
-                        }}>
-                          No medicines in this group
+                        <td colSpan="3" className="text-center p-10 text-gray-500">
+                          No medicine groups found
                         </td>
                       </tr>
                     )}
@@ -1124,515 +499,326 @@ export default function MedicineGroupSection() {
                 </table>
               </div>
             </div>
-            <div style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              padding: "20px 24px",
-              borderTop: `1px solid ${colors.borderColor}`
-            }}>
-              <button
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: colors.tealAccent,
-                  color: colors.darkText,
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  fontWeight: "500",
-                  transition: "all 0.2s",
-                  ':hover': {
-                    opacity: 0.9
-                  }
-                }}
-                onClick={() => setShowViewGroupModal(false)}
-                disabled={loading}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Edit Group Modal */}
-      {showEditGroupModal && selectedGroup && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: "rgba(0,0,0,0.5)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          zIndex: 50,
-          padding: "1rem"
-        }}>
-          <div style={{
-            backgroundColor: colors.cardBackground,
-            borderRadius: "8px",
-            width: "100%",
-            maxWidth: "32rem",
-            boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)"
-          }}>
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "20px 24px",
-              borderBottom: `1px solid ${colors.borderColor}`
-            }}>
-              <h2 style={{ 
-                fontSize: "1.125rem",
-                fontWeight: "600",
-                color: colors.lightText
-              }}>
-                Edit Group
-              </h2>
-              <button 
-                style={{
-                  color: colors.lightText,
-                  transition: "color 0.2s",
-                  ':hover': {
-                    color: colors.tealAccent
-                  }
-                }}
-                onClick={() => setShowEditGroupModal(false)}
-                disabled={loading}
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div style={{ padding: "24px" }}>
-              <label style={{ 
-                display: "block",
-                marginBottom: "8px",
-                color: colors.lightText,
-                fontSize: "0.875rem",
-                fontWeight: "500"
-              }}>
-                Group Name
-              </label>
-              <input
-                type="text"
-                style={{
-                  width: "100%",
-                  padding: "10px 16px",
-                  backgroundColor: colors.darkBackground,
-                  border: `1px solid ${colors.borderColor}`,
-                  borderRadius: "6px",
-                  color: colors.lightText,
-                  marginBottom: "16px"
-                }}
-                value={editGroupName}
-                onChange={(e) => setEditGroupName(e.target.value)}
-                disabled={loading}
-              />
-              
-              <label style={{ 
-                display: "block",
-                marginBottom: "8px",
-                color: colors.lightText,
-                fontSize: "0.875rem",
-                fontWeight: "500"
-              }}>
-                Description
-              </label>
-              <textarea
-                style={{
-                  width: "100%",
-                  padding: "10px 16px",
-                  backgroundColor: colors.darkBackground,
-                  border: `1px solid ${colors.borderColor}`,
-                  borderRadius: "6px",
-                  color: colors.lightText,
-                  minHeight: "100px"
-                }}
-                value={editGroupDescription}
-                onChange={(e) => setEditGroupDescription(e.target.value)}
-                disabled={loading}
-              />
-            </div>
-            <div style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              padding: "20px 24px",
-              borderTop: `1px solid ${colors.borderColor}`,
-              gap: "12px"
-            }}>
-              <button
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: colors.cardBackground,
-                  color: colors.lightText,
-                  border: `1px solid ${colors.borderColor}`,
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                  ':hover': {
-                    backgroundColor: "rgba(255,255,255,0.1)"
-                  }
-                }}
-                onClick={() => setShowEditGroupModal(false)}
-                disabled={loading}
-              >
-                Cancel
-              </button>
-              <button
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: colors.tealAccent,
-                  color: colors.darkText,
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  fontWeight: "500",
-                  transition: "all 0.2s",
-                  ':hover': {
-                    opacity: 0.9
-                  }
-                }}
-                onClick={handleEditGroup}
-                disabled={loading}
-              >
-                {loading ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Medicines Modal */}
-      {showAddMedicineModal && selectedGroup && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: "rgba(0,0,0,0.5)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          zIndex: 50,
-          padding: "1rem"
-        }}>
-          <div style={{
-            backgroundColor: colors.cardBackground,
-            borderRadius: "8px",
-            width: "100%",
-            maxWidth: "48rem",
-            maxHeight: "80vh",
-            overflow: "auto"
-          }}>
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "20px 24px",
-              borderBottom: `1px solid ${colors.borderColor}`
-            }}>
-              <h2 style={{ 
-                fontSize: "1.125rem",
-                fontWeight: "600",
-                color: colors.lightText
-              }}>
-                Add Medicines to {selectedGroup.name}
-              </h2>
-              <button 
-                style={{
-                  color: colors.lightText,
-                  transition: "color 0.2s",
-                  ':hover': {
-                    color: colors.tealAccent
-                  }
-                }}
-                onClick={() => setShowAddMedicineModal(false)}
-                disabled={loading}
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div style={{ padding: "24px" }}>
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                padding: "10px 16px",
-                backgroundColor: colors.darkBackground,
-                border: `1px solid ${colors.borderColor}`,
-                borderRadius: "6px",
-                marginBottom: "24px"
-              }}>
-                <Search size={16} color="#9ca3af" style={{ marginRight: "12px" }} />
-                <input
-                  type="text"
-                  style={{
-                    flex: 1,
-                    border: "none",
-                    outline: "none",
-                    backgroundColor: "transparent",
-                    color: colors.lightText
-                  }}
-                  placeholder="Search medicines..."
-                  disabled={loading}
-                />
+            <div className="flex justify-between items-center mt-6 text-sm">
+              <div>
+                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredGroups.length)} of {filteredGroups.length} groups
               </div>
-              
-              <div style={{ 
-                overflowX: "auto",
-                borderRadius: "8px",
-                backgroundColor: colors.darkBackground,
-                boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
-              }}>
-                <table style={{ 
-                  width: "100%",
-                  borderCollapse: "collapse"
-                }}>
-                  <thead>
-                    <tr style={{ 
-                      backgroundColor: "rgba(59,205,191,0.1)",
-                      borderBottom: `1px solid ${colors.borderColor}`
-                    }}>
-                      <th style={{ padding: "12px 16px" }}>
-                        <div style={{ display: "flex", alignItems: "center" }}>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToPrevPage}
+                  disabled={currentPage === 1 || loading}
+                >
+                  <ChevronLeft size={16} />
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    className={currentPage === page ? 'bg-[#71C9CE] text-gray-900' : ''}
+                    onClick={() => goToPage(page)}
+                  >
+                    {page}
+                  </Button>
+                ))}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages || loading}
+                >
+                  <ChevronRight size={16} />
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Create Group Modal */}
+        {showCreateGroupModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white/30 backdrop-blur-md p-6 rounded-lg shadow-lg w-full max-w-md">
+              <div className="bg-white p-6 rounded-lg">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-[#028478]">Create New Group</h2>
+                  <button onClick={() => setShowCreateGroupModal(false)}>
+                    <X size={20} />
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block font-medium mb-1">Group Name</label>
+                    <input
+                      type="text"
+                      className="w-full p-2 border rounded-md"
+                      placeholder="Enter group name"
+                      value={newGroupName}
+                      onChange={(e) => setNewGroupName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1">Description</label>
+                    <textarea
+                      className="w-full p-2 border rounded-md min-h-[100px]"
+                      placeholder="Enter group description (optional)"
+                      value={newGroupDescription}
+                      onChange={(e) => setNewGroupDescription(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 mt-6">
+                  <Button variant="outline" onClick={() => setShowCreateGroupModal(false)}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
+                    onClick={handleCreateGroup}
+                  >
+                    Create Group
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* View Group Modal */}
+        {showViewGroupModal && selectedGroup && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg w-full max-w-4xl max-h-[80vh] overflow-auto">
+              <div className="bg-white p-6 rounded-lg">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-[#028478]">{selectedGroup.name} Details</h2>
+                  <button onClick={() => setShowViewGroupModal(false)}>
+                    <X size={20} />
+                  </button>
+                </div>
+                <p className="text-gray-600 mb-4">
+                  {selectedGroup.description || 'No description available'}
+                </p>
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#71C9CE]/20 text-[#028478] mb-6">
+                  {selectedGroup.count} medicines
+                </span>
+                
+                <h3 className="font-semibold text-lg mb-4">Medicines in this group</h3>
+                <div className="overflow-x-auto bg-gray-50 rounded-md shadow-md">
+                  <table className="w-full text-left">
+                    <thead className="bg-[#71C9CE] text-gray-900">
+                      <tr>
+                        <th className="p-3 border-l-2">ID</th>
+                        <th className="p-3 border-l-2">Name</th>
+                        <th className="p-3 border-l-2">Dosage</th>
+                        <th className="p-3 border-l-2">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedGroup.medicines && selectedGroup.medicines.length > 0 ? (
+                        selectedGroup.medicines.map((medicine) => (
+                          <tr key={medicine.id} className="border-t hover:bg-gray-100">
+                            <td className="p-3">{medicine.id}</td>
+                            <td className="p-3">{medicine.name}</td>
+                            <td className="p-3">{medicine.dosage || 'N/A'}</td>
+                            <td className="p-3">
+                              <Button 
+                                variant="destructive" 
+                                size="sm"
+                                onClick={() => handleRemoveItem(selectedGroup.id, medicine.id)}
+                              >
+                                <Trash2 size={16} className="mr-1" /> Remove
+                              </Button>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="4" className="text-center p-6 text-gray-500">
+                            No medicines in this group
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="flex justify-end mt-6">
+                  <Button 
+                    className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
+                    onClick={() => setShowViewGroupModal(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Group Modal */}
+        {showEditGroupModal && selectedGroup && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white/30 backdrop-blur-md p-6 rounded-lg shadow-lg w-full max-w-md">
+              <div className="bg-white p-6 rounded-lg">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-[#028478]">Edit Group</h2>
+                  <button onClick={() => setShowEditGroupModal(false)}>
+                    <X size={20} />
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block font-medium mb-1">Group Name</label>
+                    <input
+                      type="text"
+                      className="w-full p-2 border rounded-md"
+                      value={editGroupName}
+                      onChange={(e) => setEditGroupName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1">Description</label>
+                    <textarea
+                      className="w-full p-2 border rounded-md min-h-[100px]"
+                      value={editGroupDescription}
+                      onChange={(e) => setEditGroupDescription(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 mt-6">
+                  <Button variant="outline" onClick={() => setShowEditGroupModal(false)}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
+                    onClick={handleEditGroup}
+                  >
+                    Save Changes
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Medicines Modal */}
+        {showAddMedicineModal && selectedGroup && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg w-full max-w-4xl max-h-[80vh] overflow-auto">
+              <div className="bg-white p-6 rounded-lg">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-[#028478]">
+                    Add Medicines to {selectedGroup.name}
+                  </h2>
+                  <button onClick={() => setShowAddMedicineModal(false)}>
+                    <X size={20} />
+                  </button>
+                </div>
+                <div className="relative mb-6">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search size={16} className="text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    className="pl-10 w-full p-2 border rounded-md"
+                    placeholder="Search medicines..."
+                  />
+                </div>
+                
+                <div className="overflow-x-auto bg-gray-50 rounded-md shadow-md">
+                  <table className="w-full text-left">
+                    <thead className="bg-[#71C9CE] text-gray-900">
+                      <tr>
+                        <th className="p-3 border-l-2">
                           <input 
                             type="checkbox" 
-                            style={{
-                              width: "16px",
-                              height: "16px",
-                              borderRadius: "4px",
-                              border: `1px solid ${colors.borderColor}`,
-                              backgroundColor: colors.cardBackground,
-                              accentColor: colors.tealAccent
-                            }}
+                            className="rounded"
                             checked={selectedMedicines.length === availableMedicines.length && availableMedicines.length > 0}
                             onChange={toggleSelectAll}
-                            disabled={loading || availableMedicines.length === 0}
-                            id="select-all-medicines"
                           />
-                          <label htmlFor="select-all-medicines" style={{ display: "none" }}>
-                            Select all medicines
-                          </label>
-                        </div>
-                      </th>
-                      <th style={{ 
-                        padding: "12px 16px",
-                        textAlign: "left",
-                        fontWeight: "600",
-                        color: colors.tealAccent
-                      }}>ID</th>
-                      <th style={{ 
-                        padding: "12px 16px",
-                        textAlign: "left",
-                        fontWeight: "600",
-                        color: colors.tealAccent
-                      }}>Name</th>
-                      <th style={{ 
-                        padding: "12px 16px",
-                        textAlign: "left",
-                        fontWeight: "600",
-                        color: colors.tealAccent
-                      }}>Dosage</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {availableMedicines.length > 0 ? (
-                      availableMedicines.map((medicine) => (
-                        <tr key={`medicine-${medicine.id}`} style={{ 
-                          borderBottom: `1px solid ${colors.borderColor}`,
-                          ':hover': {
-                            backgroundColor: "rgba(255,255,255,0.05)"
-                          }
-                        }}>
-                          {renderMedicineCheckbox(medicine)}
-                          <td style={{ 
-                            padding: "12px 16px",
-                            color: colors.lightText
-                          }}>{medicine.id}</td>
-                          <td style={{ 
-                            padding: "12px 16px",
-                            color: colors.lightText
-                          }}>{medicine.name}</td>
-                          <td style={{ 
-                            padding: "12px 16px",
-                            color: colors.lightText
-                          }}>{medicine.dosage || 'N/A'}</td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="4" style={{ 
-                          textAlign: "center", 
-                          padding: "1rem",
-                          color: colors.lightText
-                        }}>
-                          No medicines available
-                        </td>
+                        </th>
+                        <th className="p-3 border-l-2">ID</th>
+                        <th className="p-3 border-l-2">Name</th>
+                        <th className="p-3 border-l-2">Dosage</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {availableMedicines.length > 0 ? (
+                        availableMedicines.map((medicine) => (
+                          <tr key={`medicine-${medicine.id}`} className="border-t hover:bg-gray-100">
+                            <td className="p-3">
+                              <input
+                                type="checkbox"
+                                className="rounded"
+                                checked={selectedMedicines.includes(medicine.id)}
+                                onChange={() => toggleSelectItem(medicine.id)}
+                              />
+                            </td>
+                            <td className="p-3">{medicine.id}</td>
+                            <td className="p-3">{medicine.name}</td>
+                            <td className="p-3">{medicine.dosage || 'N/A'}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="4" className="text-center p-6 text-gray-500">
+                            No medicines available
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="flex justify-end gap-3 mt-6">
+                  <Button variant="outline" onClick={() => setShowAddMedicineModal(false)}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
+                    onClick={handleAddMedicines}
+                    disabled={selectedMedicines.length === 0}
+                  >
+                    Add {selectedMedicines.length} Medicines
+                  </Button>
+                </div>
               </div>
             </div>
-            <div style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              padding: "20px 24px",
-              borderTop: `1px solid ${colors.borderColor}`,
-              gap: "12px"
-            }}>
-              <button
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: colors.cardBackground,
-                  color: colors.lightText,
-                  border: `1px solid ${colors.borderColor}`,
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                  ':hover': {
-                    backgroundColor: "rgba(255,255,255,0.1)"
-                  }
-                }}
-                onClick={() => setShowAddMedicineModal(false)}
-                disabled={loading}
-              >
-                Cancel
-              </button>
-              <button
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: colors.tealAccent,
-                  color: colors.darkText,
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  fontWeight: "500",
-                  transition: "all 0.2s",
-                  ':hover': {
-                    opacity: 0.9
-                  }
-                }}
-                onClick={handleAddMedicines}
-                disabled={loading || selectedMedicines.length === 0}
-              >
-                {loading ? 'Adding...' : `Add ${selectedMedicines.length} Medicines`}
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Delete Group Modal */}
-      {showDeleteGroupModal && selectedGroup && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: "rgba(0,0,0,0.5)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          zIndex: 50,
-          padding: "1rem"
-        }}>
-          <div style={{
-            backgroundColor: colors.cardBackground,
-            borderRadius: "8px",
-            width: "100%",
-            maxWidth: "32rem",
-            boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)"
-          }}>
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "20px 24px",
-              borderBottom: `1px solid ${colors.borderColor}`
-            }}>
-              <h2 style={{ 
-                fontSize: "1.125rem",
-                fontWeight: "600",
-                color: colors.lightText
-              }}>
-                Delete Group
-              </h2>
-              <button 
-                style={{
-                  color: colors.lightText,
-                  transition: "color 0.2s",
-                  ':hover': {
-                    color: colors.tealAccent
-                  }
-                }}
-                onClick={() => setShowDeleteGroupModal(false)}
-                disabled={loading}
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div style={{ padding: "24px" }}>
-              <p style={{ color: colors.lightText }}>
-                Are you sure you want to permanently delete the group "{selectedGroup.name}"?
-              </p>
-              <p style={{ 
-                color: colors.warningRed,
-                marginTop: "8px"
-              }}>
-                This action cannot be undone.
-              </p>
-            </div>
-            <div style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              padding: "20px 24px",
-              borderTop: `1px solid ${colors.borderColor}`,
-              gap: "12px"
-            }}>
-              <button
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: colors.cardBackground,
-                  color: colors.lightText,
-                  border: `1px solid ${colors.borderColor}`,
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                  ':hover': {
-                    backgroundColor: "rgba(255,255,255,0.1)"
-                  }
-                }}
-                onClick={() => setShowDeleteGroupModal(false)}
-                disabled={loading}
-              >
-                Cancel
-              </button>
-              <button
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: colors.warningRed,
-                  color: colors.lightText,
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  fontWeight: "500",
-                  transition: "all 0.2s",
-                  ':hover': {
-                    opacity: 0.9
-                  }
-                }}
-                onClick={handleDeleteGroup}
-                disabled={loading}
-              >
-                {loading ? 'Deleting...' : 'Delete Group'}
-              </button>
+        {/* Delete Group Modal */}
+        {showDeleteGroupModal && selectedGroup && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white/30 backdrop-blur-md p-6 rounded-lg shadow-lg w-full max-w-md">
+              <div className="bg-white p-6 rounded-lg">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-[#028478]">Delete Group</h2>
+                  <button onClick={() => setShowDeleteGroupModal(false)}>
+                    <X size={20} />
+                  </button>
+                </div>
+                <p className="mb-4">
+                  Are you sure you want to permanently delete the group "{selectedGroup.name}"?
+                </p>
+                <p className="text-red-500 mb-6">
+                  This action cannot be undone.
+                </p>
+                <div className="flex justify-end gap-3">
+                  <Button variant="outline" onClick={() => setShowDeleteGroupModal(false)}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    variant="destructive"
+                    onClick={handleDeleteGroup}
+                  >
+                    Delete Group
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

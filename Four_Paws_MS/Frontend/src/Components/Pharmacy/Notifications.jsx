@@ -1,21 +1,15 @@
+"use client"
+
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Button } from "@/components/ui/button";
+import { Bell, BellOff, CheckCircle } from "lucide-react";
 
 export default function NotificationsSection() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [displayCount, setDisplayCount] = useState(5);
   const [totalNotifications, setTotalNotifications] = useState(0);
-
-  // Color scheme
-  const colors = {
-    darkBackground: 'rgba(34,41,47,255)',       // Dark slate
-    tealAccent: 'rgba(59,205,191,255)',        // Bright teal
-    yellowAccent: '#FFD700',                    // Gold yellow
-    lightText: '#f3f4f6',                      // Light gray text
-    darkText: '#111827',                       // Dark text
-    unreadHighlight: 'rgba(59,205,191,0.1)'    // Teal highlight
-  };
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -58,178 +52,118 @@ export default function NotificationsSection() {
   };
 
   const loadMore = () => {
-    setDisplayCount(prevCount => Math.min(prevCount + 10, 15));
+    setDisplayCount(prevCount => Math.min(prevCount + 5, 15));
   };
 
   if (loading) {
-    return <div style={{ color: colors.lightText }}>Loading notifications...</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6">
+        <div className="max-w-7xl mx-auto text-center text-gray-800">
+          Loading notifications...
+        </div>
+      </div>
+    );
   }
 
   const displayedNotifications = notifications.slice(0, displayCount);
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
-    <>
-      <h1 style={{ 
-        fontSize: "1.5rem", 
-        fontWeight: "bold", 
-        marginBottom: "16px",
-        color: colors.yellowAccent
-      }}>
-        Notifications
-      </h1>
-      
-      <div style={{
-        backgroundColor: colors.darkBackground,
-        padding: "16px",
-        borderRadius: "8px",
-        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-        border: `1px solid ${colors.tealAccent}`
-      }}>
-        <div style={{ 
-          display: "flex", 
-          justifyContent: "space-between", 
-          marginBottom: "16px", 
-          alignItems: "center" 
-        }}>
-          <h2 style={{ 
-            fontWeight: "600",
-            color: colors.lightText
-          }}>
-            Recent Notifications
-          </h2>
-          <button
+    <div className="min-h-screen bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <Bell className="w-6 h-6" />
+            Notifications
+            {unreadCount > 0 && (
+              <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                {unreadCount}
+              </span>
+            )}
+          </h1>
+          <Button
+            className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
             onClick={markAllAsRead}
-            style={{
-              backgroundColor: colors.tealAccent,
-              color: colors.darkText,
-              padding: "6px 12px",
-              borderRadius: "6px",
-              border: "none",
-              cursor: "pointer",
-              fontWeight: "500",
-              transition: "all 0.2s",
-              ':hover': {
-                opacity: 0.9
-              }
-            }}
+            disabled={unreadCount === 0}
           >
+            <CheckCircle className="mr-2 w-4 h-4" />
             Mark all as read
-          </button>
+          </Button>
         </div>
-        
-        <div>
+
+        <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg p-6 border border-[#71C9CE]">
           {displayedNotifications.length === 0 ? (
-            <div style={{ 
-              padding: "16px", 
-              textAlign: "center",
-              color: colors.lightText
-            }}>
+            <div className="p-6 text-center text-gray-700 flex flex-col items-center">
+              <BellOff className="w-8 h-8 mb-2 text-gray-500" />
               No notifications available
             </div>
           ) : (
-            displayedNotifications.map((notification) => (
-              <div
-                key={notification.id}
-                style={{
-                  padding: "12px",
-                  borderBottom: `1px solid ${colors.tealAccent}`,
-                  backgroundColor: notification.is_read ? "transparent" : colors.unreadHighlight,
-                  borderLeft: notification.is_read ? "none" : `3px solid ${colors.yellowAccent}`,
-                  marginBottom: "8px",
-                  borderRadius: "4px",
-                  transition: "all 0.2s"
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <h3 style={{ 
-                    fontWeight: "600", 
-                    marginBottom: "4px",
-                    color: notification.is_read ? colors.lightText : colors.yellowAccent
-                  }}>
-                    {notification.title}
-                  </h3>
-                  <span style={{ 
-                    fontSize: "0.75rem", 
-                    color: colors.tealAccent
-                  }}>
-                    {new Date(notification.created_at).toLocaleString()}
-                  </span>
-                </div>
-                <p style={{ 
-                  color: colors.lightText, 
-                  marginBottom: "8px",
-                  fontSize: "0.875rem"
-                }}>
-                  {notification.description}
-                </p>
-                <div style={{ display: "flex", gap: "8px" }}>
-                  <button
-                    style={{
-                      backgroundColor: colors.tealAccent,
-                      color: colors.darkText,
-                      padding: "4px 8px",
-                      borderRadius: "4px",
-                      border: "none",
-                      fontSize: "0.75rem",
-                      cursor: "pointer",
-                      fontWeight: "500"
-                    }}
-                  >
-                    View
-                  </button>
-                  {!notification.is_read && (
-                    <button
-                      onClick={() => markAsRead(notification.id)}
-                      style={{
-                        backgroundColor: colors.yellowAccent,
-                        color: colors.darkText,
-                        padding: "4px 8px",
-                        borderRadius: "4px",
-                        border: "none",
-                        fontSize: "0.75rem",
-                        cursor: "pointer",
-                        fontWeight: "500"
-                      }}
+            <div className="space-y-3">
+              {displayedNotifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`p-4 rounded-lg transition-all ${
+                    !notification.is_read 
+                      ? 'bg-yellow-50/70 border-l-4 border-yellow-500 shadow-sm' 
+                      : 'bg-white/50 border-l-4 border-transparent'
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className={`font-semibold ${
+                      !notification.is_read ? 'text-yellow-800' : 'text-gray-800'
+                    }`}>
+                      {notification.title}
+                    </h3>
+                    <span className="text-xs text-gray-500">
+                      {new Date(notification.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="text-gray-700 text-sm mb-3">
+                    {notification.description}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
                     >
-                      Mark as read
-                    </button>
-                  )}
+                      View details
+                    </Button>
+                    {!notification.is_read && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs bg-green-100 hover:bg-green-200 text-green-800"
+                        onClick={() => markAsRead(notification.id)}
+                      >
+                        Mark as read
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
+          )}
+
+          {notifications.length > displayCount && displayCount < 15 && (
+            <div className="text-center mt-6">
+              <Button
+                variant="outline"
+                onClick={loadMore}
+                className="border-[#71C9CE] text-[#71C9CE] hover:bg-[#71C9CE]/10"
+              >
+                Load more ({Math.min(5, 15 - displayCount)} more)
+              </Button>
+            </div>
+          )}
+
+          {displayCount >= 15 && totalNotifications > 15 && (
+            <div className="text-center mt-4 text-sm text-gray-600">
+              Showing 15 of {totalNotifications} notifications
+            </div>
           )}
         </div>
-        
-        {notifications.length > displayCount && displayCount < 15 && (
-          <div style={{ textAlign: "center", marginTop: "16px" }}>
-            <button
-              onClick={loadMore}
-              style={{
-                backgroundColor: colors.yellowAccent,
-                color: colors.darkText,
-                padding: "8px 16px",
-                borderRadius: "6px",
-                border: "none",
-                cursor: "pointer",
-                fontWeight: "500"
-              }}
-            >
-              Load more ({Math.min(10, 15 - displayCount)} more)
-            </button>
-          </div>
-        )}
-        
-        {displayCount >= 15 && totalNotifications > 15 && (
-          <div style={{ 
-            textAlign: "center", 
-            marginTop: "16px", 
-            color: colors.tealAccent, 
-            fontSize: "0.875rem" 
-          }}>
-            Showing 15 of {totalNotifications} notifications
-          </div>
-        )}
       </div>
-    </>
+    </div>
   );
 }

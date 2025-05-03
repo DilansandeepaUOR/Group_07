@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { FaPlus, FaEdit, FaTrash } from "react-icons/fa"
+import { Button } from "@/components/ui/button"
 
 export default function ProductsSection() {
   const API_BASE_URL = "http://localhost:3001/pharmacy/api/medicines";
@@ -28,19 +30,6 @@ export default function ProductsSection() {
   })
   const itemsPerPage = 4
 
-  // Color scheme
-  const colors = {
-    darkBackground: 'rgba(34,41,47,255)',
-    tealAccent: 'rgba(59,205,191,255)',
-    yellowAccent: '#FFD700',
-    lightText: '#f3f4f6',
-    darkText: '#111827',
-    cardBackground: 'rgba(44,51,57,255)',
-    warningRed: '#ef4444',
-    successGreen: '#10b981',
-    borderColor: 'rgba(255,255,255,0.1)'
-  };
-
   const getStockStatus = (stock) => {
     const stockCount = parseInt(stock);
     if (stockCount === 0) return "Out of Stock";
@@ -48,7 +37,6 @@ export default function ProductsSection() {
     return "In Stock";
   };
 
-  // Pagination handlers
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(prev => prev + 1);
@@ -67,7 +55,6 @@ export default function ProductsSection() {
     }
   };
 
-  // Fetch medicines from backend
   useEffect(() => {
     const fetchMedicines = async () => {
       try {
@@ -261,709 +248,307 @@ export default function ProductsSection() {
   }
 
   return (
-    <div style={{
-      padding: "24px",
-      backgroundColor: colors.darkBackground,
-      minHeight: "100vh"
-    }}>
-      <h1 style={{ 
-        fontSize: "1.5rem", 
-        fontWeight: "bold", 
-        marginBottom: "24px",
-        color: colors.yellowAccent
-      }}>
-        Medicine Inventory
-      </h1>
-
-      {error && (
-        <div style={{
-          color: colors.warningRed,
-          padding: "12px",
-          backgroundColor: "rgba(239,68,68,0.1)",
-          borderRadius: "6px",
-          marginBottom: "16px",
-          border: `1px solid ${colors.warningRed}`
-        }}>
-          Error: {error}
-        </div>
-      )}
-
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        marginBottom: "24px",
-        gap: "16px",
-        flexWrap: "wrap"
-      }}>
-        <input
-          type="text"
-          placeholder="Search medicines..."
-          style={{
-            flex: 1,
-            padding: "10px 16px",
-            backgroundColor: colors.cardBackground,
-            border: `1px solid ${colors.borderColor}`,
-            borderRadius: "6px",
-            color: colors.lightText,
-            maxWidth: "400px",
-            minWidth: "250px"
-          }}
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value)
-            setCurrentPage(1)
-          }}
-        />
-        <button 
-          style={{
-            backgroundColor: colors.tealAccent,
-            color: colors.darkText,
-            padding: "10px 16px",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontWeight: "500",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            transition: "all 0.2s",
-            ':hover': {
-              opacity: 0.9
-            }
-          }}
-          onClick={() => setShowAddForm(true)}
-        >
-          Add Medicine
-        </button>
-      </div>
-
-      {showAddForm && (
-        <div style={{
-          backgroundColor: colors.cardBackground,
-          padding: "20px",
-          borderRadius: "8px",
-          marginBottom: "24px",
-          border: `1px solid ${colors.tealAccent}`
-        }}>
-          <h2 style={{ 
-            fontSize: "1.25rem",
-            fontWeight: "600",
-            marginBottom: "16px",
-            color: colors.lightText
-          }}>
-            Add New Medicine
-          </h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
-            <div>
-              <label style={{ 
-                display: "block",
-                marginBottom: "8px",
-                color: colors.lightText,
-                fontSize: "0.875rem"
-              }}>
-                Name:
-              </label>
-              <input
-                type="text"
-                name="name"
-                style={{
-                  width: "100%",
-                  padding: "8px 12px",
-                  backgroundColor: colors.darkBackground,
-                  border: `1px solid ${colors.borderColor}`,
-                  borderRadius: "4px",
-                  color: colors.lightText
-                }}
-                value={addFormData.name}
-                onChange={(e) => handleFormChange(e, 'add')}
-                required
-              />
-            </div>
-            <div>
-              <label style={{ 
-                display: "block",
-                marginBottom: "8px",
-                color: colors.lightText,
-                fontSize: "0.875rem"
-              }}>
-                Category:
-              </label>
-              <input
-                type="text"
-                name="category"
-                style={{
-                  width: "100%",
-                  padding: "8px 12px",
-                  backgroundColor: colors.darkBackground,
-                  border: `1px solid ${colors.borderColor}`,
-                  borderRadius: "4px",
-                  color: colors.lightText
-                }}
-                value={addFormData.category}
-                onChange={(e) => handleFormChange(e, 'add')}
-                required
-              />
-            </div>
-            <div>
-              <label style={{ 
-                display: "block",
-                marginBottom: "8px",
-                color: colors.lightText,
-                fontSize: "0.875rem"
-              }}>
-                Price (Rs):
-              </label>
-              <input
-                type="number"
-                name="price"
-                style={{
-                  width: "100%",
-                  padding: "8px 12px",
-                  backgroundColor: colors.darkBackground,
-                  border: `1px solid ${colors.borderColor}`,
-                  borderRadius: "4px",
-                  color: colors.lightText
-                }}
-                value={addFormData.price}
-                onChange={(e) => handleFormChange(e, 'add')}
-                step="0.01"
-                min="0"
-                required
-                onKeyDown={(e) => {
-                  if (e.key === '-' || e.key === 'e' || e.key === 'E') {
-                    e.preventDefault()
-                  }
-                }}
-              />
-            </div>
-            <div>
-              <label style={{ 
-                display: "block",
-                marginBottom: "8px",
-                color: colors.lightText,
-                fontSize: "0.875rem"
-              }}>
-                Stock:
-              </label>
-              <input
-                type="number"
-                name="stock"
-                style={{
-                  width: "100%",
-                  padding: "8px 12px",
-                  backgroundColor: colors.darkBackground,
-                  border: `1px solid ${colors.borderColor}`,
-                  borderRadius: "4px",
-                  color: colors.lightText
-                }}
-                value={addFormData.stock}
-                onChange={(e) => handleFormChange(e, 'add')}
-                min="0"
-                required
-                onKeyDown={(e) => {
-                  if (e.key === '-' || e.key === 'e' || e.key === 'E') {
-                    e.preventDefault()
-                  }
-                }}
-              />
-            </div>
-            <div>
-              <label style={{ 
-                display: "block",
-                marginBottom: "8px",
-                color: colors.lightText,
-                fontSize: "0.875rem"
-              }}>
-                Status:
-              </label>
-              <select
-                name="status"
-                style={{
-                  width: "100%",
-                  padding: "8px 12px",
-                  backgroundColor: colors.darkBackground,
-                  border: `1px solid ${colors.borderColor}`,
-                  borderRadius: "4px",
-                  color: colors.lightText
-                }}
-                value={addFormData.status}
-                onChange={(e) => handleFormChange(e, 'add')}
-              >
-                <option value="In Stock">In Stock</option>
-                <option value="Low Stock">Low Stock</option>
-                <option value="Out of Stock">Out of Stock</option>
-              </select>
-            </div>
-          </div>
-          <div style={{ 
-            display: "flex",
-            gap: "12px",
-            marginTop: "20px"
-          }}>
-            <button 
-              style={{
-                padding: "8px 16px",
-                backgroundColor: colors.tealAccent,
-                color: colors.darkText,
-                border: "none",
-                borderRadius: "6px",
-                fontWeight: "500",
-                cursor: "pointer",
-                transition: "all 0.2s",
-                ':hover': {
-                  opacity: 0.9
-                }
+    <div className="min-h-screen bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-800">Medicine Inventory</h1>
+          <div className="flex items-center space-x-4">
+            <input
+              type="text"
+              placeholder="Search medicines..."
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#71C9CE]"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                setCurrentPage(1)
               }}
-              onClick={handleAddSubmit}
-              disabled={loading}
+            />
+            <Button
+              className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900 flex items-center"
+              onClick={() => setShowAddForm(true)}
             >
-              {loading ? 'Saving...' : 'Save'}
-            </button>
-            <button 
-              style={{
-                padding: "8px 16px",
-                backgroundColor: colors.cardBackground,
-                color: colors.lightText,
-                border: `1px solid ${colors.borderColor}`,
-                borderRadius: "6px",
-                fontWeight: "500",
-                cursor: "pointer",
-                transition: "all 0.2s",
-                ':hover': {
-                  backgroundColor: "rgba(255,255,255,0.1)"
-                }
-              }}
-              onClick={handleCancelAdd}
-              disabled={loading}
-            >
-              Cancel
-            </button>
+              <FaPlus className="mr-2" /> Add Medicine
+            </Button>
           </div>
         </div>
-      )}
 
-      {loading ? (
-        <div style={{ 
-          textAlign: "center",
-          padding: "40px",
-          color: colors.tealAccent
-        }}>
-          Loading medicines...
-        </div>
-      ) : (
-        <>
-          <div style={{ 
-            overflowX: "auto",
-            borderRadius: "8px",
-            backgroundColor: colors.cardBackground,
-            boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
-          }}>
-            <table style={{ 
-              width: "100%",
-              borderCollapse: "collapse"
-            }}>
-              <thead>
-                <tr style={{ 
-                  backgroundColor: "rgba(59,205,191,0.1)",
-                  borderBottom: `1px solid ${colors.borderColor}`
-                }}>
-                  <th style={{ 
-                    padding: "12px 16px",
-                    textAlign: "left",
-                    fontWeight: "600",
-                    color: colors.tealAccent
-                  }}>ID</th>
-                  <th style={{ 
-                    padding: "12px 16px",
-                    textAlign: "left",
-                    fontWeight: "600",
-                    color: colors.tealAccent
-                  }}>Name</th>
-                  <th style={{ 
-                    padding: "12px 16px",
-                    textAlign: "left",
-                    fontWeight: "600",
-                    color: colors.tealAccent
-                  }}>Category</th>
-                  <th style={{ 
-                    padding: "12px 16px",
-                    textAlign: "left",
-                    fontWeight: "600",
-                    color: colors.tealAccent
-                  }}>Price</th>
-                  <th style={{ 
-                    padding: "12px 16px",
-                    textAlign: "left",
-                    fontWeight: "600",
-                    color: colors.tealAccent
-                  }}>Stock</th>
-                  <th style={{ 
-                    padding: "12px 16px",
-                    textAlign: "left",
-                    fontWeight: "600",
-                    color: colors.tealAccent
-                  }}>Status</th>
-                  <th style={{ 
-                    padding: "12px 16px",
-                    textAlign: "left",
-                    fontWeight: "600",
-                    color: colors.tealAccent
-                  }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {medicines.length > 0 ? (
-                  medicines.map((medicine) => (
-                    <tr key={medicine.id} style={{ 
-                      borderBottom: `1px solid ${colors.borderColor}`,
-                      ':hover': {
-                        backgroundColor: "rgba(255,255,255,0.05)"
-                      }
-                    }}>
-                      <td style={{ 
-                        padding: "12px 16px",
-                        color: colors.lightText
-                      }}>
-                        {medicine.id}
-                      </td>
-                      <td style={{ 
-                        padding: "12px 16px",
-                        color: colors.lightText
-                      }}>
-                        {editingMedicine === medicine.id ? (
-                          <input
-                            type="text"
-                            name="name"
-                            value={editFormData.name}
-                            onChange={(e) => handleFormChange(e, 'edit')}
-                            style={{
-                              width: "100%",
-                              padding: "8px 12px",
-                              backgroundColor: colors.darkBackground,
-                              border: `1px solid ${colors.borderColor}`,
-                              borderRadius: "4px",
-                              color: colors.lightText
-                            }}
-                            required
-                          />
-                        ) : (
-                          medicine.name
-                        )}
-                      </td>
-                      <td style={{ 
-                        padding: "12px 16px",
-                        color: colors.lightText
-                      }}>
-                        {editingMedicine === medicine.id ? (
-                          <input
-                            type="text"
-                            name="category"
-                            value={editFormData.category}
-                            onChange={(e) => handleFormChange(e, 'edit')}
-                            style={{
-                              width: "100%",
-                              padding: "8px 12px",
-                              backgroundColor: colors.darkBackground,
-                              border: `1px solid ${colors.borderColor}`,
-                              borderRadius: "4px",
-                              color: colors.lightText
-                            }}
-                            required
-                          />
-                        ) : (
-                          medicine.category
-                        )}
-                      </td>
-                      <td style={{ 
-                        padding: "12px 16px",
-                        color: colors.lightText
-                      }}>
-                        {editingMedicine === medicine.id ? (
-                          <input
-                            type="number"
-                            name="price"
-                            value={editFormData.price}
-                            onChange={(e) => handleFormChange(e, 'edit')}
-                            step="0.01"
-                            style={{
-                              width: "100%",
-                              padding: "8px 12px",
-                              backgroundColor: colors.darkBackground,
-                              border: `1px solid ${colors.borderColor}`,
-                              borderRadius: "4px",
-                              color: colors.lightText
-                            }}
-                            min="0"
-                            required
-                            onKeyDown={(e) => {
-                              if (e.key === '-' || e.key === 'e' || e.key === 'E') {
-                                e.preventDefault()
-                              }
-                            }}
-                          />
-                        ) : (
-                          `Rs ${medicine.price}`
-                        )}
-                      </td>
-                      <td style={{ 
-                        padding: "12px 16px",
-                        color: colors.lightText
-                      }}>
-                        {editingMedicine === medicine.id ? (
-                          <input
-                            type="number"
-                            name="stock"
-                            value={editFormData.stock}
-                            onChange={(e) => handleFormChange(e, 'edit')}
-                            style={{
-                              width: "100%",
-                              padding: "8px 12px",
-                              backgroundColor: colors.darkBackground,
-                              border: `1px solid ${colors.borderColor}`,
-                              borderRadius: "4px",
-                              color: colors.lightText
-                            }}
-                            min="0"
-                            required
-                            onKeyDown={(e) => {
-                              if (e.key === '-' || e.key === 'e' || e.key === 'E') {
-                                e.preventDefault()
-                              }
-                            }}
-                          />
-                        ) : (
-                          medicine.stock
-                        )}
-                      </td>
-                      <td style={{ 
-                        padding: "12px 16px",
-                        color: colors.lightText
-                      }}>
-                        {editingMedicine === medicine.id ? (
-                          <select
-                            name="status"
-                            value={editFormData.status}
-                            onChange={(e) => handleFormChange(e, 'edit')}
-                            style={{
-                              width: "100%",
-                              padding: "8px 12px",
-                              backgroundColor: colors.darkBackground,
-                              border: `1px solid ${colors.borderColor}`,
-                              borderRadius: "4px",
-                              color: colors.lightText
-                            }}
-                          >
-                            <option value="In Stock">In Stock</option>
-                            <option value="Low Stock">Low Stock</option>
-                            <option value="Out of Stock">Out of Stock</option>
-                          </select>
-                        ) : (
-                          <span style={{
-                            padding: "4px 8px",
-                            borderRadius: "12px",
-                            fontSize: "0.75rem",
-                            fontWeight: "500",
-                            backgroundColor:
-                              medicine.status === "In Stock" ? "rgba(16,185,129,0.2)" :
-                              medicine.status === "Low Stock" ? "rgba(234,179,8,0.2)" :
-                              "rgba(239,68,68,0.2)",
-                            color:
-                              medicine.status === "In Stock" ? colors.successGreen :
-                              medicine.status === "Low Stock" ? colors.yellowAccent :
-                              colors.warningRed
-                          }}>
-                            {medicine.status}
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ 
-                        padding: "12px 16px",
-                        color: colors.lightText
-                      }}>
-                        {editingMedicine === medicine.id ? (
-                          <div style={{ 
-                            display: "flex",
-                            gap: "8px"
-                          }}>
-                            <button 
-                              style={{
-                                padding: "6px 12px",
-                                backgroundColor: colors.tealAccent,
-                                color: colors.darkText,
-                                border: "none",
-                                borderRadius: "4px",
-                                fontWeight: "500",
-                                cursor: "pointer",
-                                transition: "all 0.2s",
-                                ':hover': {
-                                  opacity: 0.9
-                                }
-                              }}
-                              onClick={() => handleEditSubmit(medicine.id)}
-                              disabled={loading}
-                            >
-                              {loading ? 'Saving...' : 'Save'}
-                            </button>
-                            <button 
-                              style={{
-                                padding: "6px 12px",
-                                backgroundColor: colors.cardBackground,
-                                color: colors.lightText,
-                                border: `1px solid ${colors.borderColor}`,
-                                borderRadius: "4px",
-                                fontWeight: "500",
-                                cursor: "pointer",
-                                transition: "all 0.2s",
-                                ':hover': {
-                                  backgroundColor: "rgba(255,255,255,0.1)"
-                                }
-                              }}
-                              onClick={handleCancelEdit}
-                              disabled={loading}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <div style={{ 
-                            display: "flex",
-                            gap: "8px"
-                          }}>
-                            <button 
-                              style={{
-                                padding: "6px 12px",
-                                backgroundColor: "rgba(59,205,191,0.2)",
-                                color: colors.tealAccent,
-                                border: "none",
-                                borderRadius: "4px",
-                                fontWeight: "500",
-                                cursor: "pointer",
-                                transition: "all 0.2s",
-                                ':hover': {
-                                  backgroundColor: "rgba(59,205,191,0.3)"
-                                }
-                              }}
-                              onClick={() => handleEditClick(medicine)}
-                              disabled={loading}
-                            >
-                              Edit
-                            </button>
-                            <button 
-                              style={{
-                                padding: "6px 12px",
-                                backgroundColor: "rgba(239,68,68,0.2)",
-                                color: colors.warningRed,
-                                border: "none",
-                                borderRadius: "4px",
-                                fontWeight: "500",
-                                cursor: "pointer",
-                                transition: "all 0.2s",
-                                ':hover': {
-                                  backgroundColor: "rgba(239,68,68,0.3)"
-                                }
-                              }}
-                              onClick={() => handleDelete(medicine.id)}
-                              disabled={loading}
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        )}
-                      </td>
+        {error && (
+          <div className="p-3 mb-6 bg-red-100 border border-red-400 text-red-700 rounded">
+            Error: {error}
+          </div>
+        )}
+
+        {showAddForm && (
+          <div className="bg-white/30 backdrop-blur-md p-6 rounded-lg shadow-lg mb-6 border border-[#71C9CE]">
+            <div className="bg-white p-6 rounded-lg">
+              <h2 className="text-xl font-semibold mb-4 text-[#028478]">Add New Medicine</h2>
+              <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-medium mb-1">Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    className="w-full p-2 border rounded-md"
+                    value={addFormData.name}
+                    onChange={(e) => handleFormChange(e, 'add')}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Category</label>
+                  <input
+                    type="text"
+                    name="category"
+                    className="w-full p-2 border rounded-md"
+                    value={addFormData.category}
+                    onChange={(e) => handleFormChange(e, 'add')}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Price (Rs)</label>
+                  <input
+                    type="number"
+                    name="price"
+                    className="w-full p-2 border rounded-md"
+                    value={addFormData.price}
+                    onChange={(e) => handleFormChange(e, 'add')}
+                    step="0.01"
+                    min="0"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Stock</label>
+                  <input
+                    type="number"
+                    name="stock"
+                    className="w-full p-2 border rounded-md"
+                    value={addFormData.stock}
+                    onChange={(e) => handleFormChange(e, 'add')}
+                    min="0"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Status</label>
+                  <select
+                    name="status"
+                    className="w-full p-2 border rounded-md"
+                    value={addFormData.status}
+                    onChange={(e) => handleFormChange(e, 'add')}
+                  >
+                    <option value="In Stock">In Stock</option>
+                    <option value="Low Stock">Low Stock</option>
+                    <option value="Out of Stock">Out of Stock</option>
+                  </select>
+                </div>
+                <div className="col-span-2 flex space-x-4 mt-4">
+                  <Button
+                    type="button"
+                    className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
+                    onClick={handleAddSubmit}
+                  >
+                    Add Medicine
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCancelAdd}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="text-center p-10 text-[#71C9CE]">Loading medicines...</div>
+        ) : (
+          <>
+            <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-[#71C9CE] text-gray-900 sticky top-0">
+                    <tr>
+                      <th className="p-3 border-l-2">ID</th>
+                      <th className="p-3 border-l-2">Name</th>
+                      <th className="p-3 border-l-2">Category</th>
+                      <th className="p-3 border-l-2">Price</th>
+                      <th className="p-3 border-l-2">Stock</th>
+                      <th className="p-3 border-l-2">Status</th>
+                      <th className="p-3 border-l-2">Actions</th>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="7" style={{ 
-                      textAlign: "center", 
-                      padding: "40px",
-                      color: colors.lightText
-                    }}>
-                      No medicines found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination controls */}
-          <div style={{ 
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            marginTop: "24px",
-            padding: "16px",
-            backgroundColor: colors.cardBackground,
-            borderRadius: "8px",
-            gap: "16px"
-          }}>
-            <button
-              style={{
-                padding: "8px 16px",
-                backgroundColor: currentPage === 1 ? "rgba(255,255,255,0.1)" : colors.tealAccent,
-                color: currentPage === 1 ? colors.lightText : colors.darkText,
-                border: "none",
-                borderRadius: "6px",
-                fontWeight: "500",
-                cursor: currentPage === 1 ? "not-allowed" : "pointer",
-                transition: "all 0.2s",
-                opacity: currentPage === 1 ? 0.7 : 1
-              }}
-              onClick={goToPrevPage}
-              disabled={currentPage === 1 || loading}
-            >
-              Previous
-            </button>
-            
-            <div style={{ 
-              display: "flex",
-              gap: "8px"
-            }}>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                <button
-                  key={page}
-                  style={{
-                    padding: "8px 12px",
-                    backgroundColor: currentPage === page ? colors.tealAccent : colors.cardBackground,
-                    color: currentPage === page ? colors.darkText : colors.lightText,
-                    border: currentPage === page ? "none" : `1px solid ${colors.borderColor}`,
-                    borderRadius: "6px",
-                    fontWeight: "500",
-                    cursor: "pointer",
-                    transition: "all 0.2s",
-                    ':hover': {
-                      backgroundColor: currentPage === page ? colors.tealAccent : "rgba(255,255,255,0.1)"
-                    }
-                  }}
-                  onClick={() => goToPage(page)}
-                  disabled={loading}
-                >
-                  {page}
-                </button>
-              ))}
+                  </thead>
+                  <tbody>
+                    {medicines.length > 0 ? (
+                      medicines.map((medicine) => (
+                        <tr key={medicine.id} className="border-t hover:bg-gray-50/50">
+                          <td className="p-3">{medicine.id}</td>
+                          <td className="p-3">
+                            {editingMedicine === medicine.id ? (
+                              <input
+                                type="text"
+                                name="name"
+                                className="w-full p-2 border rounded-md"
+                                value={editFormData.name}
+                                onChange={(e) => handleFormChange(e, 'edit')}
+                                required
+                              />
+                            ) : (
+                              medicine.name
+                            )}
+                          </td>
+                          <td className="p-3">
+                            {editingMedicine === medicine.id ? (
+                              <input
+                                type="text"
+                                name="category"
+                                className="w-full p-2 border rounded-md"
+                                value={editFormData.category}
+                                onChange={(e) => handleFormChange(e, 'edit')}
+                                required
+                              />
+                            ) : (
+                              medicine.category
+                            )}
+                          </td>
+                          <td className="p-3">
+                            {editingMedicine === medicine.id ? (
+                              <input
+                                type="number"
+                                name="price"
+                                className="w-full p-2 border rounded-md"
+                                value={editFormData.price}
+                                onChange={(e) => handleFormChange(e, 'edit')}
+                                step="0.01"
+                                min="0"
+                                required
+                              />
+                            ) : (
+                              `Rs ${medicine.price}`
+                            )}
+                          </td>
+                          <td className="p-3">
+                            {editingMedicine === medicine.id ? (
+                              <input
+                                type="number"
+                                name="stock"
+                                className="w-full p-2 border rounded-md"
+                                value={editFormData.stock}
+                                onChange={(e) => handleFormChange(e, 'edit')}
+                                min="0"
+                                required
+                              />
+                            ) : (
+                              medicine.stock
+                            )}
+                          </td>
+                          <td className="p-3">
+                            {editingMedicine === medicine.id ? (
+                              <select
+                                name="status"
+                                className="w-full p-2 border rounded-md"
+                                value={editFormData.status}
+                                onChange={(e) => handleFormChange(e, 'edit')}
+                              >
+                                <option value="In Stock">In Stock</option>
+                                <option value="Low Stock">Low Stock</option>
+                                <option value="Out of Stock">Out of Stock</option>
+                              </select>
+                            ) : (
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                medicine.status === "In Stock" ? "bg-green-100 text-green-800" :
+                                medicine.status === "Low Stock" ? "bg-yellow-100 text-yellow-800" :
+                                "bg-red-100 text-red-800"
+                              }`}>
+                                {medicine.status}
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-3 space-x-2">
+                            {editingMedicine === medicine.id ? (
+                              <>
+                                <Button
+                                  size="sm"
+                                  className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
+                                  onClick={() => handleEditSubmit(medicine.id)}
+                                >
+                                  Save
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={handleCancelEdit}
+                                >
+                                  Cancel
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleEditClick(medicine)}
+                                >
+                                  <FaEdit />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleDelete(medicine.id)}
+                                >
+                                  <FaTrash />
+                                </Button>
+                              </>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="7" className="text-center p-10 text-gray-500">
+                          No medicines found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-            
-            <button
-              style={{
-                padding: "8px 16px",
-                backgroundColor: currentPage === totalPages ? "rgba(255,255,255,0.1)" : colors.tealAccent,
-                color: currentPage === totalPages ? colors.lightText : colors.darkText,
-                border: "none",
-                borderRadius: "6px",
-                fontWeight: "500",
-                cursor: currentPage === totalPages ? "not-allowed" : "pointer",
-                transition: "all 0.2s",
-                opacity: currentPage === totalPages ? 0.7 : 1
-              }}
-              onClick={goToNextPage}
-              disabled={currentPage === totalPages || loading}
-            >
-              Next
-            </button>
-          </div>
-        </>
-      )}
+
+            <div className="flex justify-center items-center mt-6 space-x-4">
+              <Button
+                className={`${currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#71C9CE] hover:bg-[#A6E3E9]'} text-gray-900`}
+                onClick={goToPrevPage}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <div className="flex space-x-2">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    className={`${currentPage === page ? 'bg-[#71C9CE] text-gray-900' : ''}`}
+                    onClick={() => goToPage(page)}
+                  >
+                    {page}
+                  </Button>
+                ))}
+              </div>
+              <Button
+                className={`${currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#71C9CE] hover:bg-[#A6E3E9]'} text-gray-900`}
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }

@@ -13,13 +13,10 @@ import NotificationsSection from "../../Components/Pharmacy/Notifications.jsx"
 import { Receipt, BarChart3, LayoutDashboard, Bell } from "lucide-react"
 import React, { useState, useEffect } from "react"
 
-// Placeholder components for other sections
-
 const Pharmacy = () => {
   const [isMobile, setIsMobile] = useState(false)
   const [activeSection, setActiveSection] = useState("dashboard")
 
-  // Handle responsive behavior
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768)
@@ -51,7 +48,7 @@ const Pharmacy = () => {
   }
 
   return (
-    <div className="flex h-screen w-full">
+    <div className="flex h-screen w-full bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2]">
       <Sidebar>
         <SidebarItem
           icon={<LayoutDashboard size={20} />}
@@ -101,35 +98,22 @@ const Pharmacy = () => {
       </Sidebar>
 
       <div
+        className="flex-grow p-4 overflow-y-auto transition-all duration-300"
         style={{
-          flexGrow: 1,
-          padding: "16px",
           marginLeft: isMobile ? "0" : "72px",
-          transition: "all 300ms",
-          overflowY: "auto",
-          backgroundColor: "#22292f",
         }}
       >
-        <div style={{ maxWidth: "56rem", margin: "0 auto" }}>
+        <div className="max-w-7xl mx-auto">
           <Header />
-
-          {/**{activeSection === "dashboard" && (
-            <>
-              <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "4px" }}>Dashboard</h1>
-              <h6 style={{ fontSize: "1.0rem", fontWeight: "initial", marginTop: "0px", marginBottom: "0px" }}>
-                A Quick Data Overview
-              </h6>
-            </>
-          )}**/}
-
-          {renderSection()}
+          <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg p-6 mt-4">
+            {renderSection()}
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
-// Only render if we're in the browser
 if (typeof document !== "undefined") {
   createRoot(document.getElementById("root")).render(
     <StrictMode>

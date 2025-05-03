@@ -98,6 +98,7 @@ export default function Sidebar({ children }) {
           left: isMobile ? "0" : "auto",
           zIndex: isMobile ? 50 : "auto",
           width: "auto",
+          background: "linear-gradient(to bottom, #E0F7FA, #B2EBF2)",
         }}
       >
         <nav
