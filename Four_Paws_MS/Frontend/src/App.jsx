@@ -12,6 +12,8 @@ import Register from "./Pages/Register";
 import Appointment from "./Pages/Appointment";
 import RecordsEntry from "./Pages/RecordsEntry";
 import Adlogin from "./Admin/Pages/Adlogin";
+import VaccineNotify from "./Pages/VaccineNotify";
+import VaccineSent from "./Pages/VaccineSent";
 
 
 
@@ -68,6 +70,8 @@ const App = () => {
         <Route path="/recordsNew" element={<AllRecords />} />
         <Route path="/records/edit/:id" element={<RecordEdit />} />
         <Route path="/records/new" element={<RecordNew />} />
+        <Route path="/notification" element={<VaccineNotify />} />
+        <Route path="/sentnotification" element={<VaccineSent />} />
 
         <Route path="/appointment" element={<Appointment />} />
         {/* <Route path="/RecordsEntry" element={<RecordsEntry />} /> */}
