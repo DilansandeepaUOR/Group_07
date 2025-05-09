@@ -7,8 +7,10 @@ import logo from "../../assets/logo.png"; // Adjust the path to your logo
 const ProductOperations = () => {
   const { id } = useParams(); // Get product_id from URL
   const [product, setProduct] = useState(null);
+  const [user, setUser] = useState(false); // State for user input
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
+  const [quantity, setQuantity] = useState(null); // State for quantity input
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,6 +28,17 @@ const ProductOperations = () => {
 
     fetchProduct();
   }, [id]);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/api/auth/admins", { withCredentials: true })
+      .then((response) => {
+        setUser(response.data);
+      })
+      .catch(() => {
+        setUser(null);
+      });
+  }, []);
 
   if (!product) return <p className="text-center text-gray-500">Loading...</p>;
 
@@ -61,6 +74,37 @@ const ProductOperations = () => {
         console.error(err);
         alert("Failed to delete product.");
       }
+    }
+  };
+
+  const handleInventoryUpdate = async (type) => {
+    try {
+      if (!quantity || isNaN(quantity)) {
+        alert("Please enter a valid quantity.");
+        return;
+      }
+
+      await axios.post(
+        "http://localhost:3001/api/adminpetshop/addtransaction",
+        {
+          employee_id: user?.id, // assuming response.data.id from auth
+          product_id: id,
+          quantity: Number(quantity),
+          type: type, // "IN" or "OUT"
+        }
+      );
+
+      alert(`Inventory ${type} successful with ${quantity}!`);
+      setQuantity(0);
+
+      // Refresh product info
+      const res = await axios.get(
+        `http://localhost:3001/api/adminpetshop/productsqr/${id}`
+      );
+      setProduct(res.data);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update inventory.");
     }
   };
 
@@ -208,7 +252,7 @@ const ProductOperations = () => {
           ) : (
             <div className="w-full space-y-2">
               <table className="w-full text-left">
-                <tr >
+                <tr>
                   <td>
                     <strong>Brand:</strong>
                   </td>
@@ -216,19 +260,19 @@ const ProductOperations = () => {
                 </tr>
                 <tr>
                   <td>
-                  <strong>Category:</strong>
+                    <strong>Category:</strong>
                   </td>
                   <td> {product.category_name}</td>
                 </tr>
                 <tr>
                   <td>
-                  <strong>Quantity In Stock:</strong>
+                    <strong>Quantity In Stock:</strong>
                   </td>
                   <td> {product.quantity_in_stock}</td>
                 </tr>
                 <tr>
                   <td>
-                  <strong>Unit Price:</strong>
+                    <strong>Unit Price:</strong>
                   </td>
                   <td> Rs. {product.unit_price}</td>
                 </tr>
@@ -239,6 +283,7 @@ const ProductOperations = () => {
                   <td>{product.status}</td>
                 </tr>
               </table>
+
               <div className="flex gap-2 mt-4 justify-center items-center">
                 <label htmlFor="quantity">
                   <strong>Enter Quantity to IN or OUT</strong>
@@ -247,25 +292,32 @@ const ProductOperations = () => {
                   type="text"
                   name="quantity"
                   placeholder="Quantity"
-                  //value={formData.name}
-                  //onChange={handleChange}
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
                   className="border rounded p-2 w-full"
                 />
               </div>
               <div className="flex gap-4 m-10">
                 <button
-                  onClick={() => setIsEditing(true)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleInventoryUpdate("IN");
+                  }}
                   className="bg-[#028478] text-white font-bold px-4 py-2 rounded hover:bg-[#396756] transition cursor-pointer"
                 >
                   <FaArrowLeft className="w-5 h-5 ml-10" /> INVENTORY IN
                 </button>
                 <button
-                  onClick={handleDelete}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleInventoryUpdate("OUT");
+                  }}
                   className="bg-red-500 text-white font-bold px-4 py-2 rounded hover:bg-red-600 transition cursor-pointer"
                 >
                   <FaArrowRight className="w-5 h-5 ml-12" /> INVENTORY OUT
                 </button>
               </div>
+
               <div className="flex justify-between">
                 <button
                   onClick={() => setIsEditing(true)}
