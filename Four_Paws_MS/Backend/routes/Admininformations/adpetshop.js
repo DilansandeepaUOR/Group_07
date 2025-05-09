@@ -127,7 +127,6 @@ router.get("/products", async (req, res) => {
   }
 });
 
-
 router.get("/productsqr/:id", (req, res) => {
   const { id } = req.params;
 
@@ -159,7 +158,6 @@ router.get("/productsqr/:id", (req, res) => {
     res.json(results[0]); // return single product
   });
 });
-
 
 router.put("/productupdate", upload.single("image"), async (req, res) => {
   const { product_id } = req.query;
@@ -474,6 +472,49 @@ router.delete("/supplierdelete", async (req, res) => {
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ error: "Error updating supplier" });
+  }
+});
+
+//Manage Petshop Transactions
+
+router.post("/addtransaction", async (req, res) => {
+  const { employee_id, product_id, quantity, type } = req.body;
+
+  // console.log("Transaction Data:", req.body); // Log the transaction data to check if it's being received correctly
+
+  try {
+    const transactionsql =
+      "INSERT INTO pet_shop_inventory_transactions ( product_id, employee_id, transaction_type ,quantity) VALUES (?, ?, ?, ?)";
+    db.query(
+      transactionsql,
+      [product_id, employee_id, type, quantity],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({ error: "Error inserting transaction" });
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ error: "Transaction not found!" });
+        }
+
+        // Update the product quantity in pet_products table
+        const operation = type === "IN" ? "+" : "-"; // Determine the operation based on transaction type
+        const updateProductSql = `UPDATE pet_products SET quantity_in_stock = quantity_in_stock ${operation} ? WHERE product_id = ?`;
+
+        db.query(updateProductSql, [quantity, product_id], (err2) => {
+          if (err2) {
+            return res.status(500).json({
+              error: "Error updating product quantity",
+            });
+          }
+        });
+
+        // If everything is successful, send a success response
+        res.status(201).json({ message: "Transaction added successfully" });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

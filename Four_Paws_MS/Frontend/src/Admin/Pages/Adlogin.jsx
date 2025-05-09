@@ -5,6 +5,7 @@ import "../../Styles/Fonts/Fonts.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import logo from "../../assets/logo.png";
 
 function Adlogin() {
   const [email, setEmail] = useState("");
@@ -89,7 +90,10 @@ function Adlogin() {
   };
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center bg-transparent bg-opacity-50 backdrop-blur-md z-50 ">
+    <div className="fixed inset-0 flex justify-center items-center bg-transparent bg-opacity-50 backdrop-blur-md z-50 bg-gradient-to-b from-[#22292F] via-[#028478] to-[#22292F]">
+      <div className="absolute top-5 left-5 object-cover w-[200px]">
+              <img src={logo} alt="logo" />
+            </div>
       <div className="bg-gradient-to-b from-[#69cac2] to-[#cbfffb] items-center p-8 rounded-lg shadow-lg w-96 relative border-2 border-gray-800">
         {/* Title */}
         <h2 className="text-2xl font-bold text-center text-[#182020] mb-4 Poppins">

@@ -40,7 +40,10 @@ router.post("/login", validLogin, async (req,res) => {
             if(!pwmatch) {
                 return res.status(401).json({error: "email or password does not match"});
             }
-            
+
+            if (user.Account_status === "Inactive") {
+                return res.status(403).json({error: "Account is inactive. Please contact support."});
+            } 
 
             const token = jwt.sign({ id: user.Owner_id, name: user.Owner_name , email: user.E_mail, role: user.Role }, SECRET_KEY, { expiresIn: "3h" });
 

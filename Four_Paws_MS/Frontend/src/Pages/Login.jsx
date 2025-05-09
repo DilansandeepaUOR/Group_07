@@ -89,7 +89,10 @@ function Login() {
       <div className="bg-gradient-to-b from-[#182020] to-[#394a46] items-center p-8 rounded-lg shadow-2xl w-96 relative border-2 border-gray-800">
         {/* Close Button */}
         <button
-          onClick={() => window.history.back()}
+          onClick={(e) => {
+            e.preventDefault();
+            window.history.back();
+          }}
           className="absolute top-3 right-3 text-white hover:text-gray-200 text-lg cursor-pointer"
         >
           <FaTimes size={22} />
