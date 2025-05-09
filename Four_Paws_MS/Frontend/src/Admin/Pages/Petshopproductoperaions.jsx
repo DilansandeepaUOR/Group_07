@@ -183,7 +183,7 @@ const ProductOperations = () => {
                 className="w-full p-2 border rounded focus:ring-2 focus:ring-[#028478]"
               >
                 <option value="Active">Active</option>
-                <option value="Inactive">In Active</option>
+                <option value="Inactive">Inactive</option>
               </select>
             </div>
             <div className="flex gap-4">
