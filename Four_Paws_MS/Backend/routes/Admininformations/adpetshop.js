@@ -480,7 +480,7 @@ router.delete("/supplierdelete", async (req, res) => {
 router.post("/addtransaction", async (req, res) => {
   const { employee_id, product_id, quantity, type } = req.body;
 
-  console.log("Transaction Data:", req.body); // Log the transaction data to check if it's being received correctly
+  // console.log("Transaction Data:", req.body); // Log the transaction data to check if it's being received correctly
 
   try {
     const transactionsql =
@@ -508,8 +508,8 @@ router.post("/addtransaction", async (req, res) => {
             });
           }
         });
-        // If everything is successful, send a success response
 
+        // If everything is successful, send a success response
         res.status(201).json({ message: "Transaction added successfully" });
       }
     );

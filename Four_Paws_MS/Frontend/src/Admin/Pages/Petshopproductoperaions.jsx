@@ -84,6 +84,11 @@ const ProductOperations = () => {
         return;
       }
 
+      if (type === "OUT" && quantity > product.quantity_in_stock) {
+        alert("Insufficient stock for this operation.");
+        return;
+      }
+
       await axios.post(
         "http://localhost:3001/api/adminpetshop/addtransaction",
         {
@@ -94,7 +99,7 @@ const ProductOperations = () => {
         }
       );
 
-      alert(`Inventory ${type} successful with ${quantity}!`);
+      alert(`Inventory ${type} successful with ${quantity} pieces!`);
       setQuantity(0);
 
       // Refresh product info
