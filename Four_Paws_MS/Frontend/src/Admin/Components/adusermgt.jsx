@@ -14,6 +14,8 @@ const AdUserMgt = () => {
   const [users, setUsers] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedRole, setSelectedRole] = useState("");
 
   const fetchUsers = async () => {
     const res = await axios.get(
@@ -25,6 +27,17 @@ const AdUserMgt = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  // Filtered product list based on search term and category
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch = user.email
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesRole = selectedRole
+      ? user.role === selectedRole
+      : true;
+    return matchesSearch && matchesRole;
+  });
 
   const deleteUser = async (employee_id) => {
     try {
@@ -53,6 +66,33 @@ const AdUserMgt = () => {
           <FaPlus className="mr-2" /> Add Admin User
         </Button>
       </div>
+
+      {/* Search and Filter */}
+        <div className="container mx-auto px-4 mt-10">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full placeholder-white md:w-1/2 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#028478]"
+            />
+            <select
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              className="w-full md:w-1/4 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#028478]"
+            >
+              <option value="">All Roles</option>
+
+              {selectedRole.map((r, index) => (
+                <option key={index} value={r.role}>
+                  {r.role}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
       <div className="">
         <div className="overflow-y-auto max-h-[400px]">
           <table className="w-full text-left bg-gray-50 shadow-md rounded">
@@ -65,8 +105,10 @@ const AdUserMgt = () => {
                 <th className="p-3">Actions</th>
               </tr>
             </thead>
+            {filteredUsers.length > 0 ? (
+              filteredUsers.map((u) => (
             <tbody>
-              {users.map((u) => (
+             
                 <tr key={u.employee_id} className="border-t">
                   <td className="p-3">
                     {u.first_name} {u.last_name}
@@ -101,8 +143,14 @@ const AdUserMgt = () => {
                     </Button>
                   </td>
                 </tr>
-              ))}
+            
             </tbody>
+            ))
+            ) : (
+              <p className="text-white col-span-3 text-center">
+                No products found.
+              </p>
+            )}
           </table>
         </div>
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full max-w-2xl z-20 p-4 rounded-md">
