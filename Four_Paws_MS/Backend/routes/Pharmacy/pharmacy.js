@@ -956,7 +956,7 @@ router.get('/api/notifications/debug', async (req, res) => {
 });
 
 /*Report section*/
- // GET /api/medicines/top-selling
+
 router.get('/api/sales', async (req, res) => {
   try {
     const result = await db.promise().query(`
@@ -980,44 +980,8 @@ router.get('/api/sales', async (req, res) => {
 });
 
 
-// salesRoutes.js
-router.get('/api/sales-revenue', async (req, res) => {
-  const { period } = req.query;
 
-  let startDate;
-  const today = new Date();
 
-  // Determine the start date based on the period
-  if (period === 'day') {
-    startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  } else if (period === 'week') {
-    const day = today.getDay(); // Sunday = 0
-    startDate = new Date(today);
-    startDate.setDate(today.getDate() - day);
-  } else if (period === 'month') {
-    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-  } else if (period === 'year') {
-    startDate = new Date(today.getFullYear(), 0, 1);
-  } else {
-    return res.status(400).json({ message: 'Invalid period' });
-  }
-
-  try {
-    // Updated query with the join between sales and medicines
-    const [result] = await db.execute(
-      `SELECT SUM(s.stock_change * m.price) AS revenue 
-       FROM sales s 
-       JOIN medicines m ON s.medicine_id = m.id
-       WHERE s.changed_at >= ?`,
-      [startDate]
-    );
-
-    // Send the revenue back as a response
-    res.json({ revenue: result[0].revenue || 0 });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
 
 
 
