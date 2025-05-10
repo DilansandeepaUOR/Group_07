@@ -185,7 +185,7 @@ router.put("/productupdate", upload.single("image"), async (req, res) => {
       ? `/uploads/productpics/${req.file.filename}`
       : oldImage;
     const productsql =
-      "UPDATE pet_products SET name = ?, category_id = ?, brand = ?, description = ?, quantity_in_stock = ?, unit_price = ?, supplier_id = ?, status = ?, product_image = ? WHERE product_id = ?";
+      "UPDATE pet_products SET name = ?, category_id = ?, brand = ?, description = ?, quantity_in_stock = quantity_in_stock + ?, unit_price = ?, supplier_id = ?, status = ?, product_image = ? WHERE product_id = ?";
 
     db.query(
       productsql,
@@ -208,7 +208,42 @@ router.put("/productupdate", upload.single("image"), async (req, res) => {
         if (results.affectedRows === 0) {
           return res.status(404).json({ error: "Product not found" });
         }
-        res.status(200).json({ message: "Product updated successfully" });
+
+        // Check updated quantity
+        const checkQuantitySql =
+          "SELECT quantity_in_stock FROM pet_products WHERE product_id = ?";
+
+        db.query(checkQuantitySql, [product_id], (err, result) => {
+          if (err) {
+            return res.status(500).json({ error: "Error checking quantity" });
+          }
+
+          const updatedQty = result[0]?.quantity_in_stock;
+
+          // Update status to "Inactive" if quantity is 0
+          if (updatedQty === 0) {
+            
+            const updateStatusSql =
+              "UPDATE pet_products SET status = 'Inactive' WHERE product_id = ?";
+
+            db.query(updateStatusSql, [product_id], (err2) => {
+              if (err2) {
+                return res
+                  .status(500)
+                  .json({ error: "Error updating status to Inactive" });
+              }
+
+              return res.status(200).json({
+                message:
+                  "Product updated and status set to Inactive due to zero quantity",
+              });
+            });
+          } else {
+            return res
+              .status(200)
+              .json({ message: "Product updated successfully" });
+          }
+        });
       }
     );
   } catch (error) {

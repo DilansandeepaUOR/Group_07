@@ -208,12 +208,20 @@ const ProductManagement = () => {
                   </p>
                   <p
                     className={`text-gray-600 mb-4 ${
-                      product.status != "Inactive"
-                        ? "text-[#71C9CE] font-bold"
+                      product.status !== "Inactive"
+                        ? "font-bold"
                         : "font-bold text-red-500"
                     }`}
                   >
-                    {product.status === "Active" ? "In Stock" : "Out of Stock"}
+                    {product.status === "Active" ? (
+                      <>
+                        In Stock
+                        <br />
+                        {product.quantity_in_stock} Items Left
+                      </>
+                    ) : (
+                      "Out of Stock"
+                    )}
                   </p>
                   <div className="text-xl font-semibold text-gray-800 mb-2">
                     {product.description}
@@ -462,10 +470,11 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
               onChange={handleChange}
               value={formData.quantity_in_stock}
               required
+              disabled
             />
           </div>
 
-          {editingProduct && (
+          {/* {editingProduct && (
             <div>
               {editingProduct && (
                 <label className="flex font-bold" htmlFor="status">
@@ -477,13 +486,13 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
                 className="p-2 border rounded-md"
                 onChange={handleChange}
                 value={formData.status}
-                required
+                disabled
               >
                 <option>Active</option>
                 <option>Inactive</option>
               </select>
             </div>
-          )}
+          )} */}
 
           <div>
             {editingProduct && (

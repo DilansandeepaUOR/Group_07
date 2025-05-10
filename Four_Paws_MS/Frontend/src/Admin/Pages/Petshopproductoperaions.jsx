@@ -200,6 +200,7 @@ const ProductOperations = () => {
                   value={formData.quantity_in_stock || ""}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded focus:ring-2 focus:ring-[#028478]"
+                  disabled
                 />
               </div>
               <div>
@@ -225,7 +226,7 @@ const ProductOperations = () => {
                   className="w-full p-2 border rounded focus:ring-2 focus:ring-[#028478]"
                 ></textarea>
               </div>
-              <div>
+              {/* <div>
                 <label className="block font-bold mb-1 text-gray-700">
                   Status
                 </label>
@@ -238,7 +239,7 @@ const ProductOperations = () => {
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
                 </select>
-              </div>
+              </div> */}
               <div className="flex gap-4">
                 <button
                   onClick={handleSave}
