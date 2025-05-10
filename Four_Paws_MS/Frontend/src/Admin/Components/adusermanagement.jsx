@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import {
 
-  FaPills,
-  FaShoppingCart,
+  FaUser,
+  FaUsers
 
 } from "react-icons/fa";
 import AdUserMGT from "../Components/adusermgt";
@@ -38,7 +38,7 @@ return (
                         onClick={() => setActiveTab("aduser")}
                         className="flex items-center gap-2 w-full text-left border-1 p-2 rounded-2xl hover:border-gray-900 hover:text-gray-50 cursor-pointer"
                     >
-                        <FaShoppingCart /> Manage Admin Users
+                        <FaUsers /> Manage Admin Users
                     </button>
                 </li>
                 <li>
@@ -46,7 +46,7 @@ return (
                         onClick={() => setActiveTab("reguser")}
                         className="flex items-center gap-2 w-full text-left border-1 p-2 rounded-2xl hover:border-gray-900 hover:text-gray-50 cursor-pointer"
                     >
-                        <FaPills /> Manage Regular Users
+                        <FaUser /> Manage Regular Users
                     </button>
                 </li>
             </ul>

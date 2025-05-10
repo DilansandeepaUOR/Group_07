@@ -1,37 +1,42 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "@/Components/Navbar/Navbar";
 import Footer from "@/Components/Footer/Footer";
+import axios from "axios";
+import paw from "../assets/paw_vector.png";
 
 function Petshop() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [products, setProducts] = useState([]);
+  const [categories, setCaegories] = useState([]);
 
-  // Example product list — replace with real data from API
-  const products = [
-    {
-      name: "Premium Pet Food",
-      category: "Food",
-      price: 29.99,
-      description: "High-quality, nutritious food for your beloved pet.",
-    },
-    {
-      name: "Pet Toys Pack",
-      category: "Toys",
-      price: 14.99,
-      description: "Fun and engaging toys for your furry friend.",
-    },
-    {
-      name: "Pet Grooming Kit",
-      category: "Grooming",
-      price: 24.99,
-      description: "Essential grooming tools for a clean pet.",
-    },
-  ];
+  const fetchProducts = async () => {
+    const res = await axios.get(
+      "http://localhost:3001/api/adminpetshop/products"
+    );
+    setProducts(res.data);
+  };
+
+  const fetchCategories = async () => {
+    const res = await axios.get(
+      "http://localhost:3001/api/adminpetshop/categories"
+    );
+    setCaegories(res.data);
+  };
+
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
 
   // Filtered product list based on search term and category
   const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory ? product.category === selectedCategory : true;
+    const matchesSearch = product.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory
+      ? product.category_name === selectedCategory
+      : true;
     return matchesSearch && matchesCategory;
   });
 
@@ -59,17 +64,20 @@ function Petshop() {
               placeholder="Search products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full placeholder-white md:w-1/2 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#028478]"
+              className="w-full placeholder-gray-300 text-gray-300 bg-[#22292F] md:w-1/2 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 caret-gray-300 focus:ring-[#028478]"
             />
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full md:w-1/4 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#028478]"
+              className="w-full text-gray-300 cursor-pointer bg-[#22292F] md:w-1/4 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#028478]"
             >
               <option value="">All Categories</option>
-              <option value="Food">Food</option>
-              <option value="Toys">Toys</option>
-              <option value="Grooming">Grooming</option>
+
+              {categories.map((cat, index) => (
+                <option key={index} value={cat.category_name}>
+                  {cat.category_name}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -81,22 +89,58 @@ function Petshop() {
               filteredProducts.map((product, index) => (
                 <div
                   key={index}
-                  className="bg-white rounded-2xl shadow-lg p-6 text-center hover:scale-105 transition-transform"
+                  className="bg-gradient-to-b from-[#A6E3E9] via-[#71C9CE] to-[#A6E3E9] rounded-2xl shadow-lg p-6 text-center hover:scale-105 transition-transform"
                 >
-                  <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                  <h2 className="text-3xl font-bold text-[#028478] mb-4">
                     {product.name}
                   </h2>
-                  <p className="text-gray-600 mb-4">{product.description}</p>
-                  <div className="text-3xl font-bold text-[#028478] mb-4">
-                    ${product.price.toFixed(2)}
+
+                  <div className="flex items-center justify-center">
+                    <img
+                      src={
+                        paw || `http://localhost:3001${product.product_image}`
+                      }
+                      alt={product.name}
+                      className="w-20 h-20 object-cover rounded-lg shadow-md"
+                    />
                   </div>
-                  <button className="bg-[#028478] text-white px-6 py-2 rounded-full hover:bg-[#02665e] transition">
-                    Buy Now
-                  </button>
+                  <p className="text-gray-600 mb-4">
+                    <strong>Category: </strong>
+                    {product.category_name}
+                  </p>
+                  <p className="text-gray-600 mb-4">
+                    <strong>Brand: </strong>
+                    {product.brand}
+                  </p>
+                  <p
+                    className={`text-gray-600 mb-4 ${
+                      product.status !== "Inactive"
+                        ? "font-bold"
+                        : "font-bold text-red-500"
+                    }`}
+                  >
+                    {product.status === "Active" ? (
+                      <>
+                        In Stock
+                        <br />
+                        {product.quantity_in_stock} Items Left
+                      </>
+                    ) : (
+                      "Out of Stock"
+                    )}
+                  </p>
+                  <div className="text-xl font-semibold text-gray-800 mb-2">
+                    {product.description}
+                  </div>
+                  <p className="bg-[#028478] text-white px-6 py-2 rounded-full">
+                    Rs. {product.unit_price}
+                  </p>
                 </div>
               ))
             ) : (
-              <p className="text-white col-span-3 text-center">No products found.</p>
+              <p className="text-white col-span-3 text-center">
+                No products found.
+              </p>
             )}
           </div>
         </div>

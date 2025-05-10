@@ -10,6 +10,7 @@ const RegUserMGT = () => {
   const [users, setUsers] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const fetchUsers = async () => {
     const res = await axios.get(
@@ -21,6 +22,15 @@ const RegUserMGT = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  // Filtered user list based on search term
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch = user.E_mail.toLowerCase().includes(
+      searchTerm.toLowerCase()
+    );
+
+    return matchesSearch;
+  });
 
   const deleteUser = async (Owner_id) => {
     try {
@@ -48,6 +58,20 @@ const RegUserMGT = () => {
           <FaPlus className="mr-2" /> Add New Regular User
         </Button>
       </div>
+
+      {/* Search and Filter */}
+      <div className="container mx-auto px-4 mt-5 mb-5">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <input
+            type="text"
+            placeholder="Search E mail..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full  md:w-1/2 px-4 py-2 rounded-md border border-gray-800 focus:outline-none focus:ring-2 focus:ring-[#028478]"
+          />
+        </div>
+      </div>
+
       <div className="">
         <div className="overflow-y-auto max-h-[400px]">
           <table className="w-full text-left bg-gray-50 shadow-md">
@@ -62,46 +86,56 @@ const RegUserMGT = () => {
                 <th className="p-3 border-l-2">Actioins</th>
               </tr>
             </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.Owner_id} className="border-t">
-                  <td className="p-3 ">{u.Owner_name}</td>
-                  <td className="p-3">{u.E_mail}</td>
-                  <td className="p-3">{u.Owner_address}</td>
-                  <td className="p-3">{u.Phone_number}</td>
-                  <td className="p-3">{u.Pet_name}</td>
+            {filteredUsers.length > 0 ? (
+              filteredUsers.map((u) => (
+                <tbody>
+                  <tr key={u.Owner_id} className="border-t">
+                    <td className="p-3 ">{u.Owner_name}</td>
+                    <td className="p-3">{u.E_mail}</td>
+                    <td className="p-3">{u.Owner_address}</td>
+                    <td className="p-3">{u.Phone_number}</td>
+                    <td className="p-3">{u.Pet_name}</td>
 
-                  <td
-                    className={`p-3 ${
-                      u.Account_status != "Inactive"
-                        ? "text-[#71C9CE] font-bold"
-                        : "font-bold text-red-500"
-                    }`}
-                  >
-                    {u.Account_status}
-                  </td>
+                    <td
+                      className={`p-3 ${
+                        u.Account_status != "Inactive"
+                          ? "text-[#71C9CE] font-bold"
+                          : "font-bold text-red-500"
+                      }`}
+                    >
+                      {u.Account_status}
+                    </td>
 
-                  <td className="p-3 space-x-2">
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        setEditingUser(u);
-                        setShowForm(true);
-                      }}
-                    >
-                      <FaEdit />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => deleteUser(u.Owner_id)}
-                    >
-                      <FaTrash />
-                    </Button>
+                    <td className="p-3 space-x-2">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setEditingUser(u);
+                          setShowForm(true);
+                        }}
+                      >
+                        <FaEdit />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => deleteUser(u.Owner_id)}
+                      >
+                        <FaTrash />
+                      </Button>
+                    </td>
+                  </tr>
+                </tbody>
+              ))
+            ) : (
+              <tbody>
+                <tr>
+                  <td colSpan="7" className="text-center text-gray-500 py-4">
+                    No Users found.
                   </td>
                 </tr>
-              ))}
-            </tbody>
+              </tbody>
+            )}
           </table>
         </div>
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full max-w-2xl z-20 p-4 rounded-md">
@@ -222,7 +256,7 @@ const UserForm = ({ closeForm, editingUser, refreshUsers }) => {
     <div className="bg-white/30 backdrop-blur-md p-20">
       <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
         <h2 className="text-xl font-semibold mb-4 text-[#028478]">
-          {editingUser ? "Edit" : "Register New"} Product
+          {editingUser ? "Edit" : "Register New"} User
         </h2>
         <form
           className="grid grid-cols-1 md:grid-cols-2 gap-4"
@@ -391,18 +425,18 @@ const UserForm = ({ closeForm, editingUser, refreshUsers }) => {
             </div>
           )}
 
-<div>
-          {!editingUser && (
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Password"
-            className="p-2 border rounded-md col-span-2"
-            onChange={handleChange}
-            value={formData.confirmPassword}
-            required
-          />
-        )}
+          <div>
+            {!editingUser && (
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="Password"
+                className="p-2 border rounded-md col-span-2"
+                onChange={handleChange}
+                value={formData.confirmPassword}
+                required
+              />
+            )}
           </div>
 
           <div className="col-span-2 flex items-center">
