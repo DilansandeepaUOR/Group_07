@@ -24,7 +24,7 @@ const RegUserMGT = () => {
     fetchUsers();
   }, []);
 
-  // Filtered product list based on search term and category
+  // Filtered user list based on search term
   const filteredUsers = users.filter((user) => {
     const matchesSearch = user.E_mail
       .toLowerCase()
@@ -61,14 +61,14 @@ const RegUserMGT = () => {
       </div>
 
       {/* Search and Filter */}
-        <div className="container mx-auto px-4 mt-10">
+        <div className="container mx-auto px-4 mt-5 mb-5">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder="Search E mail..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full placeholder-white md:w-1/2 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#028478]"
+              className="w-full  md:w-1/2 px-4 py-2 rounded-md border border-gray-800 focus:outline-none focus:ring-2 focus:ring-[#028478]"
             />
           </div>
         </div>
