@@ -1,37 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "@/Components/Navbar/Navbar";
 import Footer from "@/Components/Footer/Footer";
+import axios from "axios";
+import paw from "../assets/paw_vector.png";
+
 
 function Petshop() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [products, setProducts] = useState([]);
 
-  // Example product list — replace with real data from API
-  const products = [
-    {
-      name: "Premium Pet Food",
-      category: "Food",
-      price: 29.99,
-      description: "High-quality, nutritious food for your beloved pet.",
-    },
-    {
-      name: "Pet Toys Pack",
-      category: "Toys",
-      price: 14.99,
-      description: "Fun and engaging toys for your furry friend.",
-    },
-    {
-      name: "Pet Grooming Kit",
-      category: "Grooming",
-      price: 24.99,
-      description: "Essential grooming tools for a clean pet.",
-    },
-  ];
+  const fetchProducts = async () => {
+    const res = await axios.get(
+      "http://localhost:3001/api/adminpetshop/products"
+    );
+    setProducts(res.data);
+  };
+
+  useEffect(() => {
+      fetchProducts();
+    }, []);
 
   // Filtered product list based on search term and category
   const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory ? product.category === selectedCategory : true;
+    const matchesSearch = product.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory
+      ? product.category_name === selectedCategory
+      : true;
     return matchesSearch && matchesCategory;
   });
 
@@ -67,9 +64,11 @@ function Petshop() {
               className="w-full md:w-1/4 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#028478]"
             >
               <option value="">All Categories</option>
-              <option value="Food">Food</option>
-              <option value="Toys">Toys</option>
-              <option value="Grooming">Grooming</option>
+              
+              {products.map((cat,index) => (
+                <option key={index} value={cat.category_name}>{cat.category_name}</option>
+              ))}
+              
             </select>
           </div>
         </div>
@@ -86,17 +85,21 @@ function Petshop() {
                   <h2 className="text-xl font-semibold text-gray-800 mb-2">
                     {product.name}
                   </h2>
-                  <p className="text-gray-600 mb-4">{product.description}</p>
+                  <p className="text-gray-600 mb-4">{product.category_name}</p>
+                  <p className="text-gray-600 mb-4">{product.brand}</p>
+                  <p className="text-gray-600 mb-4">{product.status}</p>
                   <div className="text-3xl font-bold text-[#028478] mb-4">
-                    ${product.price.toFixed(2)}
+                    {product.description}
                   </div>
-                  <button className="bg-[#028478] text-white px-6 py-2 rounded-full hover:bg-[#02665e] transition">
-                    Buy Now
-                  </button>
+                  <p className="bg-[#028478] text-white px-6 py-2 rounded-full hover:bg-[#02665e]">
+                    Rs. {product.unit_price}
+                  </p>
                 </div>
               ))
             ) : (
-              <p className="text-white col-span-3 text-center">No products found.</p>
+              <p className="text-white col-span-3 text-center">
+                No products found.
+              </p>
             )}
           </div>
         </div>
