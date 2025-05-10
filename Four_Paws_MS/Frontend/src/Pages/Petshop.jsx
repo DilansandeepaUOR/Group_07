@@ -64,12 +64,12 @@ function Petshop() {
               placeholder="Search products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full placeholder-white md:w-1/2 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#028478]"
+              className="w-full placeholder-gray-300 bg-[#22292F] md:w-1/2 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#028478]"
             />
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full md:w-1/4 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#028478]"
+              className="w-full text-gray-300 cursor-pointer bg-[#22292F] md:w-1/4 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#028478]"
             >
               <option value="">All Categories</option>
 
@@ -89,22 +89,46 @@ function Petshop() {
               filteredProducts.map((product, index) => (
                 <div
                   key={index}
-                  className="bg-white rounded-2xl shadow-lg p-6 text-center hover:scale-105 transition-transform"
+                  className="bg-gradient-to-b from-[#A6E3E9] via-[#71C9CE] to-[#A6E3E9] rounded-2xl shadow-lg p-6 text-center hover:scale-105 transition-transform"
                 >
                   <h2 className="text-3xl font-bold text-[#028478] mb-4">
                     {product.name}
                   </h2>
-                
-                    <div className="flex items-center justify-center">
-                      <img
-                      src={paw || `http://localhost:3001${product.product_image}`}
+
+                  <div className="flex items-center justify-center">
+                    <img
+                      src={
+                        paw || `http://localhost:3001${product.product_image}`
+                      }
                       alt={product.name}
                       className="w-20 h-20 object-cover rounded-lg shadow-md"
                     />
-                    </div>
-                  <p className="text-gray-600 mb-4"><strong>Category:    </strong>{product.category_name}</p>
-                  <p className="text-gray-600 mb-4"><strong>Brand:    </strong>{product.brand}</p>
-                  <p className={`text-gray-600 mb-4 ${product.status != "Inactive" ? ("text-[#71C9CE] font-bold"): ("font-bold text-red-500")}`}>{product.status === "Active" ? ("In Stock"): ("Out of Stock")}</p>
+                  </div>
+                  <p className="text-gray-600 mb-4">
+                    <strong>Category: </strong>
+                    {product.category_name}
+                  </p>
+                  <p className="text-gray-600 mb-4">
+                    <strong>Brand: </strong>
+                    {product.brand}
+                  </p>
+                  <p
+                    className={`text-gray-600 mb-4 ${
+                      product.status !== "Inactive"
+                        ? "font-bold"
+                        : "font-bold text-red-500"
+                    }`}
+                  >
+                    {product.status === "Active" ? (
+                      <>
+                        In Stock
+                        <br />
+                        {product.quantity_in_stock} Items Left
+                      </>
+                    ) : (
+                      "Out of Stock"
+                    )}
+                  </p>
                   <div className="text-xl font-semibold text-gray-800 mb-2">
                     {product.description}
                   </div>
