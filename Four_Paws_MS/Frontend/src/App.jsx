@@ -13,6 +13,7 @@ import Appointment from './Pages/Appointment'
 import RecordsEntry from './Pages/RecordsEntry'
 import Adlogin from './Admin/Pages/adlogin'
 import Addashboard from './Admin/Pages/Addashboard'
+import ReportsSection from './Components/Pharmacy/Reports'
 
 
 const App = () => {
@@ -31,7 +32,7 @@ const App = () => {
         <Route path="/Profile" element={<Profile/>}/>
         <Route path="/appointment" element={<Appointment/>}/>
         <Route path="/RecordsEntry" element={<RecordsEntry/>}/>
-        
+        <Route path="/Reports" element={<ReportsSection/>}/>
 
         {/* Admin logins  */}
         <Route path="/Adlogin" element={<Adlogin/>}/>

@@ -58,7 +58,7 @@ export default function DashboardSection() {
       title: loading ? "Loading..." : (lowStockCount >= 10 || outOfStockCount >= 10 ? "Attention Needed" : "All Good"),
       subtitle: "Inventory Status",
       buttonText: "View Detailed Report",
-      onClick: () => navigate("/inventory"),
+      onClick: () => navigate("/reports"), // Fixed path to lowercase
       status: lowStockCount >= 10 || outOfStockCount >= 10 ? "warning" : "success",
     },
     {
@@ -66,7 +66,7 @@ export default function DashboardSection() {
       title: "Rs. 8,55,875",
       subtitle: "Revenue - Jan 2022",
       buttonText: "View Detailed Report",
-      onClick: () => navigate("/reports"),
+      onClick: () => navigate("/reports"), // Fixed path to lowercase
       status: "revenue",
     },
     {
@@ -74,7 +74,7 @@ export default function DashboardSection() {
       title: loading ? "Loading..." : medicineCount.toString(),
       subtitle: "Medicines Available",
       buttonText: "Visit Inventory",
-      onClick: () => navigate("/Inventory.jsx"),
+      onClick: () => navigate("/inventory"),
       status: "info",
     },
     {
@@ -145,7 +145,7 @@ export default function DashboardSection() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6">
+    <div className="bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Pharmacy Dashboard</h1>

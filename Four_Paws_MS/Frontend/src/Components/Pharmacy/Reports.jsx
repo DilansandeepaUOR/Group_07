@@ -153,9 +153,9 @@ export default function ReportsSection() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6">
+    <div className="bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Reports & Analytics</h1>
+        <h1 className="text-2xl font-bold mb-6">Reports & Analytics</h1>
 
         {/* Top Selling Medicines */}
         <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg p-6 mb-6 border border-[#71C9CE]">

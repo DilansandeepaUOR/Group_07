@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button } from "@/components/ui/button";
-import { Bell, BellOff, CheckCircle } from "lucide-react";
+import { Bell, BellOff, CheckCircle, X } from "lucide-react";
 
 export default function NotificationsSection() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [displayCount, setDisplayCount] = useState(5);
   const [totalNotifications, setTotalNotifications] = useState(0);
+  const [selectedNotification, setSelectedNotification] = useState(null);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -53,6 +54,18 @@ export default function NotificationsSection() {
 
   const loadMore = () => {
     setDisplayCount(prevCount => Math.min(prevCount + 5, 15));
+  };
+
+  const viewDetails = (notification) => {
+    setSelectedNotification(notification);
+    // Mark as read when viewing details
+    if (!notification.is_read) {
+      markAsRead(notification.id);
+    }
+  };
+
+  const closeDetails = () => {
+    setSelectedNotification(null);
   };
 
   if (loading) {
@@ -126,6 +139,7 @@ export default function NotificationsSection() {
                       variant="outline"
                       size="sm"
                       className="text-xs"
+                      onClick={() => viewDetails(notification)}
                     >
                       View details
                     </Button>
@@ -164,6 +178,74 @@ export default function NotificationsSection() {
           )}
         </div>
       </div>
+
+      {/* Notification Details Modal */}
+      {selectedNotification && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-xl font-bold text-gray-800">
+                  {selectedNotification.title}
+                </h2>
+                <button 
+                  onClick={closeDetails}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="mb-4">
+                <div className="flex justify-between text-sm text-gray-600 mb-2">
+                  <span>Date: {new Date(selectedNotification.created_at).toLocaleString()}</span>
+                  <span className={`px-2 py-1 rounded-full text-xs ${
+                    selectedNotification.is_read 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {selectedNotification.is_read ? 'Read' : 'Unread'}
+                  </span>
+                </div>
+                
+                <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                  <p className="text-gray-700">{selectedNotification.description}</p>
+                </div>
+                
+                {selectedNotification.metadata && (
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-gray-800">Details:</h3>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      {Object.entries(selectedNotification.metadata).map(([key, value]) => (
+                        <div key={key} className="bg-gray-50 p-2 rounded">
+                          <span className="font-medium text-gray-700">{key}:</span> {value}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex justify-end gap-2 pt-4 border-t border-gray-200">
+                <Button
+                  variant="outline"
+                  onClick={closeDetails}
+                >
+                  Close
+                </Button>
+                {selectedNotification.action_url && (
+                  <Button
+                    className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
+                    onClick={() => window.open(selectedNotification.action_url, '_blank')}
+                  >
+                    Take Action
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
