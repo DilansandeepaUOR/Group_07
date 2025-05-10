@@ -135,9 +135,13 @@ const AdUserMgt = () => {
                 </tbody>
               ))
             ) : (
-              <p className="text-white col-span-3 text-center">
-                No products found.
-              </p>
+              <tbody>
+                <tr>
+                  <td colSpan="7" className="text-center text-gray-500 py-4">
+                    No Users found.
+                  </td>
+                </tr>
+              </tbody>
             )}
           </table>
         </div>

@@ -71,33 +71,32 @@ const ProductManagement = () => {
         </Button>
       </div>
 
-     
       <div className="mb-5">
-          <div className="container mx-auto px-4 mt-10">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full md:w-1/2 px-4 py-2 rounded-md border border-gray-800 focus:outline-none focus:ring-2 focus:ring-[#028478]"
-              />
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full md:w-1/4 px-4 py-2 rounded-md border border-gray-800 focus:outline-none focus:ring-2 focus:ring-[#028478]"
-              >
-                <option value="">All Categories</option>
+        <div className="container mx-auto px-4 mt-10">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full md:w-1/2 px-4 py-2 rounded-md border border-gray-800 focus:outline-none focus:ring-2 focus:ring-[#028478]"
+            />
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full md:w-1/4 px-4 py-2 rounded-md border border-gray-800 focus:outline-none focus:ring-2 focus:ring-[#028478]"
+            >
+              <option value="">All Categories</option>
 
-                {categories.map((cat, index) => (
-                  <option key={index} value={cat.category_name}>
-                    {cat.category_name}
-                  </option>
-                ))}
-              </select>
-            </div>
+              {categories.map((cat, index) => (
+                <option key={index} value={cat.category_name}>
+                  {cat.category_name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
+      </div>
 
       <div className="">
         <div className="overflow-y-auto max-h-[400px]">
@@ -116,105 +115,122 @@ const ProductManagement = () => {
             </thead>
             {filteredProducts.length > 0 ? (
               filteredProducts.map((u) => (
-            <tbody>
-              
-                <tr key={u.product_id} className="border-t">
-                  <td className="p-3 ">{u.name}</td>
-                  <td className="p-3">{u.category_name}</td>
-                  <td className="p-3">{u.supplier_name}</td>
-                  <td className="p-3">{u.quantity_in_stock}</td>
-                  <td className="p-3">Rs. {u.unit_price}</td>
+                <tbody>
+                  <tr key={u.product_id} className="border-t">
+                    <td className="p-3 ">{u.name}</td>
+                    <td className="p-3">{u.category_name}</td>
+                    <td className="p-3">{u.supplier_name}</td>
+                    <td className="p-3">{u.quantity_in_stock}</td>
+                    <td className="p-3">Rs. {u.unit_price}</td>
 
-                  <td
-                    className={`p-3 ${
-                      u.status != "Inactive"
+                    <td
+                      className={`p-3 ${
+                        u.status != "Inactive"
+                          ? "text-[#71C9CE] font-bold"
+                          : "font-bold text-red-500"
+                      }`}
+                    >
+                      {u.status}
+                    </td>
+                    <td className="p-3">
+                      {u.qr_code_image ? (
+                        <img
+                          src={u.qr_code_image}
+                          alt="QR Code"
+                          className="w-16 h-16 object-contain"
+                        />
+                      ) : (
+                        "N/A"
+                      )}
+                    </td>
+                    <td className="p-3 space-x-2">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setEditingProduct(u);
+                          setShowForm(true);
+                        }}
+                      >
+                        <FaEdit />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => deleteProduct(u.product_id)}
+                      >
+                        <FaTrash />
+                      </Button>
+                    </td>
+                  </tr>
+                </tbody>
+              ))
+            ) : (
+              <tbody>
+                <tr>
+                  <td colSpan="7" className="text-center text-gray-500 py-4">
+                    No Products found.
+                  </td>
+                </tr>
+              </tbody>
+            )}
+          </table>
+        </div>
+
+        {/* Services Grid */}
+        <div className="container mx-auto px-4 py-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((product, index) => (
+                <div
+                  key={index}
+                  className="bg-white rounded-2xl shadow-lg p-6 text-center hover:scale-105 transition-transform"
+                >
+                  <h2 className="text-3xl font-bold text-[#028478] mb-4">
+                    {product.name}
+                  </h2>
+
+                  <div className="flex items-center justify-center">
+                    <img
+                      src={
+                        paw || `http://localhost:3001${product.product_image}`
+                      }
+                      alt={product.name}
+                      className="w-20 h-20 object-cover rounded-lg shadow-md"
+                    />
+                  </div>
+                  <p className="text-gray-600 mb-4">
+                    <strong>Category: </strong>
+                    {product.category_name}
+                  </p>
+                  <p className="text-gray-600 mb-4">
+                    <strong>Brand: </strong>
+                    {product.brand}
+                  </p>
+                  <p
+                    className={`text-gray-600 mb-4 ${
+                      product.status != "Inactive"
                         ? "text-[#71C9CE] font-bold"
                         : "font-bold text-red-500"
                     }`}
                   >
-                    {u.status}
-                  </td>
-                  <td className="p-3">
-                    {u.qr_code_image ? (
-                      <img
-                        src={u.qr_code_image}
-                        alt="QR Code"
-                        className="w-16 h-16 object-contain"
-                      />
-                    ) : (
-                      "N/A"
-                    )}
-                  </td>
-                  <td className="p-3 space-x-2">
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        setEditingProduct(u);
-                        setShowForm(true);
-                      }}
-                    >
-                      <FaEdit />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => deleteProduct(u.product_id)}
-                    >
-                      <FaTrash />
-                    </Button>
-                  </td>
-                </tr>
-              
-            </tbody>
+                    {product.status === "Active" ? "In Stock" : "Out of Stock"}
+                  </p>
+                  <div className="text-xl font-semibold text-gray-800 mb-2">
+                    {product.description}
+                  </div>
+                  <p className="bg-[#028478] text-white px-6 py-2 rounded-full">
+                    Rs. {product.unit_price}
+                  </p>
+                </div>
               ))
             ) : (
               <p className="text-white col-span-3 text-center">
                 No products found.
               </p>
             )}
-          </table>
+          </div>
         </div>
 
-        {/* Services Grid */}
-                <div className="container mx-auto px-4 py-20">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {filteredProducts.length > 0 ? (
-                      filteredProducts.map((product, index) => (
-                        <div
-                          key={index}
-                          className="bg-white rounded-2xl shadow-lg p-6 text-center hover:scale-105 transition-transform"
-                        >
-                          <h2 className="text-3xl font-bold text-[#028478] mb-4">
-                            {product.name}
-                          </h2>
-                        
-                            <div className="flex items-center justify-center">
-                              <img
-                              src={paw || `http://localhost:3001${product.product_image}`}
-                              alt={product.name}
-                              className="w-20 h-20 object-cover rounded-lg shadow-md"
-                            />
-                            </div>
-                          <p className="text-gray-600 mb-4"><strong>Category:    </strong>{product.category_name}</p>
-                          <p className="text-gray-600 mb-4"><strong>Brand:    </strong>{product.brand}</p>
-                          <p className={`text-gray-600 mb-4 ${product.status != "Inactive" ? ("text-[#71C9CE] font-bold"): ("font-bold text-red-500")}`}>{product.status === "Active" ? ("In Stock"): ("Out of Stock")}</p>
-                          <div className="text-xl font-semibold text-gray-800 mb-2">
-                            {product.description}
-                          </div>
-                          <p className="bg-[#028478] text-white px-6 py-2 rounded-full">
-                            Rs. {product.unit_price}
-                          </p>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-white col-span-3 text-center">
-                        No products found.
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-        
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full max-w-2xl z-20 p-4 rounded-md">
           {showForm && (
             <ProductForm

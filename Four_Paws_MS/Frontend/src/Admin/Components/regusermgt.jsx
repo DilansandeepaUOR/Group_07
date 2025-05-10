@@ -11,7 +11,6 @@ const RegUserMGT = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  
 
   const fetchUsers = async () => {
     const res = await axios.get(
@@ -26,10 +25,10 @@ const RegUserMGT = () => {
 
   // Filtered user list based on search term
   const filteredUsers = users.filter((user) => {
-    const matchesSearch = user.E_mail
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    
+    const matchesSearch = user.E_mail.toLowerCase().includes(
+      searchTerm.toLowerCase()
+    );
+
     return matchesSearch;
   });
 
@@ -61,17 +60,17 @@ const RegUserMGT = () => {
       </div>
 
       {/* Search and Filter */}
-        <div className="container mx-auto px-4 mt-5 mb-5">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <input
-              type="text"
-              placeholder="Search E mail..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full  md:w-1/2 px-4 py-2 rounded-md border border-gray-800 focus:outline-none focus:ring-2 focus:ring-[#028478]"
-            />
-          </div>
+      <div className="container mx-auto px-4 mt-5 mb-5">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <input
+            type="text"
+            placeholder="Search E mail..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full  md:w-1/2 px-4 py-2 rounded-md border border-gray-800 focus:outline-none focus:ring-2 focus:ring-[#028478]"
+          />
         </div>
+      </div>
 
       <div className="">
         <div className="overflow-y-auto max-h-[400px]">
@@ -89,51 +88,53 @@ const RegUserMGT = () => {
             </thead>
             {filteredUsers.length > 0 ? (
               filteredUsers.map((u) => (
-            <tbody>
-             
-                <tr key={u.Owner_id} className="border-t">
-                  <td className="p-3 ">{u.Owner_name}</td>
-                  <td className="p-3">{u.E_mail}</td>
-                  <td className="p-3">{u.Owner_address}</td>
-                  <td className="p-3">{u.Phone_number}</td>
-                  <td className="p-3">{u.Pet_name}</td>
+                <tbody>
+                  <tr key={u.Owner_id} className="border-t">
+                    <td className="p-3 ">{u.Owner_name}</td>
+                    <td className="p-3">{u.E_mail}</td>
+                    <td className="p-3">{u.Owner_address}</td>
+                    <td className="p-3">{u.Phone_number}</td>
+                    <td className="p-3">{u.Pet_name}</td>
 
-                  <td
-                    className={`p-3 ${
-                      u.Account_status != "Inactive"
-                        ? "text-[#71C9CE] font-bold"
-                        : "font-bold text-red-500"
-                    }`}
-                  >
-                    {u.Account_status}
-                  </td>
+                    <td
+                      className={`p-3 ${
+                        u.Account_status != "Inactive"
+                          ? "text-[#71C9CE] font-bold"
+                          : "font-bold text-red-500"
+                      }`}
+                    >
+                      {u.Account_status}
+                    </td>
 
-                  <td className="p-3 space-x-2">
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        setEditingUser(u);
-                        setShowForm(true);
-                      }}
-                    >
-                      <FaEdit />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => deleteUser(u.Owner_id)}
-                    >
-                      <FaTrash />
-                    </Button>
+                    <td className="p-3 space-x-2">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setEditingUser(u);
+                          setShowForm(true);
+                        }}
+                      >
+                        <FaEdit />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => deleteUser(u.Owner_id)}
+                      >
+                        <FaTrash />
+                      </Button>
+                    </td>
+                  </tr>
+                </tbody>
+              ))
+            ) : (
+              <tbody>
+                <tr>
+                  <td colSpan="7" className="text-center text-gray-500 py-4">
+                    No Users found.
                   </td>
                 </tr>
-           
-            </tbody>
-            ))
-            ) : (
-              <p className="text-white col-span-3 text-center">
-                No Users found.
-              </p>
+              </tbody>
             )}
           </table>
         </div>
@@ -424,18 +425,18 @@ const UserForm = ({ closeForm, editingUser, refreshUsers }) => {
             </div>
           )}
 
-<div>
-          {!editingUser && (
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Password"
-            className="p-2 border rounded-md col-span-2"
-            onChange={handleChange}
-            value={formData.confirmPassword}
-            required
-          />
-        )}
+          <div>
+            {!editingUser && (
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="Password"
+                className="p-2 border rounded-md col-span-2"
+                onChange={handleChange}
+                value={formData.confirmPassword}
+                required
+              />
+            )}
           </div>
 
           <div className="col-span-2 flex items-center">
