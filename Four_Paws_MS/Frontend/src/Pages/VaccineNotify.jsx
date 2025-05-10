@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, InputNumber, Switch, message } from 'antd';
+import { Table, Button, Modal, Form, Input, InputNumber, Switch, message, Card, Typography } from 'antd';
 
+const { Title } = Typography;
 
 const NotificationTemplates = () => {
   const [templates, setTemplates] = useState([]);
@@ -9,24 +10,22 @@ const NotificationTemplates = () => {
   const [currentTemplate, setCurrentTemplate] = useState(null);
   const [form] = Form.useForm();
 
-
   useEffect(() => {
-    console.log("VaccineNotify component mounted");
     fetchTemplates();
   }, []);
 
-//fetchTemplates function
-const fetchTemplates = async () => {
+  const fetchTemplates = async () => {
     setLoading(true);
     try {
       const response = await fetch('http://localhost:3001/api/notification-templates');
-      console.log("API Response:", response); 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
-      console.log("Parsed Data:", data);
       setTemplates(data);
     } catch (err) {
       console.error("Fetch error:", err);
-      message.error('Failed to fetch templates');
+      message.error('Failed to fetch templates. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -46,16 +45,22 @@ const fetchTemplates = async () => {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      await fetch(`http://localhost:3001/api/notification-templates/${currentTemplate.template_id}`, {
+      const response = await fetch(`http://localhost:3001/api/notification-templates/${currentTemplate.template_id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values)
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       message.success('Template updated successfully');
       setVisible(false);
       fetchTemplates();
-    } catch {
-      message.error('Failed to update template');
+    } catch (error) {
+      console.error('Update error:', error);
+      message.error('Failed to update template. Please try again.');
     }
   };
 
@@ -63,83 +68,108 @@ const fetchTemplates = async () => {
     {
       title: 'Template Name',
       dataIndex: 'template_name',
-      key: 'template_name'
+      key: 'template_name',
+      width: '20%'
     },
     {
       title: 'Trigger Condition',
       dataIndex: 'trigger_condition',
-      key: 'trigger_condition'
+      key: 'trigger_condition',
+      width: '25%'
     },
     {
       title: 'Days Before',
       dataIndex: 'days_before',
-      key: 'days_before'
+      key: 'days_before',
+      width: '15%'
     },
     {
       title: 'Active',
       dataIndex: 'is_active',
       key: 'is_active',
+      width: '15%',
       render: (active) => <Switch checked={active} disabled />
     },
     {
       title: 'Actions',
       key: 'actions',
+      width: '25%',
       render: (_, record) => (
-        <Button type="link" onClick={() => handleEdit(record)}>
-          Edit
+        <Button type="primary" onClick={() => handleEdit(record)}>
+          Edit Template
         </Button>
       )
     }
   ];
 
   return (
-    <div>
-        {templates.length === 0 && !loading ? (
-        <div style={{ padding: 16, textAlign: 'center' }}>
-            No notification templates found. 
-            <Button type="link" onClick={fetchTemplates}>Refresh</Button>
-        </div>
-        ) : (
-        <Table 
-            columns={columns} 
-            dataSource={templates} 
-            loading={loading}
-            rowKey="template_id"
-            locale={{ emptyText: 'No data' }}
-        />
-        )}
-      <Table 
-        columns={columns} 
-        dataSource={templates} 
-        loading={loading}
-        rowKey={(record) => record.template_id || record.key}
-      />
+    
+    <Card style={{ margin: '24px' }}>
+      <Title level={2}>Vaccination Notification Templates</Title>
       
+      {templates.length === 0 && !loading ? (
+        <div style={{ padding: 16, textAlign: 'center' }}>
+          No notification templates found.
+          <Button type="link" onClick={fetchTemplates}>Refresh</Button>
+        </div>
+      ) : (
+        <Table 
+          columns={columns} 
+          dataSource={templates} 
+          loading={loading}
+          rowKey="template_id"
+          pagination={{ pageSize: 10 }}
+          scroll={{ x: true }}
+        />
+      )}
       <Modal
-        title="Edit Template"
+        title="Edit Notification Template"
         visible={visible}
         onOk={handleSubmit}
         onCancel={() => setVisible(false)}
         width={800}
+        okText="Save Changes"
+        cancelText="Cancel"
       >
         <Form form={form} layout="vertical">
-          <Form.Item name="subject" label="Subject" rules={[{ required: true }]}>
-            <Input />
+          <Form.Item 
+            name="subject" 
+            label="Subject" 
+            rules={[{ required: true, message: 'Please enter the subject' }]}
+          >
+            <Input placeholder="Enter email subject" />
           </Form.Item>
-          <Form.Item name="message_body" label="Message Body" rules={[{ required: true }]}>
-            <Input.TextArea rows={6} />
+          
+          <Form.Item 
+            name="message_body" 
+            label="Message Body" 
+            rules={[{ required: true, message: 'Please enter the message body' }]}
+          >
+            <Input.TextArea 
+              rows={6} 
+              placeholder="Enter email message body. Use {pet_name} and {next_vaccination_date} as placeholders."
+            />
           </Form.Item>
-          <Form.Item name="days_before" label="Days Before" rules={[{ required: true }]}>
-            <InputNumber min={1} />
+          
+          <Form.Item 
+            name="days_before" 
+            label="Days Before" 
+            rules={[{ required: true, message: 'Please enter the number of days' }]}
+          >
+            <InputNumber min={1} placeholder="Enter number of days" />
           </Form.Item>
-          <Form.Item name="is_active" label="Active" valuePropName="checked">
+          
+          <Form.Item 
+            name="is_active" 
+            label="Active" 
+            valuePropName="checked"
+          >
             <Switch />
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </Card>
   );
-
 };
 
 export default NotificationTemplates;

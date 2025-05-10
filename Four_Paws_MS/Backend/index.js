@@ -9,6 +9,11 @@ app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
 
 app.use(cookieParser());
 
+// Fix the path to NotificationService
+const { router: notificationRouter } = require('./routes/Records/NotificationService');
+app.use('/api/notifications', notificationRouter);
+const { dailyNotificationCheck } = require('./routes/Records/NotificationService');
+dailyNotificationCheck();
 
 // Routes
 const appointmentRoutes = require('./routes/Appointment/appointment');

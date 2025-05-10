@@ -10,7 +10,6 @@ import Profile from "./Pages/Profile";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import Appointment from "./Pages/Appointment";
-import RecordsEntry from "./Pages/RecordsEntry";
 import Adlogin from "./Admin/Pages/Adlogin";
 import VaccineNotify from "./Pages/VaccineNotify";
 import VaccineSent from "./Pages/VaccineSent";
