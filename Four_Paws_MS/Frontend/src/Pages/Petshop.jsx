@@ -4,11 +4,11 @@ import Footer from "@/Components/Footer/Footer";
 import axios from "axios";
 import paw from "../assets/paw_vector.png";
 
-
 function Petshop() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [products, setProducts] = useState([]);
+  const [categories, setCaegories] = useState([]);
 
   const fetchProducts = async () => {
     const res = await axios.get(
@@ -17,9 +17,17 @@ function Petshop() {
     setProducts(res.data);
   };
 
+  const fetchCategories = async () => {
+    const res = await axios.get(
+      "http://localhost:3001/api/adminpetshop/categories"
+    );
+    setCaegories(res.data);
+  };
+
   useEffect(() => {
-      fetchProducts();
-    }, []);
+    fetchProducts();
+    fetchCategories();
+  }, []);
 
   // Filtered product list based on search term and category
   const filteredProducts = products.filter((product) => {
@@ -64,11 +72,12 @@ function Petshop() {
               className="w-full md:w-1/4 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#028478]"
             >
               <option value="">All Categories</option>
-              
-              {products.map((cat,index) => (
-                <option key={index} value={cat.category_name}>{cat.category_name}</option>
+
+              {categories.map((cat, index) => (
+                <option key={index} value={cat.category_name}>
+                  {cat.category_name}
+                </option>
               ))}
-              
             </select>
           </div>
         </div>
@@ -82,16 +91,24 @@ function Petshop() {
                   key={index}
                   className="bg-white rounded-2xl shadow-lg p-6 text-center hover:scale-105 transition-transform"
                 >
-                  <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                  <h2 className="text-3xl font-bold text-[#028478] mb-4">
                     {product.name}
                   </h2>
-                  <p className="text-gray-600 mb-4">{product.category_name}</p>
-                  <p className="text-gray-600 mb-4">{product.brand}</p>
-                  <p className="text-gray-600 mb-4">{product.status}</p>
-                  <div className="text-3xl font-bold text-[#028478] mb-4">
+                
+                    <div className="flex items-center justify-center">
+                      <img
+                      src={paw || `http://localhost:3001${product.product_image}`}
+                      alt={product.name}
+                      className="w-20 h-20 object-cover rounded-lg shadow-md"
+                    />
+                    </div>
+                  <p className="text-gray-600 mb-4"><strong>Category:    </strong>{product.category_name}</p>
+                  <p className="text-gray-600 mb-4"><strong>Brand:    </strong>{product.brand}</p>
+                  <p className={`text-gray-600 mb-4 ${product.status != "Inactive" ? ("text-[#71C9CE] font-bold"): ("font-bold text-red-500")}`}>{product.status === "Active" ? ("In Stock"): ("Out of Stock")}</p>
+                  <div className="text-xl font-semibold text-gray-800 mb-2">
                     {product.description}
                   </div>
-                  <p className="bg-[#028478] text-white px-6 py-2 rounded-full hover:bg-[#02665e]">
+                  <p className="bg-[#028478] text-white px-6 py-2 rounded-full">
                     Rs. {product.unit_price}
                   </p>
                 </div>
