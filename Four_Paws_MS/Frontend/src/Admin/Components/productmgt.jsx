@@ -208,20 +208,12 @@ const ProductManagement = () => {
                   </p>
                   <p
                     className={`text-gray-600 mb-4 ${
-                      product.status !== "Inactive"
-                        ? "font-bold"
+                      product.status != "Inactive"
+                        ? "text-[#71C9CE] font-bold"
                         : "font-bold text-red-500"
                     }`}
                   >
-                    {product.status === "Active" ? (
-                      <>
-                        In Stock
-                        <br />
-                        {product.quantity_in_stock} Items Left
-                      </>
-                    ) : (
-                      "Out of Stock"
-                    )}
+                    {product.status === "Active" ? "In Stock" : "Out of Stock"}
                   </p>
                   <div className="text-xl font-semibold text-gray-800 mb-2">
                     {product.description}
@@ -245,6 +237,7 @@ const ProductManagement = () => {
               closeForm={() => setShowForm(false)}
               editingProduct={editingProduct}
               refreshProducts={fetchProducts}
+              categories={categories}
             />
           )}
         </div>
@@ -265,7 +258,7 @@ const ProductManagement = () => {
   );
 };
 
-const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
+const ProductForm = ({ closeForm, editingProduct, refreshProducts,categories }) => {
   const [formData, setFormData] = useState({
     name: "",
     category_id: "",
@@ -394,15 +387,19 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
                 Category ID
               </label>
             )}
-            <input
-              type="text"
+            <select
               name="category_id"
-              placeholder="Category id"
               className="p-2 border rounded-md"
               onChange={handleChange}
               value={formData.category_id}
-              required
-            />
+            >
+              <option value="">Select a category</option>
+              {categories.map((cat) => (
+                <option key={cat.category_id} value={cat.category_id}>
+                  {cat.category_name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -456,7 +453,7 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
             />
           </div>
 
-          <div>
+          {/* <div>
             {editingProduct && (
               <label className="flex font-bold" htmlFor="Quantity">
                 Quantity
@@ -470,11 +467,10 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
               onChange={handleChange}
               value={formData.quantity_in_stock}
               required
-              disabled
             />
-          </div>
+          </div> */}
 
-          {/* {editingProduct && (
+          {editingProduct && (
             <div>
               {editingProduct && (
                 <label className="flex font-bold" htmlFor="status">
@@ -492,7 +488,7 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
                 <option>Inactive</option>
               </select>
             </div>
-          )} */}
+          )}
 
           <div>
             {editingProduct && (

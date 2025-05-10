@@ -10,7 +10,7 @@ const ProductOperations = () => {
   const [user, setUser] = useState(false); // State for user input
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
-  const [quantity, setQuantity] = useState(null); // State for quantity input
+  const [quantity, setQuantity] = useState(""); // State for quantity input
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,6 +48,7 @@ const ProductOperations = () => {
   };
 
   const handleSave = async () => {
+    console.log("Save button clicked"); // ADD THIS
     try {
       await axios.put(
         `http://localhost:3001/api/adminpetshop/productupdate?product_id=${id}`,
@@ -57,7 +58,7 @@ const ProductOperations = () => {
       setIsEditing(false);
       setProduct(formData); // Update the product state with the new data
     } catch (err) {
-      console.error(err);
+      console.error("Update error:", err.response?.data || err.message);
       alert("Failed to update product.");
     }
   };
@@ -190,7 +191,7 @@ const ProductOperations = () => {
                   className="w-full p-2 border rounded focus:ring-2 focus:ring-[#028478]"
                 />
               </div>
-              <div>
+              {/* <div>
                 <label className="block font-bold mb-1 text-gray-700">
                   Quantity
                 </label>
@@ -200,9 +201,9 @@ const ProductOperations = () => {
                   value={formData.quantity_in_stock || ""}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded focus:ring-2 focus:ring-[#028478]"
-                  disabled
+
                 />
-              </div>
+              </div> */}
               <div>
                 <label className="block font-bold mb-1 text-gray-700">
                   Price
@@ -296,7 +297,7 @@ const ProductOperations = () => {
                 </label>
                 <input
                   type="text"
-                  name="quantity"
+                  name="Invenory_quantity"
                   placeholder="Quantity"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
