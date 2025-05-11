@@ -176,6 +176,30 @@ function Profile() {
 
   const handlePetSubmit = async (e) => {
   e.preventDefault();
+
+    // Validate the addpet form
+    if (!petForm.petName.trim()) {
+      alert("Pet Name is required!");
+      return;
+    }
+    if (!petForm.petDob) {
+      alert("Pet Date of Birth is required!");
+      return;
+    }
+
+    const petDobDate = new Date(petForm.petDob);
+    const today = new Date();
+
+    if (isNaN(petDobDate.getTime())) {
+      alert("Invalid Date of Birth!");
+      return;
+    }
+
+    if (petDobDate > today) {
+      alert("Date of Birth cannot be a future date!");
+      return;
+    }
+
   try {
     const response = await axios.post(
       `http://localhost:3001/api/addpet/?id=${user.id}`,
