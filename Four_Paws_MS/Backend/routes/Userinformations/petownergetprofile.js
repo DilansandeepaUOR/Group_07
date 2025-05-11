@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../../db");
-const upload = require("../../validations/imgvalidator");
+const uploadpropic = require("../../validations/propicvalidator");
 
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
@@ -39,7 +39,7 @@ router.get("/profile", async (req, res) => {
   }
 });
 
-router.put("/update", upload.single("image") ,async (req, res) => {
+router.put("/update", uploadpropic.single("image") ,async (req, res) => {
   const { id } = req.query;
 
   //console.log("ID:", id); // Log the ID to check if it's being received correctly
