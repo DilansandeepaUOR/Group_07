@@ -80,35 +80,34 @@ function Profile() {
 
   //get data to edit owner profile
   useEffect(() => {
-    if (user?.id) {
-      axios
-        .get(`http://localhost:3001/api/profile/?id=${user.id}`)
-        .then((response) => {
-          if (response.data) {
-            setProfile(response.data);
-            setEditForm({
-              Owner_name: response.data.Owner_name || "",
-              E_mail: response.data.E_mail || "",
-              Phone_number: response.data.Phone_number || "",
-              Owner_address: response.data.Owner_address || "",
-              image: null,
-              oldImage: response.data.Pro_pic || "", // Changed from profileImage to Pro_pic
-            });
+  if (user?.id) {
+    axios
+      .get(`http://localhost:3001/api/profile/?id=${user.id}`)
+      .then((response) => {
+        if (response.data) {
+          setProfile(response.data);
+          setEditForm({
+            Owner_name: response.data.Owner_name || "",
+            E_mail: response.data.E_mail || "",
+            Phone_number: response.data.Phone_number || "",
+            Owner_address: response.data.Owner_address || "",
+            image: null,
+            oldImage: response.data.Pro_pic || "" // Changed from profileImage to Pro_pic
+          });
 
-            if (response.data.Pro_pic) {
-              // Changed from profileImage to Pro_pic
-              setImagePreview(
-                `http://localhost:3001${response.data.Pro_pic}` // Added proper path construction
-              );
-            }
-            fetchPets();
+          if (response.data.Pro_pic) { // Changed from profileImage to Pro_pic
+            setImagePreview(
+              `http://localhost:3001${response.data.Pro_pic}` // Added proper path construction
+            );
           }
-        })
-        .catch((err) => {
-          console.error("Error fetching profile:", err);
-        });
-    }
-  }, [user?.id]);
+          fetchPets();
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching profile:", err);
+      });
+  }
+}, [user?.id]);
 
   //get data to show and edit pet profile
   const fetchPets = async () => {
@@ -183,62 +182,60 @@ function Profile() {
   };
 
   const handleProfileSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const formData = new FormData();
-
-      // Append all form fields
-      formData.append("Owner_name", editForm.Owner_name);
-      formData.append("E_mail", editForm.E_mail);
-      formData.append("Phone_number", editForm.Phone_number);
-      formData.append("Owner_address", editForm.Owner_address);
-
-      // Include old image path if available
-      if (editForm.oldImage) {
-        formData.append("oldImage", editForm.oldImage);
-      }
-
-      // Append image with correct field name ('image' to match backend)
-      if (editForm.image) {
-        formData.append("image", editForm.image);
-      }
-
-      const response = await axios.put(
-        `http://localhost:3001/api/update/?id=${user.id}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          withCredentials: true,
-        }
-      );
-
-      // Handle successful update
-      if (response.data.message) {
-        alert(response.data.message);
-
-        // Update image preview if a new image was uploaded
-        if (response.data.profileImage) {
-          setImagePreview(`http://localhost:3001${response.data.profileImage}`);
-          setEditForm((prev) => ({
-            ...prev,
-            oldImage: response.data.profileImage,
-            image: null,
-          }));
-        }
-
-        // Refresh profile data
-        const profileRes = await axios.get(
-          `http://localhost:3001/api/profile/?id=${user.id}`
-        );
-        setProfile(profileRes.data);
-      }
-    } catch (err) {
-      console.error("Error updating profile:", err);
-      alert(err.response?.data?.error || "Failed to update profile");
+  e.preventDefault();
+  try {
+    const formData = new FormData();
+    
+    // Append all form fields
+    formData.append("Owner_name", editForm.Owner_name);
+    formData.append("E_mail", editForm.E_mail);
+    formData.append("Phone_number", editForm.Phone_number);
+    formData.append("Owner_address", editForm.Owner_address);
+    
+    // Include old image path if available
+    if (editForm.oldImage) {
+      formData.append("oldImage", editForm.oldImage);
     }
-  };
+    
+    // Append image with correct field name ('image' to match backend)
+    if (editForm.image) {
+      formData.append("image", editForm.image);
+    }
+
+    const response = await axios.put(
+      `http://localhost:3001/api/update/?id=${user.id}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        withCredentials: true,
+      }
+    );
+
+    // Handle successful update
+    if (response.data.message) {
+      alert(response.data.message);
+      
+      // Update image preview if a new image was uploaded
+      if (response.data.profileImage) {
+        setImagePreview(`http://localhost:3001${response.data.profileImage}`);
+        setEditForm(prev => ({
+          ...prev,
+          oldImage: response.data.profileImage,
+          image: null
+        }));
+      }
+      
+      // Refresh profile data
+      const profileRes = await axios.get(`http://localhost:3001/api/profile/?id=${user.id}`);
+      setProfile(profileRes.data);
+    }
+  } catch (err) {
+    console.error("Error updating profile:", err);
+    alert(err.response?.data?.error || "Failed to update profile");
+  }
+};
 
   //pet profile update
   const handlePetProfileSubmit = async (e) => {
