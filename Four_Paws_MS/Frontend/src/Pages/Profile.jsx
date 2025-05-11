@@ -61,7 +61,6 @@ function Profile() {
   });
 
   const [imagePreview, setImagePreview] = useState(dp);
-  const [selectedImage, setSelectedImage] = useState(null);
   const navigate = useNavigate();
 
   //pet profile handling
@@ -85,60 +84,31 @@ function Profile() {
       axios
         .get(`http://localhost:3001/api/profile/?id=${user.id}`)
         .then((response) => {
-          setProfile(response.data);
-          setEditForm({
-            Owner_name: response.data.Owner_name || "",
-            E_mail: response.data.E_mail || "",
-            Phone_number: response.data.Phone_number || "",
-            Owner_address: response.data.Owner_address || "",
-          });
+          if (response.data) {
+            setProfile(response.data);
+            setEditForm({
+              Owner_name: response.data.Owner_name || "",
+              E_mail: response.data.E_mail || "",
+              Phone_number: response.data.Phone_number || "",
+              Owner_address: response.data.Owner_address || "",
+              image: null,
+              oldImage: response.data.Pro_pic || "", // Changed from profileImage to Pro_pic
+            });
 
-          if (response.data.profileImage) {
-            setImagePreview(
-              `http://localhost:3001/uploads/${response.data.profileImage}`
-            );
+            if (response.data.Pro_pic) {
+              // Changed from profileImage to Pro_pic
+              setImagePreview(
+                `http://localhost:3001${response.data.Pro_pic}` // Added proper path construction
+              );
+            }
+            fetchPets();
           }
-          fetchPets();
         })
-        .catch(console.error);
+        .catch((err) => {
+          console.error("Error fetching profile:", err);
+        });
     }
   }, [user?.id]);
-
-  //  //get data to edit pet profile
-  // useEffect(() => {
-  //   if (user?.id) {
-  //     axios
-  //       .get(`http://localhost:3001/api/profile/?id=${user.id}`)
-  //       .then((response) => {
-  //         setProfile(response.data);
-  //         setEditForm({
-  //           Owner_name: response.data.Owner_name || "",
-  //           E_mail: response.data.E_mail || "",
-  //           Phone_number: response.data.Phone_number || "",
-  //           Owner_address: response.data.Owner_address || "",
-
-  //         });
-  //         setEditPetForm({
-  //           Pet_name: response.data.Pet_name || "",
-  //           Pet_type: response.data.Pet_type || "",
-  //           Pet_dob: response.data.Pet_dob
-  //             ? new Date(response.data.Pet_dob).toISOString().split("T")[0]
-  //             : "",
-  //           Pet_gender: response.data.Pet_gender || "",
-  //         });
-
-  //         console.log(response.data.Pet_gender);
-  //         console.log(response.data.Pet_dob);
-  //         if (response.data.profileImage) {
-  //           setImagePreview(
-  //             `http://localhost:3001/uploads/${response.data.profileImage}`
-  //           );
-  //         }
-  //         fetchPets();
-  //       })
-  //       .catch(console.error);
-  //   }
-  // }, [user?.id]);
 
   //get data to show and edit pet profile
   const fetchPets = async () => {
@@ -147,7 +117,6 @@ function Profile() {
         `http://localhost:3001/api/pets/?id=${user.id}`
       );
       setPets(res.data || []); // Ensure pets is always an array
-      //setEditPetForm(res.data || []);
       if (res.data?.length > 0) {
         setSelectedPet(res.data[0].Pet_name);
       }
@@ -171,8 +140,12 @@ function Profile() {
   };
 
   const handleEditOwnerChange = (e) => {
-    const { name, value } = e.target;
-    setEditForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, files } = e.target;
+    if (name === "image") {
+      setEditForm({ ...editForm, image: files[0] });
+    } else {
+      setEditForm({ ...editForm, [name]: value });
+    }
   };
 
   const handleEditPetChange = (e) => {
@@ -197,7 +170,10 @@ function Profile() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setSelectedImage(file);
+      // Update form state
+      setEditForm((prev) => ({ ...prev, image: file }));
+
+      // Update preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
@@ -211,14 +187,20 @@ function Profile() {
     try {
       const formData = new FormData();
 
-      // Append only non-empty fields from editForm
-      Object.entries(editForm).forEach(([key, value]) => {
-        formData.append(key, value || ""); // Send empty string if value is falsy
-      });
+      // Append all form fields
+      formData.append("Owner_name", editForm.Owner_name);
+      formData.append("E_mail", editForm.E_mail);
+      formData.append("Phone_number", editForm.Phone_number);
+      formData.append("Owner_address", editForm.Owner_address);
 
-      // Append the selected image if it exists
-      if (selectedImage) {
-        formData.append("profileImage", selectedImage);
+      // Include old image path if available
+      if (editForm.oldImage) {
+        formData.append("oldImage", editForm.oldImage);
+      }
+
+      // Append image with correct field name ('image' to match backend)
+      if (editForm.image) {
+        formData.append("image", editForm.image);
       }
 
       const response = await axios.put(
@@ -226,18 +208,35 @@ function Profile() {
         formData,
         {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
           },
           withCredentials: true,
         }
       );
 
-      setProfile(response.data);
-      alert(response.data.message || "Profile updated successfully!");
-      navigate(0);
+      // Handle successful update
+      if (response.data.message) {
+        alert(response.data.message);
+
+        // Update image preview if a new image was uploaded
+        if (response.data.profileImage) {
+          setImagePreview(`http://localhost:3001${response.data.profileImage}`);
+          setEditForm((prev) => ({
+            ...prev,
+            oldImage: response.data.profileImage,
+            image: null,
+          }));
+        }
+
+        // Refresh profile data
+        const profileRes = await axios.get(
+          `http://localhost:3001/api/profile/?id=${user.id}`
+        );
+        setProfile(profileRes.data);
+      }
     } catch (err) {
       console.error("Error updating profile:", err);
-      alert("Failed to update profile");
+      alert(err.response?.data?.error || "Failed to update profile");
     }
   };
 
@@ -246,7 +245,7 @@ function Profile() {
     e.preventDefault();
     try {
       const response = await axios.put(
-        `http://localhost:3001/api/update/?id=${user.id}`,
+        `http://localhost:3001/api/updatepets/${user.id}/${editPetForm.Pet_id}`,
         editPetForm,
         {
           headers: {
@@ -477,51 +476,49 @@ function Profile() {
                 </h2>
 
                 <div>
-                  <div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-                      <label className="font-bold">Select Your Pet Name</label>
-                      <select
-                        value={selectedPet}
-                        onChange={handlePetSelection}
-                        className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
-                      >
-                        {pets.map((pet) => (
-                          <option key={pet.Pet_id} value={pet.Pet_name}>
-                            {pet.Pet_name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {selectedPetInfo ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <p>
-                          <strong>Name:</strong>{" "}
-                          {selectedPetInfo.Pet_name || "N/A"}
-                        </p>
-                        <p>
-                          <strong>Type:</strong>{" "}
-                          {selectedPetInfo.Pet_type || "N/A"}
-                        </p>
-                        <p>
-                          <strong>Date of Birth:</strong>{" "}
-                          {selectedPetInfo.Pet_dob
-                            ? new Date(
-                                selectedPetInfo.Pet_dob
-                              ).toLocaleDateString()
-                            : "N/A"}
-                        </p>
-                        <p className="md:col-span-2">
-                          <strong>Gender:</strong>{" "}
-                          {selectedPetInfo.Pet_gender || "N/A"}
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="text-white col-span-3 text-center">
-                        No pet information available.
-                      </p>
-                    )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                    <label className="font-bold">Select Your Pet Name</label>
+                    <select
+                      value={selectedPet}
+                      onChange={handlePetSelection}
+                      className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
+                    >
+                      {pets.map((pet) => (
+                        <option key={pet.Pet_id} value={pet.Pet_name}>
+                          {pet.Pet_name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
+
+                  {selectedPetInfo ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <p>
+                        <strong>Name:</strong>{" "}
+                        {selectedPetInfo.Pet_name || "N/A"}
+                      </p>
+                      <p>
+                        <strong>Type:</strong>{" "}
+                        {selectedPetInfo.Pet_type || "N/A"}
+                      </p>
+                      <p>
+                        <strong>Date of Birth:</strong>{" "}
+                        {selectedPetInfo.Pet_dob
+                          ? new Date(
+                              selectedPetInfo.Pet_dob
+                            ).toLocaleDateString()
+                          : "N/A"}
+                      </p>
+                      <p className="md:col-span-2">
+                        <strong>Gender:</strong>{" "}
+                        {selectedPetInfo.Pet_gender || "N/A"}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-white col-span-3 text-center">
+                      No pet information available.
+                    </p>
+                  )}
                 </div>
               </div>
             </>
@@ -546,6 +543,7 @@ function Profile() {
                         <input
                           type="file"
                           accept="image/*"
+                          name="image" // Add name attribute
                           onChange={handleImageChange}
                           className="hidden"
                         />
@@ -718,7 +716,7 @@ function Profile() {
               <form action="" onSubmit={handlePetSubmit}>
                 <div className="mb-8">
                   <h3 className="text-lg font-semibold mb-4 border-b pb-2 border-gray-300">
-                    Pet Information
+                    Add Your Pets
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>

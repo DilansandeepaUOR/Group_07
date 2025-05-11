@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require("../../db");
 const bcrypt= require('bcrypt');
 const upload = require("../../validations/imgvalidator");
-const e = require("express");
+
 
 //Manage regular user registration
 //register new user
