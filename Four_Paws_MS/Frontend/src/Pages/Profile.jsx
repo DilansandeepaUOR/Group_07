@@ -10,6 +10,7 @@ import {
   FaEye,
   FaEyeSlash,
   FaCamera,
+  FaPaw
 } from "react-icons/fa";
 import axios from "axios";
 import dp from "../assets/paw_vector.png";
@@ -19,6 +20,13 @@ function Profile() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [activeTab, setActiveTab] = useState("profile");
+  const [petForm, setPetForm] = useState({
+    petName: "",
+    petType: "Dog",
+    petDob: null,
+    petGender: "Male",
+  });
+
   const [editForm, setEditForm] = useState({
     Owner_name: "",
     E_mail: "",
@@ -29,16 +37,19 @@ function Profile() {
     Pet_dob: "",
     Pet_gender: "",
   });
+
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
+
   const [showPassword, setShowPassword] = useState({
     current: false,
     new: false,
     confirm: false,
   });
+
   const [imagePreview, setImagePreview] = useState(dp);
   const [selectedImage, setSelectedImage] = useState(null);
   const navigate = useNavigate();
@@ -102,6 +113,11 @@ function Profile() {
     setEditForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handlepetChange = (e) => {
+  const { name, value } = e.target;
+  setPetForm(prev => ({ ...prev, [name]: value }));
+};
+
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
     setPasswordForm((prev) => ({ ...prev, [name]: value }));
@@ -157,6 +173,34 @@ function Profile() {
       alert("Failed to update profile");
     }
   };
+
+  const handlePetSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const response = await axios.post(
+      `http://localhost:3001/api/addpet/?id=${user.id}`,
+      petForm,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true,
+      }
+    );
+    alert(response.data.message || "Pet added successfully!");
+    // Reset form after successful submission
+    setPetForm({
+      PetName: "",
+      petType: "Dog",
+      petDob: null,
+      petGender: "Male",
+    });
+    navigate(0);
+  } catch (err) {
+    console.error("Error Inserting Pet", err);
+    alert(err.response?.data?.message || "Failed to Inserting Pet");
+  }
+};
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
@@ -215,6 +259,14 @@ function Profile() {
             }`}
           >
             <FaUserEdit className="mr-2" /> Edit Your Profile
+          </li>
+          <li
+            onClick={() => setActiveTab("addpet")}
+            className={`flex items-center cursor-pointer hover:text-gray-300 ${
+              activeTab === "addpet" ? "font-bold underline" : ""
+            }`}
+          >
+            <FaPaw className="mr-2" /> Add Your Pet
           </li>
           <li
             onClick={() => setActiveTab("password")}
@@ -353,7 +405,7 @@ function Profile() {
                       value={editForm.E_mail}
                       onChange={handleEditChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
-                      required
+                      disabled
                     />
                   </div>
                   <div>
@@ -448,6 +500,79 @@ function Profile() {
                 </button>
               </div>
             </form>
+          )}
+
+          {/* Add pets Tab */}
+          {activeTab === "addpet" && (
+            <div>
+              <form action="" onSubmit={handlePetSubmit}>
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold mb-4 border-b pb-2 border-gray-300">
+                  Pet Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-gray-300 mb-1">Pet Name</label>
+                    <input
+                      type="text"
+                      name="petName"
+                      value={petForm.petName}
+                      onChange={handlepetChange}
+                      className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-300 mb-1">Pet Type</label>
+                    <select
+                      name="petType"
+                      value={petForm.petType}
+                      onChange={handlepetChange}
+                      className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
+                    >
+                      <option value="Dog">Dog</option>
+                      <option value="Cat">Cat</option>
+                      <option value="Cow">Cow</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-gray-300 mb-1">
+                      Date of Birth
+                    </label>
+                    <input
+                      type="date"
+                      name="petDob"
+                      value={petForm.petDob}
+                      onChange={handlepetChange}
+                      className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-300 mb-1">Pet Type</label>
+                    <select
+                      name="petGender"
+                      value={petForm.petGender}
+                      onChange={handlepetChange}
+                      className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
+                    >
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end mt-6">
+                <button
+                  type="submit"
+                  className="bg-[#028478] hover:bg-[#04695e] px-6 py-2 rounded-lg flex items-center font-medium"
+                >
+                  <FaSave className="mr-2" /> Save Pet
+                </button>
+              </div>
+            </form>
+            </div>
           )}
 
           {/* Change Password Tab */}

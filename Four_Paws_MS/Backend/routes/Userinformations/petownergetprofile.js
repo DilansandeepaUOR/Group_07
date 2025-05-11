@@ -67,21 +67,57 @@ router.put("/update", async (req, res) => {
         const { Pet_name, Pet_type, Pet_dob, Pet_gender } = req.body;
         const petsql =
           "UPDATE pet SET Pet_name = ?, Pet_type = ?, Pet_dob = ?, Pet_gender =? WHERE Owner_id = ?";
-        db.query(petsql, [Pet_name, Pet_type, Pet_dob, Pet_gender, id], (err, results) => {
-          if (err) {
-            return res.status(500).json({ error: "Error inserting pet" });
-          }
-          if (results.affectedRows === 0) {
-            return res.status(404).json({ error: "Pet not found" });
-          }
+        db.query(
+          petsql,
+          [Pet_name, Pet_type, Pet_dob, Pet_gender, id],
+          (err, results) => {
+            if (err) {
+              return res.status(500).json({ error: "Error inserting pet" });
+            }
+            if (results.affectedRows === 0) {
+              return res.status(404).json({ error: "Pet not found" });
+            }
 
-          res.status(200).json({ message: "User updated successfully DB" });
-        });
+            res.status(200).json({ message: "User updated successfully DB" });
+          }
+        );
       }
     );
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ error: "Error updating user" });
+  }
+});
+
+router.post("/addpet" ,async (req, res) => {
+  const { id } = req.query;
+
+  if (!id) {
+    return res.status(400).json({ error: "ID query parameter is required" });
+  }
+
+  try {
+    const { petName, petType, petDob, petGender } = req.body;
+    console.log("Request Body:", req.body); // Log the request body to check the data being sent
+    const petsql =
+      "INSERT INTO pet (Pet_name, Pet_type, Pet_dob, Pet_gender, Owner_id) VALUES (?, ?, ?, ?, ?)";
+    db.query(
+      petsql,
+      [petName, petType, petDob, petGender, id],
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({ error: "Error inserting pet" });
+        }
+        if (results.affectedRows === 0) {
+          return res.status(404).json({ error: "Pet not found" });
+        }
+
+        res.status(200).json({ message: "Pet added successfully DB" });
+      }
+    );
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).json({ error: "Error adding pet" });
   }
 });
 
