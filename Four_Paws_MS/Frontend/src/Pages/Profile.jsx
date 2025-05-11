@@ -10,7 +10,7 @@ import {
   FaEye,
   FaEyeSlash,
   FaCamera,
-  FaPaw
+  FaPaw,
 } from "react-icons/fa";
 import axios from "axios";
 import dp from "../assets/paw_vector.png";
@@ -38,6 +38,17 @@ function Profile() {
     Pet_gender: "",
   });
 
+  const [editPetForm, setEditPeForm] = useState({
+    Owner_name: "",
+    E_mail: "",
+    Phone_number: "",
+    Owner_address: "",
+    Pet_name: "",
+    Pet_type: "",
+    Pet_dob: "",
+    Pet_gender: "",
+  });
+
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -53,6 +64,9 @@ function Profile() {
   const [imagePreview, setImagePreview] = useState(dp);
   const [selectedImage, setSelectedImage] = useState(null);
   const navigate = useNavigate();
+
+  const [pets, setPets] = useState([]);
+  const [selectedPet, setSelectedPet] = useState("");
 
   useEffect(() => {
     axios
@@ -91,10 +105,26 @@ function Profile() {
               `http://localhost:3001/uploads/${response.data.profileImage}`
             );
           }
+          fetchPets();
         })
         .catch(console.error);
     }
-  }, [user?.id],);
+  }, [user?.id]);
+
+  const fetchPets = async () => {
+    try {
+      const res = await axios.get(
+        `http://localhost:3001/api/pets/?id=${user.id}`
+      );
+      setPets(res.data || []); // Ensure pets is always an array
+      if (res.data?.length > 0) {
+        setSelectedPet(res.data[0].Pet_name);
+      }
+    } catch (err) {
+      console.error("Error fetching pets:", err);
+      setPets([]); // Fallback to empty array
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -114,9 +144,9 @@ function Profile() {
   };
 
   const handlepetChange = (e) => {
-  const { name, value } = e.target;
-  setPetForm(prev => ({ ...prev, [name]: value }));
-};
+    const { name, value } = e.target;
+    setPetForm((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
@@ -174,8 +204,21 @@ function Profile() {
     }
   };
 
+  // Inside your Profile component
+
+// Function to handle pet selection
+const handlePetSelection = (e) => {
+  const selectedPetName = e.target.value;
+  setSelectedPet(selectedPetName);
+};
+
+// Filter the selected pet based on the selectedPet state
+const selectedPetInfo = pets.find(pet => pet.Pet_name === selectedPet);
+
+// In your JSX, update the rendering logic
+
   const handlePetSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
     // Validate the addpet form
     if (!petForm.petName.trim()) {
@@ -200,31 +243,31 @@ function Profile() {
       return;
     }
 
-  try {
-    const response = await axios.post(
-      `http://localhost:3001/api/addpet/?id=${user.id}`,
-      petForm,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        withCredentials: true,
-      }
-    );
-    alert(response.data.message || "Pet added successfully!");
-    // Reset form after successful submission
-    setPetForm({
-      PetName: "",
-      petType: "Dog",
-      petDob: null,
-      petGender: "Male",
-    });
-    navigate(0);
-  } catch (err) {
-    console.error("Error Inserting Pet", err);
-    alert(err.response?.data?.message || "Failed to Inserting Pet");
-  }
-};
+    try {
+      const response = await axios.post(
+        `http://localhost:3001/api/addpet/?id=${user.id}`,
+        petForm,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      alert(response.data.message || "Pet added successfully!");
+      // Reset form after successful submission
+      setPetForm({
+        PetName: "",
+        petType: "Dog",
+        petDob: null,
+        petGender: "Male",
+      });
+      navigate(0);
+    } catch (err) {
+      console.error("Error Inserting Pet", err);
+      alert(err.response?.data?.message || "Failed to Inserting Pet");
+    }
+  };
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
@@ -330,17 +373,17 @@ function Profile() {
                 />
                 <div>
                   <h1 className="text-2xl md:text-3xl font-bold">
-                    {profile?.Pet_name || "Pet Name"}
+                    {profile?.Owner_name || "Owner Name"}
                   </h1>
                   <p className="text-sm text-gray-400">
-                    Belongs to {profile?.Owner_name || "Owner"}
+                    {profile?.E_mail || "email"}
                   </p>
                 </div>
               </div>
 
               <div className="mb-8">
                 <h2 className="text-xl font-semibold mb-4 border-b pb-2 border-gray-300">
-                  Owner Information
+                  Your Information
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <p>
@@ -363,19 +406,53 @@ function Profile() {
                 <h2 className="text-xl font-semibold mb-4 border-b pb-2 border-gray-300">
                   Pet Information
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <p>
-                    <strong>Type:</strong> {profile?.Pet_type || "N/A"}
-                  </p>
-                  <p>
-                    <strong>Date of Birth:</strong>{" "}
-                    {profile?.Pet_dob
-                      ? new Date(profile.Pet_dob).toLocaleDateString()
-                      : "N/A"}
-                  </p>
-                  <p className="md:col-span-2">
-                    <strong>Gender:</strong> {profile?.Pet_gender || "N/A"}
-                  </p>
+
+                <div>
+                  <div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                      <label className="font-bold">Select Your Pet Name</label>
+                      <select
+                        value={selectedPet}
+                        onChange={handlePetSelection} // Use the new handler
+                        className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
+                      >
+                        {pets.map((pet) => (
+                          <option key={pet.Pet_id} value={pet.Pet_name}>
+                            {pet.Pet_name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {selectedPetInfo ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <p>
+                          <strong>Name:</strong>{" "}
+                          {selectedPetInfo.Pet_name || "N/A"}
+                        </p>
+                        <p>
+                          <strong>Type:</strong>{" "}
+                          {selectedPetInfo.Pet_type || "N/A"}
+                        </p>
+                        <p>
+                          <strong>Date of Birth:</strong>{" "}
+                          {selectedPetInfo.Pet_dob
+                            ? new Date(
+                                selectedPetInfo.Pet_dob
+                              ).toLocaleDateString()
+                            : "N/A"}
+                        </p>
+                        <p className="md:col-span-2">
+                          <strong>Gender:</strong>{" "}
+                          {selectedPetInfo.Pet_gender || "N/A"}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-white col-span-3 text-center">
+                        No pet information available.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </>
@@ -445,14 +522,14 @@ function Profile() {
                     />
                   </div>
                   <div>
-                <label className="block text-gray-300 mb-1">Address</label>
-                <textarea
-                  name="Owner_address"
-                  value={editForm.Owner_address}
-                  onChange={handleEditChange}
-                  className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600 h-24"
-                />
-              </div>
+                    <label className="block text-gray-300 mb-1">Address</label>
+                    <textarea
+                      name="Owner_address"
+                      value={editForm.Owner_address}
+                      onChange={handleEditChange}
+                      className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600 h-24"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -513,8 +590,6 @@ function Profile() {
                 </div>
               </div>
 
-              
-
               <div className="flex justify-end mt-6">
                 <button
                   type="submit"
@@ -530,72 +605,78 @@ function Profile() {
           {activeTab === "addpet" && (
             <div>
               <form action="" onSubmit={handlePetSubmit}>
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold mb-4 border-b pb-2 border-gray-300">
-                  Pet Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-gray-300 mb-1">Pet Name</label>
-                    <input
-                      type="text"
-                      name="petName"
-                      value={petForm.petName}
-                      onChange={handlepetChange}
-                      className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-300 mb-1">Pet Type</label>
-                    <select
-                      name="petType"
-                      value={petForm.petType}
-                      onChange={handlepetChange}
-                      className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
-                    >
-                      <option value="Dog">Dog</option>
-                      <option value="Cat">Cat</option>
-                      <option value="Cow">Cow</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-gray-300 mb-1">
-                      Date of Birth
-                    </label>
-                    <input
-                      type="date"
-                      name="petDob"
-                      value={petForm.petDob}
-                      onChange={handlepetChange}
-                      className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-300 mb-1">Pet Type</label>
-                    <select
-                      name="petGender"
-                      value={petForm.petGender}
-                      onChange={handlepetChange}
-                      className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
-                    >
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold mb-4 border-b pb-2 border-gray-300">
+                    Pet Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-gray-300 mb-1">
+                        Pet Name
+                      </label>
+                      <input
+                        type="text"
+                        name="petName"
+                        value={petForm.petName}
+                        onChange={handlepetChange}
+                        className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-300 mb-1">
+                        Pet Type
+                      </label>
+                      <select
+                        name="petType"
+                        value={petForm.petType}
+                        onChange={handlepetChange}
+                        className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
+                      >
+                        <option value="Dog">Dog</option>
+                        <option value="Cat">Cat</option>
+                        <option value="Cow">Cow</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-gray-300 mb-1">
+                        Date of Birth
+                      </label>
+                      <input
+                        type="date"
+                        name="petDob"
+                        value={petForm.petDob}
+                        onChange={handlepetChange}
+                        className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-300 mb-1">
+                        Pet Type
+                      </label>
+                      <select
+                        name="petGender"
+                        value={petForm.petGender}
+                        onChange={handlepetChange}
+                        className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
+                      >
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex justify-end mt-6">
-                <button
-                  type="submit"
-                  className="bg-[#028478] hover:bg-[#04695e] px-6 py-2 rounded-lg flex items-center font-medium"
-                >
-                  <FaSave className="mr-2" /> Save Pet
-                </button>
-              </div>
-            </form>
+                <div className="flex justify-end mt-6">
+                  <button
+                    type="submit"
+                    className="bg-[#028478] hover:bg-[#04695e] px-6 py-2 rounded-lg flex items-center font-medium"
+                  >
+                    <FaSave className="mr-2" /> Save Pet
+                  </button>
+                </div>
+              </form>
             </div>
           )}
 

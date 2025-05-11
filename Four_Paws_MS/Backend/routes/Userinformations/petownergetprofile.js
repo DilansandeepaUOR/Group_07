@@ -121,4 +121,32 @@ router.post("/addpet" ,async (req, res) => {
   }
 });
 
+router.get("/pets", async (req, res) => {
+  const { id } = req.query;
+
+  if (!id) {
+    return res.status(400).json({ error: "ID query parameter is required" });
+  }
+
+  try {
+    const [results] = await db
+      .promise()
+      .query(
+        "SELECT * FROM pet WHERE Owner_id = ?;",
+        [id]
+      );
+
+    console.log("Database results:", results);
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: "Pets not found" });
+    }
+
+    res.json(results);
+  } catch (err) {
+    console.error("Database error:", err);
+    res.status(500).json({ error: "Error retrieving pets" });
+  }
+});
+
 module.exports = router;
