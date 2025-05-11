@@ -20,6 +20,8 @@ function Profile() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [activeTab, setActiveTab] = useState("profile");
+
+  //add pet form handling
   const [petForm, setPetForm] = useState({
     petName: "",
     petType: "Dog",
@@ -27,28 +29,25 @@ function Profile() {
     petGender: "Male",
   });
 
+  //edit owner profile form handling
   const [editForm, setEditForm] = useState({
     Owner_name: "",
     E_mail: "",
     Phone_number: "",
     Owner_address: "",
+    image: null,
+    oldImage: "",
+  });
+
+  //edit pet form handling
+  const [editPetForm, setEditPetForm] = useState({
     Pet_name: "",
     Pet_type: "",
     Pet_dob: "",
     Pet_gender: "",
   });
 
-  const [editPetForm, setEditPeForm] = useState({
-    Owner_name: "",
-    E_mail: "",
-    Phone_number: "",
-    Owner_address: "",
-    Pet_name: "",
-    Pet_type: "",
-    Pet_dob: "",
-    Pet_gender: "",
-  });
-
+  //password form handling
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -65,6 +64,7 @@ function Profile() {
   const [selectedImage, setSelectedImage] = useState(null);
   const navigate = useNavigate();
 
+  //pet profile handling
   const [pets, setPets] = useState([]);
   const [selectedPet, setSelectedPet] = useState("");
 
@@ -79,6 +79,7 @@ function Profile() {
       });
   }, []);
 
+  //get data to edit owner profile
   useEffect(() => {
     if (user?.id) {
       axios
@@ -90,16 +91,9 @@ function Profile() {
             E_mail: response.data.E_mail || "",
             Phone_number: response.data.Phone_number || "",
             Owner_address: response.data.Owner_address || "",
-            Pet_name: response.data.Pet_name || "",
-            Pet_type: response.data.Pet_type || "",
-            Pet_dob: response.data.Pet_dob
-              ? new Date(response.data.Pet_dob).toISOString().split("T")[0]
-              : "",
-            Pet_gender: response.data.Pet_gender || "",
+            
           });
-
-          console.log(response.data.Pet_gender);
-          console.log(response.data.Pet_dob);
+          
           if (response.data.profileImage) {
             setImagePreview(
               `http://localhost:3001/uploads/${response.data.profileImage}`
@@ -111,6 +105,43 @@ function Profile() {
     }
   }, [user?.id]);
 
+  //  //get data to edit pet profile
+  // useEffect(() => {
+  //   if (user?.id) {
+  //     axios
+  //       .get(`http://localhost:3001/api/profile/?id=${user.id}`)
+  //       .then((response) => {
+  //         setProfile(response.data);
+  //         setEditForm({
+  //           Owner_name: response.data.Owner_name || "",
+  //           E_mail: response.data.E_mail || "",
+  //           Phone_number: response.data.Phone_number || "",
+  //           Owner_address: response.data.Owner_address || "",
+            
+  //         });
+  //         setEditPetForm({
+  //           Pet_name: response.data.Pet_name || "",
+  //           Pet_type: response.data.Pet_type || "",
+  //           Pet_dob: response.data.Pet_dob
+  //             ? new Date(response.data.Pet_dob).toISOString().split("T")[0]
+  //             : "",
+  //           Pet_gender: response.data.Pet_gender || "",
+  //         });
+
+  //         console.log(response.data.Pet_gender);
+  //         console.log(response.data.Pet_dob);
+  //         if (response.data.profileImage) {
+  //           setImagePreview(
+  //             `http://localhost:3001/uploads/${response.data.profileImage}`
+  //           );
+  //         }
+  //         fetchPets();
+  //       })
+  //       .catch(console.error);
+  //   }
+  // }, [user?.id]);
+
+  //get data to show and edit pet profile
   const fetchPets = async () => {
     try {
       const res = await axios.get(
@@ -126,6 +157,7 @@ function Profile() {
     }
   };
 
+  //logout function
   const handleLogout = async () => {
     try {
       await axios.get("http://localhost:3001/api/auth/logout", {
@@ -138,7 +170,12 @@ function Profile() {
     }
   };
 
-  const handleEditChange = (e) => {
+  const handleEditOwnerChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditPetChange = (e) => {
     const { name, value } = e.target;
     setEditForm((prev) => ({ ...prev, [name]: value }));
   };
@@ -204,19 +241,42 @@ function Profile() {
     }
   };
 
-  // Inside your Profile component
+  const handlePetProfileSubmit = async (e) => {
+    e.preventDefault();
+    try {
 
+      const response = await axios.put(
+        `http://localhost:3001/api/update/?id=${user.id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+
+      setProfile(response.data);
+      alert(response.data.message || "Profile updated successfully!");
+      navigate(0);
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      alert("Failed to update profile");
+    }
+  };
+
+
+//show pet profile information
 // Function to handle pet selection
 const handlePetSelection = (e) => {
   const selectedPetName = e.target.value;
   setSelectedPet(selectedPetName);
 };
-
 // Filter the selected pet based on the selectedPet state
 const selectedPetInfo = pets.find(pet => pet.Pet_name === selectedPet);
 
-// In your JSX, update the rendering logic
 
+//pet account creation
   const handlePetSubmit = async (e) => {
     e.preventDefault();
 
@@ -460,7 +520,7 @@ const selectedPetInfo = pets.find(pet => pet.Pet_name === selectedPet);
 
           {/* Edit Profile Tab */}
           {activeTab === "edit" && (
-            <form onSubmit={handleProfileSubmit}>
+            <><form onSubmit={handleProfileSubmit}>
               <h2 className="text-2xl font-bold mb-6">Edit Your Profile</h2>
 
               <div className="flex flex-col md:flex-row gap-8 mb-8">
@@ -493,7 +553,7 @@ const selectedPetInfo = pets.find(pet => pet.Pet_name === selectedPet);
                       type="text"
                       name="Owner_name"
                       value={editForm.Owner_name}
-                      onChange={handleEditChange}
+                      onChange={handleEditOwnerChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
                       required
                     />
@@ -504,7 +564,7 @@ const selectedPetInfo = pets.find(pet => pet.Pet_name === selectedPet);
                       type="email"
                       name="E_mail"
                       value={editForm.E_mail}
-                      onChange={handleEditChange}
+                      onChange={handleEditOwnerChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
                       disabled
                     />
@@ -517,7 +577,7 @@ const selectedPetInfo = pets.find(pet => pet.Pet_name === selectedPet);
                       type="tel"
                       name="Phone_number"
                       value={editForm.Phone_number}
-                      onChange={handleEditChange}
+                      onChange={handleEditOwnerChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
                     />
                   </div>
@@ -526,13 +586,23 @@ const selectedPetInfo = pets.find(pet => pet.Pet_name === selectedPet);
                     <textarea
                       name="Owner_address"
                       value={editForm.Owner_address}
-                      onChange={handleEditChange}
+                      onChange={handleEditOwnerChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600 h-24"
                     />
                   </div>
                 </div>
               </div>
 
+              <div className="flex justify-end mt-6">
+                <button
+                  type="submit"
+                  className="bg-[#028478] hover:bg-[#04695e] px-6 py-2 rounded-lg flex items-center font-medium"
+                >
+                  <FaSave className="mr-2" /> Save Changes
+                </button>
+              </div>
+              </form>
+              <form action="" onSubmit={handlePetProfileSubmit}>
               <div className="mb-8">
                 <h3 className="text-lg font-semibold mb-4 border-b pb-2 border-gray-300">
                   Pet Information
@@ -544,7 +614,7 @@ const selectedPetInfo = pets.find(pet => pet.Pet_name === selectedPet);
                       type="text"
                       name="Pet_name"
                       value={editForm.Pet_name}
-                      onChange={handleEditChange}
+                      onChange={handleEditPetChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
                     />
                   </div>
@@ -553,7 +623,7 @@ const selectedPetInfo = pets.find(pet => pet.Pet_name === selectedPet);
                     <select
                       name="Pet_type"
                       value={editForm.Pet_type}
-                      onChange={handleEditChange}
+                      onChange={handleEditPetChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
                     >
                       <option value="Dog">Dog</option>
@@ -570,7 +640,7 @@ const selectedPetInfo = pets.find(pet => pet.Pet_name === selectedPet);
                       type="date"
                       name="Pet_dob"
                       value={editForm.Pet_dob}
-                      onChange={handleEditChange}
+                      onChange={handleEditPetChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
                     />
                   </div>
@@ -579,7 +649,7 @@ const selectedPetInfo = pets.find(pet => pet.Pet_name === selectedPet);
                     <select
                       name="Pet_gender"
                       value={editForm.Pet_gender}
-                      onChange={handleEditChange}
+                      onChange={handleEditPetChange}
                       className="w-full bg-[#374151] text-white p-2 rounded border border-gray-600"
                     >
                       <option value="Male">Male</option>
@@ -598,7 +668,8 @@ const selectedPetInfo = pets.find(pet => pet.Pet_name === selectedPet);
                   <FaSave className="mr-2" /> Save Changes
                 </button>
               </div>
-            </form>
+            </form></>
+            
           )}
 
           {/* Add pets Tab */}
