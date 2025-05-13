@@ -836,5 +836,4 @@ const AppointmentDetails = () => {
     </div>
   );
 };
-
 export default AppointmentDetails;
