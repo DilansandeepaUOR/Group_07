@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, Sector } from "recharts";
-import { PieChart as PieChartIcon } from "lucide-react";
+import { PieChart as PieChartIcon, Table as TableIcon } from "lucide-react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { Button } from "@/components/ui/button";
@@ -15,9 +15,13 @@ export default function ReportsSection() {
   const [activeIndex, setActiveIndex] = useState(null);
 
   const [period, setPeriod] = useState('day');
-  const [revenue, setRevenue] = useState(null);
+  const [revenue, setRevenue] = useState(0);
   const [loadingRevenue, setLoadingRevenue] = useState(false);
   const [errorRevenue, setErrorRevenue] = useState(null);
+
+  const [detailedSales, setDetailedSales] = useState([]);
+  const [loadingDetailed, setLoadingDetailed] = useState(false);
+  const [errorDetailed, setErrorDetailed] = useState(null);
 
   const CHART_COLORS = [
     '#71C9CE',  // Teal accent
@@ -66,6 +70,7 @@ export default function ReportsSection() {
 
   useEffect(() => {
     fetchRevenue();
+    fetchDetailedSales();
   }, [period]);
 
   const fetchRevenue = async () => {
@@ -80,21 +85,50 @@ export default function ReportsSection() {
       setErrorRevenue(null);
     } catch (err) {
       setErrorRevenue(err.message);
-      setRevenue(null);
+      setRevenue(0);
     } finally {
       setLoadingRevenue(false);
     }
   };
 
+  const fetchDetailedSales = async () => {
+    setLoadingDetailed(true);
+    try {
+      const res = await fetch(`http://localhost:3001/pharmacy/api/detailed-sales?period=${period}`);
+      if (!res.ok) {
+        throw new Error('Failed to fetch detailed sales');
+      }
+      const data = await res.json();
+      setDetailedSales(data);
+      setErrorDetailed(null);
+    } catch (err) {
+      setErrorDetailed(err.message);
+      setDetailedSales([]);
+    } finally {
+      setLoadingDetailed(false);
+    }
+  };
+
   const exportPDF = () => {
     const doc = new jsPDF();
+    
+    // Report title
     doc.setFontSize(18);
-    doc.text("Sales Revenue Report", 20, 20);
-
+    doc.setTextColor(40, 40, 40);
+    doc.text("Pharmacy Sales Report", 105, 15, { align: 'center' });
+    
+    // Period and date
     doc.setFontSize(12);
-    doc.text(`Period: ${periods.find(p => p.value === period)?.label}`, 20, 35);
-    doc.text(`Generated On: ${new Date().toLocaleString()}`, 20, 45);
-
+    doc.text(`Period: ${periods.find(p => p.value === period)?.label}`, 20, 30);
+    doc.text(`Generated On: ${new Date().toLocaleString()}`, 20, 40);
+    
+    // Revenue summary
+    doc.setFontSize(14);
+    doc.setTextColor(113, 201, 206); // #71C9CE
+    doc.text("Revenue Summary", 20, 55);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(40, 40, 40);
     doc.autoTable({
       startY: 60,
       head: [["Period", "Total Revenue"]],
@@ -104,15 +138,69 @@ export default function ReportsSection() {
           `LKR ${revenue.toFixed(2)}`
         ]
       ],
+      headStyles: {
+        fillColor: [113, 201, 206],
+        textColor: [255, 255, 255]
+      },
+      margin: { top: 60 }
     });
 
-    doc.save(`Sales_Revenue_${period}.pdf`);
+    // Top selling medicines
+    doc.setFontSize(14);
+    doc.setTextColor(113, 201, 206);
+    doc.text("Top Selling Medicines", 20, doc.autoTable.previous.finalY + 20);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(40, 40, 40);
+    doc.autoTable({
+      startY: doc.autoTable.previous.finalY + 25,
+      head: [["Medicine", "Units Sold", "Revenue"]],
+      body: topMedicines.map(item => [
+        item.name,
+        item.value,
+        `LKR ${item.revenue.toFixed(2)}`
+      ]),
+      headStyles: {
+        fillColor: [113, 201, 206],
+        textColor: [255, 255, 255]
+      }
+    });
+
+    // Detailed sales
+    doc.setFontSize(14);
+    doc.setTextColor(113, 201, 206);
+    doc.text("Detailed Sales", 20, doc.autoTable.previous.finalY + 20);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(40, 40, 40);
+    doc.autoTable({
+      startY: doc.autoTable.previous.finalY + 25,
+      head: [["Medicine", "Unit Price", "Quantity Sold", "Revenue"]],
+      body: detailedSales.map(item => [
+        item.name,
+        `LKR ${item.price.toFixed(2)}`,
+        item.quantity_sold,
+        `LKR ${item.total_revenue.toFixed(2)}`
+      ]),
+      headStyles: {
+        fillColor: [113, 201, 206],
+        textColor: [255, 255, 255]
+      },
+      columnStyles: {
+        1: { cellWidth: 30 },
+        2: { cellWidth: 30 },
+        3: { cellWidth: 30 }
+      }
+    });
+
+    doc.save(`Pharmacy_Sales_Report_${period}.pdf`);
   };
 
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'LKR'
+      currency: 'LKR',
+      minimumFractionDigits: 2
     }).format(value);
   };
 
@@ -153,9 +241,9 @@ export default function ReportsSection() {
   };
 
   return (
-    <div className="bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6">
+    <div className="bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Reports & Analytics</h1>
+        <h1 className="text-2xl font-bold mb-6 text-gray-800">Reports & Analytics</h1>
 
         {/* Top Selling Medicines */}
         <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg p-6 mb-6 border border-[#71C9CE]">
@@ -230,35 +318,88 @@ export default function ReportsSection() {
 
         {/* Sales Revenue Report */}
         <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg p-6 border border-[#71C9CE]">
-          <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
-            <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-[180px] bg-white/70">
-                <SelectValue placeholder="Select period" />
-              </SelectTrigger>
-              <SelectContent>
-                {periods.map(opt => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-4">
+              <Select value={period} onValueChange={setPeriod}>
+                <SelectTrigger className="w-[180px] bg-white/70">
+                  <SelectValue placeholder="Select period" />
+                </SelectTrigger>
+                <SelectContent>
+                  {periods.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <Button 
               onClick={exportPDF}
               className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
+              disabled={loadingRevenue || loadingDetailed}
             >
               Export as PDF
             </Button>
           </div>
 
-          <div className="p-6 bg-white/50 rounded-lg shadow-inner flex justify-center items-center min-h-32">
+          <div className="p-6 bg-white/50 rounded-lg shadow-inner flex justify-center items-center min-h-32 mb-6">
             {loadingRevenue ? (
               <div className="text-[#71C9CE]">Loading revenue...</div>
             ) : errorRevenue ? (
               <div className="text-red-500">Error: {errorRevenue}</div>
             ) : (
               <div className="text-2xl font-bold text-[#71C9CE]">
-                Total Revenue: LKR {revenue?.toFixed(2)}
+                Total Revenue: {formatCurrency(revenue)}
               </div>
+            )}
+          </div>
+
+          {/* Detailed Sales Table */}
+          <div className="bg-white/50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-4 flex items-center">
+              <TableIcon className="mr-2 text-[#71C9CE]" size={18} />
+              Detailed Sales
+            </h3>
+            
+            {loadingDetailed ? (
+              <div className="text-center py-4 text-[#71C9CE]">Loading sales data...</div>
+            ) : errorDetailed ? (
+              <div className="text-center py-4 text-red-500">Error: {errorDetailed}</div>
+            ) : detailedSales.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-[#71C9CE]/30">
+                  <thead className="bg-[#71C9CE]/20">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Medicine</th>
+                      <th className="px-4 py-2 text-right text-sm font-semibold text-gray-700">Unit Price</th>
+                      <th className="px-4 py-2 text-right text-sm font-semibold text-gray-700">Quantity</th>
+                      <th className="px-4 py-2 text-right text-sm font-semibold text-gray-700">Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#71C9CE]/20">
+                    {detailedSales.map((item) => (
+                      <tr key={item.id}>
+                        <td className="px-4 py-2 text-sm text-gray-800">{item.name}</td>
+                        <td className="px-4 py-2 text-sm text-right text-gray-800">{formatCurrency(item.price)}</td>
+                        <td className="px-4 py-2 text-sm text-right text-gray-800">{item.quantity_sold}</td>
+                        <td className="px-4 py-2 text-sm text-right text-gray-800">{formatCurrency(item.total_revenue)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="bg-[#71C9CE]/10">
+                    <tr>
+                      <td className="px-4 py-2 text-sm font-semibold text-gray-800">Total</td>
+                      <td className="px-4 py-2 text-sm text-right text-gray-800"></td>
+                      <td className="px-4 py-2 text-sm text-right font-semibold text-gray-800">
+                        {detailedSales.reduce((sum, item) => sum + item.quantity_sold, 0)}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-right font-semibold text-gray-800">
+                        {formatCurrency(detailedSales.reduce((sum, item) => sum + item.total_revenue, 0))}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-4 text-[#71C9CE]">No sales data available for this period</div>
             )}
           </div>
         </div>
