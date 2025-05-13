@@ -15,7 +15,7 @@ import VaccineNotify from "./Pages/VaccineNotify";
 import VaccineSent from "./Pages/VaccineSent";
 import MobileService from "./Pages/MobileService";
 
-import EditRecords from "./Pages/EditRecords";
+
 import SearchRecords from "./Pages/SearchRecords";
 
 import ProtectedRoutes from "./Components/ProtectedRoutes/ProtectedRoutes";
@@ -61,7 +61,7 @@ const App = () => {
         <Route path="/sentnotification" element={<VaccineSent />} />
 
         <Route path="/appointment" element={<Appointment />} />
-        <Route path="/edit/:id" element={<EditRecords />} />
+
         <Route path="/search" element={<SearchRecords />} />
 
         {/* Petowner Routes  */}

@@ -174,20 +174,15 @@ router.get('/all-records', async (req, res) => {
   try {
     const query = `
       SELECT 
-        r.*, 
-        p.Pet_name, 
-        p.Pet_type, 
-        o.Owner_name, 
-        o.E_mail,
-        v.vaccine_type,
-        v.vaccine_name,
-        v.other_vaccine,
-        v.vaccination_date,
-        v.notes AS vaccination_notes
+      r.id, r.date, r.surgery, r.other,
+      p.Pet_id, p.Pet_name, p.Pet_type, p.Pet_dob,
+      o.Owner_id, o.Owner_name, o.E_mail, o.Phone_number,
+      v.vaccination_id, v.vaccine_type, v.vaccine_name, 
+      v.other_vaccine, v.vaccination_date, v.notes AS vaccination_notes
       FROM record r
       JOIN pet p ON r.Pet_id = p.Pet_id
       JOIN pet_owner o ON p.Owner_id = o.Owner_id
-      LEFT JOIN vaccination v ON r.Pet_id = v.pet_id AND r.date = v.vaccination_date
+      LEFT JOIN vaccination v ON r.vaccination_id = v.vaccination_id
       ORDER BY r.date DESC
     `;
     
