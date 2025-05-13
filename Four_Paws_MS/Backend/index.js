@@ -49,6 +49,9 @@ app.use('/api/', petProfileRoutes);
 const adminRegRoutes =require('./routes/Admininformations/adregister');
 app.use('/api/adregform', adminRegRoutes);
 
+const adminUsersRegRoutes =require('./routes/Admininformations/reguserregister');
+app.use('/api/adreguserform', adminUsersRegRoutes);
+
 //admin login
 const adminloginRoutes =require('./routes/Admininformations/adlogin');
 app.use('/api/adloginform/', adminloginRoutes);
@@ -64,6 +67,10 @@ app.use('/uploads', express.static('uploads'));
 
 const pharmacy =require('./routes/Pharmacy/pharmacy');
 app.use('/pharmacy', pharmacy);
+
+//assistant doctor
+const assistantdoctorRoutes =require('./routes/Assitdoctor/assistantdoctor');
+app.use('/api/assistantdoctor', assistantdoctorRoutes);
 
 //Contact info routes
 const contactInfoRoutes = require('./routes/Contactinfo/contact');

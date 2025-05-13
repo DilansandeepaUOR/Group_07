@@ -73,7 +73,7 @@ function Aboutus() {
               About Four Paws Veterinary
             </h1>
             <p className="text-lg text-gray-200 max-w-2xl mx-auto">
-              Compassionate care for your beloved pets since 2008
+              Compassionate care for your beloved pets since 2021
             </p>
           </div>
         </div>

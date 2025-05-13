@@ -105,7 +105,7 @@ router.post("/addproduct", upload.single("image"), async (req, res) => {
 
 router.get("/products", async (req, res) => {
   const productsql =
-    "SELECT p.*, c.category_name, s.name AS supplier_name FROM pet_products p LEFT JOIN pet_categories c ON p.category_id = c.category_id LEFT JOIN pet_suppliers s ON p.supplier_id = s.supplier_id;";
+    "SELECT p.*, c.category_name, s.name AS supplier_name FROM pet_products p LEFT JOIN pet_categories c ON p.category_id = c.category_id LEFT JOIN pet_suppliers s ON p.supplier_id = s.supplier_id WHERE c.status = 'Active';";
   try {
     db.query(productsql, (err, results) => {
       if (err) {
@@ -126,7 +126,6 @@ router.get("/products", async (req, res) => {
     res.status(500).json({ error: "Error retrieving product" });
   }
 });
-
 
 router.get("/productsqr/:id", (req, res) => {
   const { id } = req.params;
@@ -160,12 +159,11 @@ router.get("/productsqr/:id", (req, res) => {
   });
 });
 
-
 router.put("/productupdate", upload.single("image"), async (req, res) => {
   const { product_id } = req.query;
 
-  console.log("ID:", product_id); // Log the ID to check if it's being received correctly
-  console.log("Request Body:", req.body); // Log the request body to check the data being sent
+  //console.log("ID:", product_id); // Log the ID to check if it's being received correctly
+  //console.log("Request Body:", req.body); // Log the request body to check the data being sent
 
   if (!product_id) {
     return res.status(400).json({ error: "ID query parameter is required" });
@@ -210,7 +208,6 @@ router.put("/productupdate", upload.single("image"), async (req, res) => {
         if (results.affectedRows === 0) {
           return res.status(404).json({ error: "Product not found" });
         }
-        res.status(200).json({ message: "Product updated successfully" });
       }
     );
   } catch (error) {
@@ -476,5 +473,104 @@ router.delete("/supplierdelete", async (req, res) => {
     res.status(500).json({ error: "Error updating supplier" });
   }
 });
+
+
+
+//Manage Petshop Transactions
+
+router.post("/addtransaction", async (req, res) => {
+  const { employee_id, product_id, quantity, type } = req.body;
+
+  try {
+    const transactionsql =
+      "INSERT INTO pet_shop_inventory_transactions (product_id, employee_id, transaction_type, quantity) VALUES (?, ?, ?, ?)";
+
+    db.query(
+      transactionsql,
+      [product_id, employee_id, type, quantity],
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({ error: "Error inserting transaction" });
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ error: "Transaction not found!" });
+        }
+
+        const operation = type === "IN" ? "+" : "-";
+        const updateProductSql = `UPDATE pet_products SET quantity_in_stock = quantity_in_stock ${operation} ? WHERE product_id = ?`;
+
+        db.query(updateProductSql, [quantity, product_id], (err2) => {
+          if (err2) {
+            return res.status(500).json({
+              error: "Error updating product quantity",
+            });
+          }
+
+          // Now check updated quantity
+          const checkQuantitySql =
+            "SELECT quantity_in_stock FROM pet_products WHERE product_id = ?";
+
+          db.query(checkQuantitySql, [product_id], (err3, result3) => {
+            if (err3) {
+              return res.status(500).json({ error: "Error checking quantity" });
+            }
+
+            const updatedQty = result3[0]?.quantity_in_stock;
+
+            // If quantity is zero, update status
+            if (updatedQty === 0) {
+              const updateStatusSql =
+                "UPDATE pet_products SET status = 'Inactive' WHERE product_id = ?";
+
+              db.query(updateStatusSql, [product_id], (err4) => {
+                if (err4) {
+                  return res
+                    .status(500)
+                    .json({ error: "Error updating status to Inactive" });
+                }
+
+                return res.status(200).json({
+                  message:
+                    "Transaction added. Product updated and status set to Inactive due to zero quantity",
+                });
+              });
+            } 
+            else if (updatedQty < 0) {
+              return res.status(400).json({
+                error: "Transaction failed. Quantity cannot be negative.",
+              });
+            }
+            else if (updatedQty > 0) {
+              const updateStatusSql =
+                "UPDATE pet_products SET status = 'Active' WHERE product_id = ?";
+
+              db.query(updateStatusSql, [product_id], (err5) => {
+                if (err5) {
+                  return res
+                    .status(500)
+                    .json({ error: "Error updating status to Inactive" });
+                }
+
+                return res.status(200).json({
+                  message:
+                    "Transaction added. Product updated and status set to Active.",
+                });
+              });
+            }
+            else {
+              return res.status(200).json({
+                message: "Transaction and product quantity updated successfully",
+              });
+            }
+          });
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 
 module.exports = router;

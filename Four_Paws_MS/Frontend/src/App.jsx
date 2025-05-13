@@ -11,8 +11,6 @@ import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import Appointment from "./Pages/Appointment";
 import Adlogin from "./Admin/Pages/Adlogin";
-import VaccineNotify from "./Pages/VaccineNotify";
-import VaccineSent from "./Pages/VaccineSent";
 
 
 
@@ -101,11 +99,12 @@ const App = () => {
         <Route path="/assistdashboard" element={<ProtectedRoutes allowedRoles={["Assistant Doctor"]}><AssistDashboard /></ProtectedRoutes>} />
         <Route path="/assistprofile" element={<ProtectedRoutes allowedRoles={["Assistant Doctor"]}><Assistprofile /></ProtectedRoutes>} />
 
-        <Route path="/Pharmacy" element={<ProtectedRoutes allowedRolesUser={["Pharmacist"]} ><Pharmacy /></ProtectedRoutes>} />
+        <Route path="/Pharmacy" element={<Pharmacy />}></Route>
         
 
         <Route path="/unauth" element={<Unauth/>} />
         <Route path="*" element={<h1>404 Not Found</h1>} />
+        <Route path="/mobileservice" element={<Mobileservice />} />
       </Routes>
     </>
   );

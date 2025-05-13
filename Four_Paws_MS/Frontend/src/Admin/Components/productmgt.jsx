@@ -10,6 +10,9 @@ const ProductManagement = () => {
   const [products, setProducts] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [categories, setCaegories] = useState([]);
 
   const fetchProducts = async () => {
     const res = await axios.get(
@@ -18,13 +21,32 @@ const ProductManagement = () => {
     setProducts(res.data);
   };
 
+  const fetchCategories = async () => {
+    const res = await axios.get(
+      "http://localhost:3001/api/adminpetshop/categories"
+    );
+    setCaegories(res.data);
+  };
+
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
+
+  // Filtered product list based on search term and category
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch = product.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory
+      ? product.category_name === selectedCategory
+      : true;
+    return matchesSearch && matchesCategory;
+  });
 
   const deleteProduct = async (product_id) => {
     try {
-      if (window.confirm("Are you sure you want to delete this user?")) {
+      if (window.confirm("Are you sure you want to delete this product?")) {
         const response = await axios.delete(
           `http://localhost:3001/api/adminpetshop/productdelete?product_id=${product_id}`
         );
@@ -37,7 +59,7 @@ const ProductManagement = () => {
   };
   return (
     <div>
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-end">
         <Button
           className="bg-[#71C9CE] hover:bg-gray-50 text-gray-900 flex items-center"
           onClick={() => {
@@ -48,6 +70,34 @@ const ProductManagement = () => {
           <FaPlus className="mr-2" /> Add New Product
         </Button>
       </div>
+
+      <div className="mb-5">
+        <div className="container mx-auto px-4 mt-10">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full md:w-1/2 px-4 py-2 rounded-md border border-gray-800 focus:outline-none focus:ring-2 focus:ring-[#028478]"
+            />
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full md:w-1/4 px-4 py-2 rounded-md border border-gray-800 focus:outline-none focus:ring-2 focus:ring-[#028478]"
+            >
+              <option value="">All Categories</option>
+
+              {categories.map((cat, index) => (
+                <option key={index} value={cat.category_name}>
+                  {cat.category_name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div className="">
         <div className="overflow-y-auto max-h-[400px]">
           <table className="w-full text-left bg-gray-50 shadow-md">
@@ -63,69 +113,136 @@ const ProductManagement = () => {
                 <th className="p-3 border-l-2">Actioins</th>
               </tr>
             </thead>
-            <tbody>
-              {products.map((u) => (
-                <tr key={u.product_id} className="border-t">
-                  <td className="p-3 ">{u.name}</td>
-                  <td className="p-3">{u.category_name}</td>
-                  <td className="p-3">{u.supplier_name}</td>
-                  <td className="p-3">{u.quantity_in_stock}</td>
-                  <td className="p-3">Rs. {u.unit_price}</td>
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((u) => (
+                <tbody>
+                  <tr key={u.product_id} className="border-t">
+                    <td className="p-3 ">{u.name}</td>
+                    <td className="p-3">{u.category_name}</td>
+                    <td className="p-3">{u.supplier_name}</td>
+                    <td className="p-3">{u.quantity_in_stock}</td>
+                    <td className="p-3">Rs. {u.unit_price}</td>
 
-                  <td
-                    className={`p-3 ${
-                      u.status != "Inactive"
+                    <td
+                      className={`p-3 ${
+                        u.status != "Inactive"
+                          ? "text-[#71C9CE] font-bold"
+                          : "font-bold text-red-500"
+                      }`}
+                    >
+                      {u.status}
+                    </td>
+                    <td className="p-3">
+                      {u.qr_code_image ? (
+                        <img
+                          src={u.qr_code_image}
+                          alt="QR Code"
+                          className="w-16 h-16 object-contain"
+                        />
+                      ) : (
+                        "N/A"
+                      )}
+                    </td>
+                    <td className="p-3 space-x-2">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setEditingProduct(u);
+                          setShowForm(true);
+                        }}
+                      >
+                        <FaEdit />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => deleteProduct(u.product_id)}
+                      >
+                        <FaTrash />
+                      </Button>
+                    </td>
+                  </tr>
+                </tbody>
+              ))
+            ) : (
+              <tbody>
+                <tr>
+                  <td colSpan="7" className="text-center text-gray-500 py-4">
+                    No Products found.
+                  </td>
+                </tr>
+              </tbody>
+            )}
+          </table>
+        </div>
+
+        {/* Services Grid */}
+        <div className="container mx-auto px-4 py-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((product, index) => (
+                <div
+                  key={index}
+                  className="bg-white rounded-2xl shadow-lg p-6 text-center hover:scale-105 transition-transform"
+                >
+                  <h2 className="text-3xl font-bold text-[#028478] mb-4">
+                    {product.name}
+                  </h2>
+
+                  <div className="flex items-center justify-center">
+                    <img
+                      src={
+                        paw || `http://localhost:3001${product.product_image}`
+                      }
+                      alt={product.name}
+                      className="w-20 h-20 object-cover rounded-lg shadow-md"
+                    />
+                  </div>
+                  <p className="text-gray-600 mb-4">
+                    <strong>Category: </strong>
+                    {product.category_name}
+                  </p>
+                  <p className="text-gray-600 mb-4">
+                    <strong>Brand: </strong>
+                    {product.brand}
+                  </p>
+                  <p
+                    className={`text-gray-600 mb-4 ${
+                      product.status != "Inactive"
                         ? "text-[#71C9CE] font-bold"
                         : "font-bold text-red-500"
                     }`}
                   >
-                    {u.status}
-                  </td>
-                  <td className="p-3">
-                    {u.qr_code_image ? (
-                      <img
-                        src={u.qr_code_image}
-                        alt="QR Code"
-                        className="w-16 h-16 object-contain"
-                      />
-                    ) : (
-                      "N/A"
-                    )}
-                  </td>
-                  <td className="p-3 space-x-2">
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        setEditingProduct(u);
-                        setShowForm(true);
-                      }}
-                    >
-                      <FaEdit />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => deleteProduct(u.product_id)}
-                    >
-                      <FaTrash />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    {product.status === "Active" ? "In Stock" : "Out of Stock"}
+                  </p>
+                  <div className="text-xl font-semibold text-gray-800 mb-2">
+                    {product.description}
+                  </div>
+                  <p className="bg-[#028478] text-white px-6 py-2 rounded-full">
+                    Rs. {product.unit_price}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="text-white col-span-3 text-center">
+                No products found.
+              </p>
+            )}
+          </div>
         </div>
+
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full max-w-2xl z-20 p-4 rounded-md">
           {showForm && (
             <ProductForm
               closeForm={() => setShowForm(false)}
               editingProduct={editingProduct}
               refreshProducts={fetchProducts}
+              categories={categories}
             />
           )}
         </div>
       </div>
-      <div className="mt-6 items-center justify-center">
+      {/* <div className="mt-6 items-center justify-center">
         <h1>Product Images</h1>
         <div className="">
           {products[0]?.product_image && (
@@ -136,12 +253,12 @@ const ProductManagement = () => {
             />
           )}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
 
-const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
+const ProductForm = ({ closeForm, editingProduct, refreshProducts,categories }) => {
   const [formData, setFormData] = useState({
     name: "",
     category_id: "",
@@ -238,173 +355,182 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
-      <h2 className="text-xl font-semibold mb-4 text-[#028478]">
-        {editingProduct ? "Edit" : "Register New"} Product
-      </h2>
-      <form
-        className="grid grid-cols-1 md:grid-cols-2 gap-4"
-        onSubmit={handleSubmit}
-      >
-        <div className="">
-          {editingProduct && (
-            <label className="flex font-bold" htmlFor="name">
-              Product Name
-            </label>
-          )}
-          <input
-            type="text"
-            name="name"
-            placeholder="Product Name"
-            className="flex p-2 border rounded-md"
-            onChange={handleChange}
-            value={formData.name}
-            required
-          />
-        </div>
+    <div className="bg-white/30 backdrop-blur-md p-20">
+      <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
+        <h2 className="text-xl font-semibold mb-4 text-[#028478]">
+          {editingProduct ? "Edit" : "Register New"} Product
+        </h2>
+        <form
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          onSubmit={handleSubmit}
+        >
+          <div className="">
+            {editingProduct && (
+              <label className="flex font-bold" htmlFor="name">
+                Product Name
+              </label>
+            )}
+            <input
+              type="text"
+              name="name"
+              placeholder="Product Name"
+              className="flex p-2 border rounded-md"
+              onChange={handleChange}
+              value={formData.name}
+              required
+            />
+          </div>
 
-        <div>
-          {editingProduct && (
-            <label className="flex font-bold" htmlFor="Category id">
-              Category ID
-            </label>
-          )}
-          <input
-            type="text"
-            name="category_id"
-            placeholder="Category id"
-            className="p-2 border rounded-md"
-            onChange={handleChange}
-            value={formData.category_id}
-            required
-          />
-        </div>
-
-        <div>
-          {editingProduct && (
-            <label className="flex font-bold" htmlFor="Brand Name">
-              Brand Name
-            </label>
-          )}
-          <input
-            type="text"
-            name="brand"
-            placeholder="Brand Name"
-            className="p-2 border rounded-md"
-            onChange={handleChange}
-            value={formData.brand}
-            required
-          />
-        </div>
-
-        <div>
-          {editingProduct && (
-            <label className="flex font-bold" htmlFor="Unit Price">
-              Unit Price
-            </label>
-          )}
-          <input
-            type="text"
-            name="unit_price"
-            placeholder="Unit Price"
-            className="p-2 border rounded-md"
-            onChange={handleChange}
-            value={formData.unit_price}
-            required
-          />
-        </div>
-
-        <div>
-          {editingProduct && (
-            <label className="flex font-bold" htmlFor="Supplier Id">
-              Supplier ID
-            </label>
-          )}
-          <input
-            type="text"
-            name="supplier_id"
-            placeholder="Supplier Id"
-            className="p-2 border rounded-md"
-            onChange={handleChange}
-            value={formData.supplier_id}
-            required
-          />
-        </div>
-
-        <div>
-          {editingProduct && (
-            <label className="flex font-bold" htmlFor="Quantity">
-              Quantity
-            </label>
-          )}
-          <input
-            type="text"
-            name="quantity_in_stock"
-            placeholder="Quantity"
-            className="p-2 border rounded-md"
-            onChange={handleChange}
-            value={formData.quantity_in_stock}
-            required
-          />
-        </div>
-
-        {editingProduct && (
           <div>
             {editingProduct && (
-              <label className="flex font-bold" htmlFor="status">
-                Product Status
+              <label className="flex font-bold" htmlFor="Category id">
+                Category ID
               </label>
             )}
             <select
-              name="status"
+              name="category_id"
               className="p-2 border rounded-md"
               onChange={handleChange}
-              value={formData.status}
-              required
+              value={formData.category_id}
             >
-              <option>Active</option>
-              <option>Inactive</option>
+              <option value="">Select a category</option>
+              {categories.map((cat) => (
+                <option key={cat.category_id} value={cat.category_id}>
+                  {cat.category_name}
+                </option>
+              ))}
             </select>
           </div>
-        )}
 
-        <div>
+          <div>
+            {editingProduct && (
+              <label className="flex font-bold" htmlFor="Brand Name">
+                Brand Name
+              </label>
+            )}
+            <input
+              type="text"
+              name="brand"
+              placeholder="Brand Name"
+              className="p-2 border rounded-md"
+              onChange={handleChange}
+              value={formData.brand}
+              required
+            />
+          </div>
+
+          <div>
+            {editingProduct && (
+              <label className="flex font-bold" htmlFor="Unit Price">
+                Unit Price
+              </label>
+            )}
+            <input
+              type="text"
+              name="unit_price"
+              placeholder="Unit Price"
+              className="p-2 border rounded-md"
+              onChange={handleChange}
+              value={formData.unit_price}
+              required
+            />
+          </div>
+
+          <div>
+            {editingProduct && (
+              <label className="flex font-bold" htmlFor="Supplier Id">
+                Supplier ID
+              </label>
+            )}
+            <input
+              type="text"
+              name="supplier_id"
+              placeholder="Supplier Id"
+              className="p-2 border rounded-md"
+              onChange={handleChange}
+              value={formData.supplier_id}
+              required
+            />
+          </div>
+
+          {/* <div>
+            {editingProduct && (
+              <label className="flex font-bold" htmlFor="Quantity">
+                Quantity
+              </label>
+            )}
+            <input
+              type="text"
+              name="quantity_in_stock"
+              placeholder="Quantity"
+              className="p-2 border rounded-md"
+              onChange={handleChange}
+              value={formData.quantity_in_stock}
+              required
+            />
+          </div> */}
+
           {editingProduct && (
-            <label className="flex font-bold" htmlFor="Product Description">
-              Product Description
-            </label>
+            <div>
+              {editingProduct && (
+                <label className="flex font-bold" htmlFor="status">
+                  Product Status
+                </label>
+              )}
+              <select
+                name="status"
+                className="p-2 border rounded-md"
+                onChange={handleChange}
+                value={formData.status}
+                disabled
+              >
+                <option>Active</option>
+                <option>Inactive</option>
+              </select>
+            </div>
           )}
-          <input
-            type="text"
-            name="description"
-            placeholder="Product Description"
-            className="p-2 border rounded-md col-span-2"
-            onChange={handleChange}
-            value={formData.description}
-          />
-        </div>
 
-        <div className="col-span-2 flex items-center">
-          <FaCamera className="mr-2 text-gray-500" />
-          <input
-            type="file"
-            name="image"
-            accept="image/*"
-            className="p-2 border rounded-md"
-            onChange={handleChange}
-          />
-        </div>
+          <div>
+            {editingProduct && (
+              <label className="flex font-bold" htmlFor="Product Description">
+                Product Description
+              </label>
+            )}
+            <input
+              type="text"
+              name="description"
+              placeholder="Product Description"
+              className="p-2 border rounded-md col-span-2"
+              onChange={handleChange}
+              value={formData.description}
+            />
+          </div>
 
-        <Button
-          type="submit"
-          className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900 col-span-2"
+          <div className="col-span-2 flex items-center">
+            <FaCamera className="mr-2 text-gray-500" />
+            <input
+              type="file"
+              name="image"
+              accept="image/*"
+              className="p-2 border rounded-md"
+              onChange={handleChange}
+            />
+          </div>
+
+          <Button
+            type="submit"
+            className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900 col-span-2"
+          >
+            {editingProduct ? "Update" : "Add"}
+          </Button>
+        </form>
+        <button
+          onClick={closeForm}
+          className="mt-4 text-red-500 hover:underline"
         >
-          {editingProduct ? "Update" : "Add"}
-        </Button>
-      </form>
-      <button onClick={closeForm} className="mt-4 text-red-500 hover:underline">
-        Cancel
-      </button>
+          Cancel
+        </button>
+      </div>
     </div>
   );
 };
