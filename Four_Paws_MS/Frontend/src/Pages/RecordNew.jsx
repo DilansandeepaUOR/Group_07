@@ -17,9 +17,17 @@ const RecordNew = () => {
     petId: '',
     date: new Date().toISOString().split('T')[0],
     surgery: '',
-    vaccination: '',
-    other: ''
+    vaccineType: '',
+    coreVaccine: '',
+    lifestyleVaccine: '',
+    otherVaccine: '',
+    other: '',
+    hasVaccination: false,  
+    hasSurgery: false,      
+    hasOtherNotes: false
   });
+
+
   const [selectedOwner, setSelectedOwner] = useState(null);
   const [ownerSearchTerm, setOwnerSearchTerm] = useState('');
   const [petSearchTerm, setPetSearchTerm] = useState('');
@@ -62,7 +70,7 @@ useEffect(() => {
       setSearchStatus(prev => ({ ...prev, loading: true, error: null, noResults: false }));
       
       try {
-        const response = await axios.post('http://localhost:3001/api/search-owners', {
+        const response = await axios.post('http://localhost:3001/api/search-owners-new', {
           searchTerm: ownerSearchTerm
         });
         
@@ -111,7 +119,7 @@ useEffect(() => {
             ownerId: formData.ownerId
           });
           setPets(response.data);
-          setFormData(prev => ({ ...prev, petId: '' })); // Reset pet selection
+          setFormData(prev => ({ ...prev, petId: '' }));
         } catch (error) {
           console.error('Error fetching pets:', error);
         } finally {
@@ -144,7 +152,7 @@ useEffect(() => {
           ...prev,
           date: 'Future dates are not allowed'
         }));
-        return; // Don't update the form data
+        return;
       } else {
         setErrors(prev => ({
           ...prev,
@@ -176,8 +184,19 @@ useEffect(() => {
       newErrors.date = 'Future dates are not allowed';
     }
     
+    // Vaccination validation only if checkbox is checked
+    if (formData.hasVaccination) {
+      if (!formData.vaccineType) {
+        newErrors.vaccination = 'Please select a vaccine type';
+      } else if (formData.vaccineType === 'core' && !formData.coreVaccine) {
+        newErrors.vaccination = 'Please select a core vaccine';
+      } else if (formData.vaccineType === 'lifestyle' && !formData.lifestyleVaccine) {
+        newErrors.vaccination = 'Please select a lifestyle vaccine';
+      }
+    }
+    
     // At least one detail field validation
-    if (!formData.surgery && !formData.vaccination && !formData.other) {
+    if (!formData.hasSurgery && !formData.hasVaccination && !formData.hasOtherNotes) {
       newErrors.details = 'At least one detail field (Surgery, Vaccination, or Notes) is required';
     }
     
@@ -185,54 +204,67 @@ useEffect(() => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+//handleSubmit function to handle the response
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validateForm()) return;
+  
+  setSubmitLoading(true);
+  setErrors({});
+  setSuccessMessage('');
+  
+  try {
+    // Base payload without vaccination data
+    const payload = {
+      ownerId: formData.ownerId,
+      petId: formData.petId,
+      date: formData.date,
+      surgery: formData.hasSurgery ? formData.surgery : null,
+      other: formData.hasOtherNotes ? formData.other : null
+    };
+
+    // Only add vaccination data if vaccination checkbox is checked AND vaccine type is selected
+    if (formData.hasVaccination && formData.vaccineType) {
+      payload.vaccineType = formData.vaccineType;
+      payload.coreVaccine = formData.vaccineType === 'core' ? formData.coreVaccine : null;
+      payload.lifestyleVaccine = formData.vaccineType === 'lifestyle' ? formData.lifestyleVaccine : null;
+      payload.otherVaccine = formData.otherVaccine || null;
+    }
     
-    setSubmitLoading(true);
-    setErrors({});
-    setSuccessMessage('');
+    const response = await axios.post('http://localhost:3001/api/records', payload);
     
-    try {
-      const payload = {
-        ...formData,
-        ownerId: formData.ownerId
-      };
-      
-      await axios.post('http://localhost:3001/api/records', payload);
-      
-      // Show success message and reset form
+    if (response.data.success) {
       setSuccessMessage('Medical record added successfully!');
-      
-      // Reset form after successful submission
+      // Reset form
       setFormData({
         ownerId: '',
         petId: '',
         date: new Date().toISOString().split('T')[0],
         surgery: '',
-        vaccination: '',
-        other: ''
+        vaccineType: '',
+        coreVaccine: '',
+        lifestyleVaccine: '',
+        otherVaccine: '',
+        other: '',
+        hasVaccination: false,
+        hasSurgery: false,
+        hasOtherNotes: false
       });
       setSelectedOwner(null);
       setOwnerSearchTerm('');
       setPetSearchTerm('');
-      
-      // Hide success message after 5 seconds
-      setTimeout(() => {
-        setSuccessMessage('');
-      }, 5000);
-      
-    } catch (error) {
-      console.error('Error:', error.response?.data);
-      setErrors({
-        submit: error.response?.data?.details || 
-               error.response?.data?.error || 
-               'Failed to create record'
-      });
-    } finally {
-      setSubmitLoading(false);
     }
-  };
+  } catch (error) {
+    console.error('Error:', error.response?.data);
+    setErrors({
+      submit: error.response?.data?.details || 
+             error.response?.data?.error || 
+             'Failed to create record'
+    });
+  } finally {
+    setSubmitLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -240,7 +272,7 @@ useEffect(() => {
         <div className="bg-blue-600 px-6 py-4 flex justify-between items-center">
           <h1 className="text-xl font-bold text-white">Add New Medical Record</h1>
           <button
-            onClick={() => navigate('/docprofile')}
+            onClick={() => navigate('/docdashboard')}
             className="text-white hover:text-blue-200"
           >
             <FaTimes size={20} />
@@ -248,86 +280,87 @@ useEffect(() => {
         </div>
         
         <div className="p-6">
-         {/* Success Message */}
-         {successMessage && (
+          {/* Success Message */}
+          {successMessage && (
             <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded flex items-center">
               <FaCheck className="mr-2 flex-shrink-0" />
               <span>{successMessage}</span>
             </div>
           )}
-
+  
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Owner Selection */}
-<div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">
-    <FaUser className="inline mr-2" />
-    Owner
-  </label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                <FaUser className="inline mr-2" />
+                Owner
+              </label>
+              
+              {/* Owner Search Input */}
+              <div className="relative mt-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaSearch className="text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search owners..."
+                  value={ownerSearchTerm}
+                  onChange={(e) => setOwnerSearchTerm(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              
+              {/* Search status messages */}
+              {searchStatus.loading && (
+                <p className="mt-2 text-sm text-gray-600">Searching...</p>
+              )}
+              {searchStatus.noResults && !searchStatus.loading && (
+                <p className="mt-2 text-sm text-red-600">{searchStatus.error}</p>
+              )}
+              
+              {/* Owner Dropdown */}
+              {!searchStatus.loading && !searchStatus.noResults && filteredOwners.length > 0 && (
+                <>
+                  <select
+                    name="ownerId"
+                    value={formData.ownerId}
+                    onChange={handleChange}
+                    className={`mt-2 block w-full pl-10 p-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.ownerId ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    disabled={loading.owners}
+                  >
+                    <option value="">Select Owner</option>
+                    {filteredOwners.map(owner => {
+                      const address = owner.Owner_address || 'No address provided';
+                      return (
+                        <option 
+                          key={owner.Owner_id} 
+                          value={owner.Owner_id} 
+                          title={`${owner.Owner_name} - ${address}`}
+                        >
+                          {owner.Owner_name} - {address.length > 30 
+                            ? `${address.substring(0, 30)}...` 
+                            : address}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  {errors.ownerId && (
+                    <p className="mt-1 text-sm text-red-600">{errors.ownerId}</p>
+                  )}
+                </>
+              )}
+              
+              {/* Selected Owner Info */}
+              {selectedOwner && (
+                <div className="mt-2 p-3 bg-gray-50 rounded-md">
+                  <h4 className="font-medium text-gray-800">{selectedOwner.Owner_name}</h4>
+                  <p className="text-sm text-gray-600">{selectedOwner.Owner_address}</p>
+                </div>
+              )}
+            </div>
   
-  {/* Owner Search Input */}
-  <div className="relative mt-1">
-    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-      <FaSearch className="text-gray-400" />
-    </div>
-    <input
-      type="text"
-      placeholder="Search owners..."
-      value={ownerSearchTerm}
-      onChange={(e) => setOwnerSearchTerm(e.target.value)}
-      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-    />
-  </div>
-  
-  {/* Search status messages */}
-  {searchStatus.loading && (
-    <p className="mt-2 text-sm text-gray-600">Searching...</p>
-  )}
-  {searchStatus.noResults && !searchStatus.loading && (
-    <p className="mt-2 text-sm text-red-600">{searchStatus.error}</p>
-  )}
-  
-  {/* Only show dropdown if there are results and we're not loading */}
-  {!searchStatus.loading && !searchStatus.noResults && filteredOwners.length > 0 && (
-    <>
-      <select
-        name="ownerId"
-        value={formData.ownerId}
-        onChange={handleChange}
-        className={`mt-2 block w-full pl-10 p-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
-          errors.ownerId ? 'border-red-500' : 'border-gray-300'
-        }`}
-        disabled={loading.owners}
-      >
-        <option value="">Select Owner</option>
-        {filteredOwners.map(owner => {
-          const address = owner.Owner_address || 'No address provided';
-          return (
-            <option 
-              key={owner.Owner_id} 
-              value={owner.Owner_id} 
-              title={`${owner.Owner_name} - ${address}`}
-            >
-              {owner.Owner_name} - {address.length > 30 
-                ? `${address.substring(0, 30)}...` 
-                : address}
-            </option>
-          );
-        })}
-      </select>
-      {errors.ownerId && (
-        <p className="mt-1 text-sm text-red-600">{errors.ownerId}</p>
-      )}
-    </>
-  )}
-  
-  {/* Selected Owner Info */}
-  {selectedOwner && (
-    <div className="mt-2 p-3 bg-gray-50 rounded-md">
-      <h4 className="font-medium text-gray-800">{selectedOwner.Owner_name}</h4>
-      <p className="text-sm text-gray-600">{selectedOwner.Owner_Address}</p>
-    </div>
-  )}
-</div>
             {/* Pet Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -373,79 +406,240 @@ useEffect(() => {
                 <p className="mt-1 text-sm text-red-600">{errors.petId}</p>
               )}
             </div>
-
-{/* Date Field */}
-<div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">
-    <FaCalendarAlt className="inline mr-2" />
-    Date
-  </label>
-  <input
-    type="date"
-    name="date"
-    value={formData.date}
-    onChange={handleChange}
-    max={getTodayDateString()} // This will set max to today's date
-    className={`mt-1 block w-full pl-10 p-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
-      errors.date ? 'border-red-500' : 'border-gray-300'
-    }`}
-  />
-  {errors.date && (
-    <p className="mt-1 text-sm text-red-600">{errors.date}</p>
-  )}
-</div>
-            {/* Surgery Details */}
+  
+            {/* Date Field */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Surgery Details
+                <FaCalendarAlt className="inline mr-2" />
+                Date
               </label>
-              <textarea
-                name="surgery"
-                value={formData.surgery}
+              <input
+                type="date"
+                name="date"
+                value={formData.date}
                 onChange={handleChange}
-                rows={3}
-                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter surgery details if applicable"
+                max={getTodayDateString()}
+                className={`mt-1 block w-full pl-10 p-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+                  errors.date ? 'border-red-500' : 'border-gray-300'
+                }`}
               />
+              {errors.date && (
+                <p className="mt-1 text-sm text-red-600">{errors.date}</p>
+              )}
             </div>
-
-            {/* Vaccination Details */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Vaccination Details
-              </label>
-              <textarea
-                name="vaccination"
-                value={formData.vaccination}
-                onChange={handleChange}
-                rows={3}
-                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter vaccination details if applicable"
-              />
+  
+            {/* Medical Record Sections */}
+            <div className="space-y-6">
+              {/* Surgery Section */}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center mb-3">
+                  <input
+                    type="checkbox"
+                    id="hasSurgery"
+                    checked={formData.hasSurgery}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        hasSurgery: e.target.checked,
+                        surgery: e.target.checked ? formData.surgery : ''
+                      });
+                    }}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="hasSurgery" className="ml-2 block text-sm font-medium text-gray-700">
+                    Surgery Details
+                  </label>
+                </div>
+                
+                {formData.hasSurgery && (
+                  <textarea
+                    name="surgery"
+                    value={formData.surgery}
+                    onChange={handleChange}
+                    rows={3}
+                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter surgery details"
+                  />
+                )}
+              </div>
+  
+              {/* Vaccination Section */}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center mb-3">
+                  <input
+                    type="checkbox"
+                    id="hasVaccination"
+                    checked={formData.hasVaccination}
+                    // In the vaccination section checkbox
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        hasVaccination: e.target.checked,
+                        vaccineType: e.target.checked ? formData.vaccineType : '',
+                        coreVaccine: e.target.checked ? formData.coreVaccine : '',
+                        lifestyleVaccine: e.target.checked ? formData.lifestyleVaccine : '',
+                        otherVaccine: e.target.checked ? formData.otherVaccine : ''
+                      });
+                    }}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="hasVaccination" className="ml-2 block text-sm font-medium text-gray-700">
+                    Vaccination Details
+                  </label>
+                </div>
+                
+                {formData.hasVaccination && (
+                  <div className="space-y-4">
+                    {/* Pet Age Display */}
+                    {formData.petId && (
+                      <div className="bg-blue-50 p-3 rounded-md">
+                        <p className="text-sm text-blue-800">
+                          Pet Age: {(() => {
+                            const selectedPet = pets.find(p => p.Pet_id == formData.petId);
+                            if (selectedPet && selectedPet.Pet_dob) {
+                              const dob = new Date(selectedPet.Pet_dob);
+                              const today = new Date();
+                              const diffTime = Math.abs(today - dob);
+                              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                              
+                              if (diffDays < 365) {
+                                const weeks = Math.floor(diffDays / 7);
+                                const remainingDays = diffDays % 7;
+                                return `${weeks} week${weeks !== 1 ? 's' : ''}${
+                                  remainingDays > 0 ? ` ${remainingDays} day${remainingDays !== 1 ? 's' : ''}` : ''
+                                }`;
+                              } else {
+                                const years = Math.floor(diffDays / 365);
+                                const remainingDays = diffDays % 365;
+                                const months = Math.floor(remainingDays / 30);
+                                return `${years} year${years !== 1 ? 's' : ''}${
+                                  months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''
+                                }`;
+                              }
+                            }
+                            return 'Unknown (date of birth not set)';
+                          })()}
+                        </p>
+                      </div>
+                    )}
+  
+                    {/* Vaccine Type Selection */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">
+                        Vaccine Type
+                      </label>
+                      <select
+                        name="vaccineType"
+                        value={formData.vaccineType || ''}
+                        onChange={handleChange}
+                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      >
+                        <option value="">Select Vaccine Type</option>
+                        <option value="core">Core Vaccines</option>
+                        <option value="lifestyle">Lifestyle Vaccines</option>
+                      </select>
+                    </div>
+  
+                    {/* Core Vaccines Selection */}
+                    {formData.vaccineType === 'core' && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                          Core Vaccine
+                        </label>
+                        <select
+                          name="coreVaccine"
+                          value={formData.coreVaccine || ''}
+                          onChange={handleChange}
+                          className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        >
+                          <option value="">Select Core Vaccine</option>
+                          <option value="DA2PP">DA2PP*</option>
+                          <option value="Leptospirosis">Leptospirosis</option>
+                          <option value="Rabies">Rabies**</option>
+                        </select>
+                      </div>
+                    )}
+  
+                    {/* Lifestyle Vaccines Selection */}
+                    {formData.vaccineType === 'lifestyle' && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                          Lifestyle Vaccine
+                        </label>
+                        <select
+                          name="lifestyleVaccine"
+                          value={formData.lifestyleVaccine || ''}
+                          onChange={handleChange}
+                          className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        >
+                          <option value="">Select Lifestyle Vaccine</option>
+                          <option value="Bordetella">Bordetella</option>
+                          <option value="Parainfluenza">Parainfluenza</option>
+                          <option value="Lyme">Lyme</option>
+                          <option value="Canine Influenza">Canine Influenza</option>
+                        </select>
+                      </div>
+                    )}
+  
+                    {/* Other Vaccine Input */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">
+                        Other Vaccine (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        name="otherVaccine"
+                        value={formData.otherVaccine || ''}
+                        onChange={handleChange}
+                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        placeholder="Enter other vaccine if not listed"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+  
+              {/* Other Notes Section */}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center mb-3">
+                  <input
+                    type="checkbox"
+                    id="hasOtherNotes"
+                    checked={formData.hasOtherNotes}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        hasOtherNotes: e.target.checked,
+                        other: e.target.checked ? formData.other : ''
+                      });
+                    }}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="hasOtherNotes" className="ml-2 block text-sm font-medium text-gray-700">
+                    Other Notes
+                  </label>
+                </div>
+                
+                {formData.hasOtherNotes && (
+                  <textarea
+                    name="other"
+                    value={formData.other}
+                    onChange={handleChange}
+                    rows={3}
+                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter any additional notes"
+                  />
+                )}
+              </div>
             </div>
-
-            {/* Other Notes */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Other Notes
-              </label>
-              <textarea
-                name="other"
-                value={formData.other}
-                onChange={handleChange}
-                rows={3}
-                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter any additional notes"
-              />
-            </div>
-
+  
             {/* Combined error for detail fields */}
             {errors.details && (
               <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
                 {errors.details}
               </div>
             )}
-
+  
             {/* Submit Button */}
             <div className="pt-4">
               <button

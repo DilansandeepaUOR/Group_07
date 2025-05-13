@@ -17,20 +17,27 @@ function Adlogin() {
 
   // Clear session when login page loads
   useEffect(() => {
+    let isMounted = true;
+
     const clearSession = async () => {
       try {
         await axios.get("http://localhost:3001/api/auth/logout", {
           withCredentials: true,
         });
-        sessionStorage.clear();
-        navigate("/Adlogin"); // Redirect to login page
+        if (isMounted) {
+          sessionStorage.clear();
+        }
       } catch (err) {
         console.error("Session cleanup failed:", err);
       }
     };
 
     clearSession();
-  }, []);
+
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array means this runs once on mount
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -41,50 +48,54 @@ function Adlogin() {
     }
 
     try {
+      console.log("Attempting login with:", { email });
       const response = await axios.post(
         "http://localhost:3001/api/adloginform/adlogin",
         { email, password },
-        { withCredentials: true }
+        { 
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
-      const logedUser = await axios.get(
-        "http://localhost:3001/api/auth/admins",
-        { withCredentials: true }
-      ); //response.data contains the logged user information
-      const user = logedUser.data;
+      console.log("Login response:", response.data);
+      const user = response.data.user;
 
-      if (user?.role === "Admin") {
+      if (!user || !user.role) {
+        throw new Error("Invalid user data received");
+      }
+
+      if (user.role === "Admin") {
         alert("Admin Login Successful!");
-        window.location.href = "/Addashboard";
-      } else if (user?.role === "Doctor") {
+        navigate("/Addashboard");
+      } else if (user.role === "Doctor") {
         alert("Doctor Login Successful!");
-        window.location.href = "/docdashboard";
-      } else if (user?.role === "Assistant Doctor") {
+        navigate("/docdashboard");
+      } else if (user.role === "Assistant Doctor") {
         alert("Assistant Doctor Login Successful!");
-        window.location.href = "/assistdashboard";
-      } else if (user?.role === "Pharmacist") {
+        navigate("/assistdashboard");
+      } else if (user.role === "Pharmacist") {
         alert("Pharmacist Login Successful!");
-        window.location.href = "/Pharmacy";
-      } else if (user?.role === "Pet Shopper") {
+        navigate("/Pharmacy");
+      } else if (user.role === "Pet Shopper") {
         alert("Pet Shopper Login Successful!");
-        window.location.href = "/psdashboard";
+        navigate("/psdashboard");
       } else {
         alert("Unauthorized role");
       }
     } catch (err) {
-      if (err.response && err.response.data) {
-        console.error("Backend error response:", err.response.data);
-
-        if (Array.isArray(err.response.data.error)) {
-          // If the backend sends multiple validation errors as an array
-          const errorMessages = err.response.data.error
-            .map((err) => err.message)
-            .join("\n");
-          alert("Error:\n" + errorMessages);
-        } else {
-          // If it's a single error message
-          alert("Error: " + err.response.data.error);
-        }
+      console.error("Login error:", err);
+      if (err.response) {
+        console.error("Error response:", err.response.data);
+        setError(err.response.data.error || "Login failed. Please try again.");
+      } else if (err.request) {
+        console.error("No response received:", err.request);
+        setError("No response from server. Please check your connection.");
+      } else {
+        console.error("Error setting up request:", err.message);
+        setError("An error occurred. Please try again.");
       }
     }
   };
@@ -92,8 +103,8 @@ function Adlogin() {
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-transparent bg-opacity-50 backdrop-blur-md z-50 bg-gradient-to-b from-[#22292F] via-[#028478] to-[#22292F]">
       <div className="absolute top-5 left-5 object-cover w-[200px]">
-              <img src={logo} alt="logo" />
-            </div>
+        <img src={logo} alt="logo" />
+      </div>
       <div className="bg-gradient-to-b from-[#69cac2] to-[#cbfffb] items-center p-8 rounded-lg shadow-lg w-96 relative border-2 border-gray-800">
         {/* Title */}
         <h2 className="text-2xl font-bold text-center text-[#182020] mb-4 Poppins">
