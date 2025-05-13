@@ -13,6 +13,7 @@ export default function DashboardSection() {
   const navigate = useNavigate();
   const [customerCount, setCustomerCount] = useState(0);
   const [employeeCount, setEmployeeCount] = useState(0);
+  const [medicinesSold, setMedicinesSold] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -23,7 +24,8 @@ export default function DashboardSection() {
           fetch('http://localhost:3001/pharmacy/api/medicines/out-of-stock'),
           fetch('http://localhost:3001/pharmacy/api/medicines/low-stock'),
           fetch('http://localhost:3001/pharmacy/api/pet-owner/count'),
-          fetch('http://localhost:3001/pharmacy/api/employees/count')
+          fetch('http://localhost:3001/pharmacy/api/employees/count'),
+          fetch('http://localhost:3001/pharmacy/api/sales/total-sold')
         ]);
 
         const [medicineData, groupData, outOfStockData, lowStockData, custData, empData] = await Promise.all([
@@ -98,7 +100,7 @@ export default function DashboardSection() {
     },
     {
       title: "Quick Reports",
-      items: ["Qty of Medicines Sold: 245", "Invoices Generated: 189"],
+      items: [`Qty of Medicines Sold: ${loading ? 'Loading...' : medicinesSold}`, "Invoices Generated: 189"],
       status: "revenue"
     },
     {

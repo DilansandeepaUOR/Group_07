@@ -90,7 +90,18 @@ router.get('/api/medicines/low-stock', (req, res) => {
   });
 });
 
-
+// In your server-side code
+router.get('/api/sales/total-sold', async (req, res) => {
+  try {
+    const [results] = await pool.query(
+      "SELECT SUM(ABS(stock_change)) as totalSold FROM sales WHERE change_type = 'STOCK_OUT'"
+    );
+    res.json({ totalSold: results[0].totalSold || 0 });
+  } catch (err) {
+    console.error("Error fetching total medicines sold:", err);
+    res.status(500).json({ error: "Failed to fetch total medicines sold" });
+  }
+});
 /**--------------------------------------------------------------------------------- */
 
 // GET all medicines (with optional search and pagination)
@@ -979,8 +990,115 @@ router.get('/api/sales', async (req, res) => {
   }
 });
 
+// GET top selling medicines
+router.get('/api/sales', (req, res) => {
+  db.query(
+    `SELECT 
+      m.id,
+      m.name,
+      SUM(ABS(s.stock_change)) as total_sold,
+      SUM(ABS(s.stock_change) * m.price) as total_revenue
+    FROM sales s
+    JOIN medicines m ON s.medicine_id = m.id
+    WHERE s.change_type = 'STOCK_OUT'
+    GROUP BY m.id, m.name
+    ORDER BY total_sold DESC
+    LIMIT 5`,
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Failed to fetch sales data' });
+      }
+      res.json(results);
+    }
+  );
+});
 
+// GET sales revenue by period
+router.get('/api/sales-revenue', (req, res) => {
+  const { period = 'day' } = req.query;
+  
+  let dateCondition = '';
+  switch (period) {
+    case 'day':
+      dateCondition = 'DATE(s.changed_at) = CURDATE()';
+      break;
+    case 'week':
+      dateCondition = 'YEARWEEK(s.changed_at, 1) = YEARWEEK(CURDATE(), 1)';
+      break;
+    case 'month':
+      dateCondition = 'YEAR(s.changed_at) = YEAR(CURDATE()) AND MONTH(s.changed_at) = MONTH(CURDATE())';
+      break;
+    case 'year':
+      dateCondition = 'YEAR(s.changed_at) = YEAR(CURDATE())';
+      break;
+    default:
+      dateCondition = 'DATE(s.changed_at) = CURDATE()';
+  }
 
+  db.query(
+    `SELECT 
+      SUM(ABS(s.stock_change) * m.price) as revenue
+    FROM sales s
+    JOIN medicines m ON s.medicine_id = m.id
+    WHERE s.change_type = 'STOCK_OUT'
+    AND ${dateCondition}`,
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Failed to fetch revenue data' });
+      }
+      res.json({ 
+        revenue: results[0]?.revenue || 0 
+      });
+    }
+  );
+});
+
+// GET detailed sales by period
+router.get('/api/detailed-sales', (req, res) => {
+  const { period = 'day' } = req.query;
+  
+  let dateCondition = '';
+  switch (period) {
+    case 'day':
+      dateCondition = 'DATE(s.changed_at) = CURDATE()';
+      break;
+    case 'week':
+      dateCondition = 'YEARWEEK(s.changed_at, 1) = YEARWEEK(CURDATE(), 1)';
+      break;
+    case 'month':
+      dateCondition = 'YEAR(s.changed_at) = YEAR(CURDATE()) AND MONTH(s.changed_at) = MONTH(CURDATE())';
+      break;
+    case 'year':
+      dateCondition = 'YEAR(s.changed_at) = YEAR(CURDATE())';
+      break;
+    default:
+      dateCondition = 'DATE(s.changed_at) = CURDATE()';
+  }
+
+  db.query(
+    `SELECT 
+      m.id,
+      m.name,
+      m.price,
+      SUM(ABS(s.stock_change)) as quantity_sold,
+      SUM(ABS(s.stock_change) * m.price) as total_revenue
+    FROM sales s
+    JOIN medicines m ON s.medicine_id = m.id
+    WHERE s.change_type = 'STOCK_OUT'
+    AND ${dateCondition}
+    GROUP BY m.id, m.name, m.price
+    ORDER BY total_revenue DESC`,
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Failed to fetch detailed sales' });
+      }
+      res.json(results);
+    }
+  );
+});
 
 
 
