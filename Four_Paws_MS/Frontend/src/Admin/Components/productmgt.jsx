@@ -192,10 +192,16 @@ const ProductManagement = () => {
                   <div className="flex items-center justify-center">
                     <img
                       src={
-                        paw || `http://localhost:3001${product.product_image}`
+                        product.product_image
+                          ? `http://localhost:3001${product.product_image}`
+                          : paw
                       }
                       alt={product.name}
                       className="w-20 h-20 object-cover rounded-lg shadow-md"
+                      onError={(e) => {
+                        e.target.onerror = null; // Prevent infinite loop if paw image fails
+                        e.target.src = paw;
+                      }}
                     />
                   </div>
                   <p className="text-gray-600 mb-4">
@@ -258,7 +264,12 @@ const ProductManagement = () => {
   );
 };
 
-const ProductForm = ({ closeForm, editingProduct, refreshProducts,categories }) => {
+const ProductForm = ({
+  closeForm,
+  editingProduct,
+  refreshProducts,
+  categories,
+}) => {
   const [formData, setFormData] = useState({
     name: "",
     category_id: "",

@@ -2,12 +2,12 @@ const express = require("express");
 const router = express.Router();
 const db = require("../../db");
 const bcrypt= require('bcrypt');
-const upload = require("../../validations/imgvalidator");
+const uploadpropic = require("../../validations/propicvalidator");
 
 
 //Manage regular user registration
 //register new user
-router.post("/reguserregister", upload.single("image"), async (req, res) => {
+router.post("/reguserregister", uploadpropic.single("image"), async (req, res) => {
   const { Owner_name, Owner_address, Phone_number, E_mail, confirmPassword } = req.body;
   console.log("Request Body:", req.body); // Log the request body to check the data being sent
 
@@ -101,7 +101,7 @@ router.get("/regusers", async (req, res) => {
 
 
 //Update registered user
-router.put("/reguserupdate", upload.single("image"), async (req, res) => {
+router.put("/reguserupdate", uploadpropic.single("image"), async (req, res) => {
   const { Owner_id } = req.query;
 
   console.log("ID:", Owner_id); // Log the ID to check if it's being received correctly
