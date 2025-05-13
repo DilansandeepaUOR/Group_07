@@ -542,7 +542,8 @@ export default function ProductsSection() {
                 className={`${currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#71C9CE] hover:bg-[#A6E3E9]'} text-gray-900`}
                 onClick={goToNextPage}
                 disabled={currentPage === totalPages}
-              >
+              > 
+              
                 Next
               </Button>
             </div>

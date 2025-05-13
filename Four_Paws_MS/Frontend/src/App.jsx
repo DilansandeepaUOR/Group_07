@@ -53,7 +53,7 @@ const App = () => {
         <Route path="/Contactus" element={<Contactus />} />
         <Route path="/Ourservices" element={<Ourservices />} />
         <Route path="/Petshop" element={<Petshop />} />
-        <Route path="/Pharmacy" element={<Pharmacy />} />
+        {/* <Route path="/Pharmacy" element={<Pharmacy />} /> */}
         <Route path="/Login" element={<Login />} />
         <Route path="/Register" element={<Register />} />
         <Route path="/Adlogin" element={<Adlogin />} />
@@ -160,6 +160,14 @@ const App = () => {
           element={
             <ProtectedRoutes allowedRoles={["Assistant Doctor"]}>
               <Assistprofile />
+            </ProtectedRoutes>
+          } 
+        />
+        <Route 
+          path="/pharmacy" 
+          element={
+            <ProtectedRoutes allowedRoles={["Pharmacist"]}>
+              <Pharmacy />
             </ProtectedRoutes>
           } 
         />

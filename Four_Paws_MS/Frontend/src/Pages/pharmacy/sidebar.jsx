@@ -2,12 +2,13 @@
 
 import React, { useContext, createContext, useState, useEffect } from "react"
 import { MoreVertical, ChevronLast, ChevronFirst, Menu, X, ChevronDown } from "lucide-react"
+import axios from "axios";
 
-const SidebarContext = createContext({ 
-  expanded: true, 
+const SidebarContext = createContext({
+  expanded: true,
   isMobile: false,
   activeSection: "",
-  setActiveSection: () => {}
+  setActiveSection: () => { }
 })
 
 export default function Sidebar({ children }) {
@@ -15,6 +16,32 @@ export default function Sidebar({ children }) {
   const [isMobile, setIsMobile] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [activeSection, setActiveSection] = useState("")
+  const [pharmacist, setPharmacist] = useState(null);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/api/auth/admins", { withCredentials: true })
+      .then((response) => {
+        setPharmacist(response.data);
+      })
+      .catch(() => {
+        setPharmacist(null);
+      });
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await axios.get("http://localhost:3001/api/auth/logout", {
+        withCredentials: true,
+      });
+      alert("Logged out!");
+      setPharmacist(null);
+      window.location.href = "/Adlogin";
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  };
+
 
   const colors = {
     darkBackground: '#22292f',
@@ -145,14 +172,14 @@ export default function Sidebar({ children }) {
             )}
           </div>
 
-          <SidebarContext.Provider value={{ 
-            expanded: isMobile ? true : expanded, 
+          <SidebarContext.Provider value={{
+            expanded: isMobile ? true : expanded,
             isMobile,
             activeSection,
             setActiveSection
           }}>
-            <ul style={{ 
-              flex: 1, 
+            <ul style={{
+              flex: 1,
               padding: "0 12px",
               overflowY: "auto",
               overflowX: "hidden",
@@ -172,9 +199,9 @@ export default function Sidebar({ children }) {
             <img
               src="https://ui-avatars.com/api/?background=3bcdbf&color=ffffff&bold=true"
               alt="User avatar"
-              style={{ 
-                width: "40px", 
-                height: "40px", 
+              style={{
+                width: "40px",
+                height: "40px",
                 borderRadius: "6px",
                 border: `1px solid ${colors.tealAccent}`
               }}
@@ -192,8 +219,9 @@ export default function Sidebar({ children }) {
               }}
             >
               <div style={{ lineHeight: "1rem" }}>
-                <h4 style={{ fontWeight: "600", color: colors.yellowAccent, margin: 0 }}>John Doe</h4>
-                <span style={{ fontSize: "0.75rem", color: colors.tealAccent }}>johndoe@gmail.com</span>
+                <h4 style={{ fontWeight: "600", color: colors.yellowAccent, margin: 0 }}>{pharmacist?.fname} {pharmacist?.lname}</h4>
+                <span style={{ fontSize: "0.75rem", color: colors.tealAccent }}>{pharmacist?.email}</span>
+                <button className="m-5 cursor-pointer" onClick={handleLogout}>Logout</button>
               </div>
               <MoreVertical size={20} color={colors.tealAccent} />
             </div>
@@ -256,9 +284,9 @@ export function SidebarItem({ icon, text, active, children, section, onSectionCh
         onMouseLeave={() => setIsHovered(false)}
         onClick={handleClick}
       >
-        {icon && React.cloneElement(icon, { 
+        {icon && React.cloneElement(icon, {
           color: active ? colors.yellowAccent : colors.tealAccent,
-          size: 20 
+          size: 20
         })}
         <span
           style={{
@@ -321,7 +349,7 @@ export function SidebarItem({ icon, text, active, children, section, onSectionCh
 
 export function SidebarSubItem({ text, active, section, onSectionChange }) {
   const { expanded, isMobile, setActiveSection } = useContext(SidebarContext)
-  
+
   const colors = {
     darkBackground: '#22292f',
     tealAccent: '#3bcdbf',
