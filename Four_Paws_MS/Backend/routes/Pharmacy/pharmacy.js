@@ -22,6 +22,88 @@ const createNotification = async (title, description, type, related_id = null) =
   );
 };
 
+/*DashBoard */
+
+// Get total count of medicines
+router.get('/api/medicines/count', (req, res) => {
+  const sql = 'SELECT COUNT(*) AS count FROM medicines';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching medicine count:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json({ count: results[0].count });
+  });
+});
+
+// Get total number of medicine groups
+router.get('/api/medicine-groups/count', (req, res) => {
+  const sql = 'SELECT COUNT(*) AS count FROM medicine_groups';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching medicine group count:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json({ count: results[0].count });
+  });
+});
+
+router.get('/api/pet-owner/count', (req, res) => {
+  const sql = "SELECT COUNT(*) AS count FROM pet_owner";
+  db.query(sql, (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ count: result[0].count });
+  });
+});
+
+
+router.get('/api/employees/count', (req, res) => {
+  const sql = "SELECT COUNT(*) AS count FROM employee";
+  db.query(sql, (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ count: result[0].count });
+  });
+});
+
+
+// Get number of out-of-stock medicines
+router.get('/api/medicines/out-of-stock', (req, res) => {
+  const sql = 'SELECT COUNT(*) AS outOfStock FROM medicines WHERE stock = 0';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json({ outOfStock: results[0].outOfStock });
+  });
+});
+
+// Get number of low-stock medicines (stock ≤ 5)
+router.get('/api/medicines/low-stock', (req, res) => {
+  const sql = 'SELECT COUNT(*) AS lowStock FROM medicines WHERE stock <= 5';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json({ lowStock: results[0].lowStock });
+  });
+});
+
+// In your server-side code
+router.get('/api/sales/total-sold', async (req, res) => {
+  try {
+    const [results] = await pool.query(
+      "SELECT SUM(ABS(stock_change)) as totalSold FROM sales WHERE change_type = 'STOCK_OUT'"
+    );
+    res.json({ totalSold: results[0].totalSold || 0 });
+  } catch (err) {
+    console.error("Error fetching total medicines sold:", err);
+    res.status(500).json({ error: "Failed to fetch total medicines sold" });
+  }
+});
+/**--------------------------------------------------------------------------------- */
+
 // GET all medicines (with optional search and pagination)
 router.get('/api/medicines', (req, res) => {
   try {
@@ -176,8 +258,8 @@ router.post('/api/medicines', async (req, res) => {
   }
 });
 
-// PUT update medicine
-router.put('/api/medicines/:id', (req, res) => {
+// PUT update medicine with notifications
+router.put('/api/medicines/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { name, category, price, stock } = req.body;
@@ -196,55 +278,135 @@ router.put('/api/medicines/:id', (req, res) => {
       status = 'Low Stock';
     }
 
-    db.query(
+    // Get current medicine data for comparison
+    const [currentMedicine] = await db.promise().query(
+      'SELECT name, stock, status FROM medicines WHERE id = ?',
+      [id]
+    );
+
+    if (currentMedicine.length === 0) {
+      return res.status(404).json({ error: 'Medicine not found' });
+    }
+
+    const oldStock = currentMedicine[0].stock;
+    const oldStatus = currentMedicine[0].status;
+    const oldName = currentMedicine[0].name;
+
+    // Update the medicine
+    const [result] = await db.promise().query(
       `UPDATE medicines 
        SET name = ?, category = ?, price = ?, stock = ?, status = ?
        WHERE id = ?`,
-      [name, category, parseFloat(price), stockNum, status, id],
-      (err, result) => {
-        if (err) {
-          console.error(err);
-          return res.status(500).json({ error: 'Failed to update medicine' });
-        }
-        
-        if (result.affectedRows === 0) {
-          return res.status(404).json({ error: 'Medicine not found' });
-        }
-        
-        res.json({ 
-          success: true, 
-          message: 'Medicine updated successfully',
-          status
-        });
-      }
+      [name, category, parseFloat(price), stockNum, status, id]
     );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Medicine not found' });
+    }
+
+    // Create notification about the medicine update
+    await db.promise().query(
+      `INSERT INTO notifications (title, description, type, related_id)
+       VALUES (?, ?, ?, ?)`,
+      [
+        'Medicine Updated',
+        `Medicine "${oldName}" (ID: ${id}) was updated. New stock: ${stock} (was ${oldStock})`,
+        'medicine_updated',
+        id
+      ]
+    );
+
+    // If stock status changed, create additional notifications
+    if (oldStatus !== status) {
+      if (status === 'Low Stock') {
+        await db.promise().query(
+          `INSERT INTO notifications (title, description, type, related_id)
+           VALUES (?, ?, ?, ?)`,
+          [
+            'Low Stock Alert',
+            `Medicine "${name}" is running low (${stock} units remaining)`,
+            'medicine_updated',
+            id
+          ]
+        );
+      } else if (status === 'Out of Stock') {
+        await db.promise().query(
+          `INSERT INTO notifications (title, description, type, related_id)
+           VALUES (?, ?, ?, ?)`,
+          [
+            'Out of Stock Alert',
+            `Medicine "${name}" is now out of stock`,
+            'medicine_updated',
+            id
+          ]
+        );
+      } else if (status === 'In Stock' && oldStatus === 'Low Stock') {
+        await db.promise().query(
+          `INSERT INTO notifications (title, description, type, related_id)
+           VALUES (?, ?, ?, ?)`,
+          [
+            'Stock Replenished',
+            `Medicine "${name}" stock has been replenished to ${stock} units`,
+            'medicine_updated',
+            id
+          ]
+        );
+      }
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Medicine updated successfully',
+      status
+    });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to update medicine' });
   }
 });
 
-// DELETE medicine
-router.delete('/api/medicines/:id', (req, res) => {
+// DELETE medicine with notification
+router.delete('/api/medicines/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
-    db.query(
-      'DELETE FROM medicines WHERE id = ?',
-      [id],
-      (err, result) => {
-        if (err) {
-          console.error(err);
-          return res.status(500).json({ error: 'Failed to delete medicine' });
-        }
-        
-        if (result.affectedRows === 0) {
-          return res.status(404).json({ error: 'Medicine not found' });
-        }
-        
-        res.json({ success: true, message: 'Medicine deleted successfully' });
-      }
+    // Get medicine data before deletion for notification
+    const [medicine] = await db.promise().query(
+      'SELECT name FROM medicines WHERE id = ?',
+      [id]
     );
+
+    if (medicine.length === 0) {
+      return res.status(404).json({ error: 'Medicine not found' });
+    }
+
+    const medicineName = medicine[0].name;
+
+    // Delete the medicine
+    const [result] = await db.promise().query(
+      'DELETE FROM medicines WHERE id = ?',
+      [id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Medicine not found' });
+    }
+
+    // Create notification about the deletion
+    await db.promise().query(
+      `INSERT INTO notifications (title, description, type, related_id)
+       VALUES (?, ?, ?, ?)`,
+      [
+        'Medicine Removed',
+        `Medicine "${medicineName}" (ID: ${id}) was removed from inventory`,
+        'medicine_deleted',
+        id
+      ]
+    );
+
+    res.json({ success: true, message: 'Medicine deleted successfully' });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to delete medicine' });
@@ -803,5 +965,144 @@ router.get('/api/notifications/debug', async (req, res) => {
     });
   }
 });
+
+/*Report section*/
+
+router.get('/api/sales', async (req, res) => {
+  try {
+    const result = await db.promise().query(`
+      SELECT 
+        m.id,
+        m.name,
+        m.price,
+        ABS(SUM(s.stock_change)) AS total_sold,
+        ABS(SUM(s.stock_change * m.price)) AS total_revenue
+      FROM medicines m
+      JOIN sales s ON m.id = s.medicine_id
+      WHERE s.change_type = 'STOCK_OUT'
+      GROUP BY m.id
+      ORDER BY total_sold DESC
+      LIMIT 10
+    `);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET top selling medicines
+router.get('/api/sales', (req, res) => {
+  db.query(
+    `SELECT 
+      m.id,
+      m.name,
+      SUM(ABS(s.stock_change)) as total_sold,
+      SUM(ABS(s.stock_change) * m.price) as total_revenue
+    FROM sales s
+    JOIN medicines m ON s.medicine_id = m.id
+    WHERE s.change_type = 'STOCK_OUT'
+    GROUP BY m.id, m.name
+    ORDER BY total_sold DESC
+    LIMIT 5`,
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Failed to fetch sales data' });
+      }
+      res.json(results);
+    }
+  );
+});
+
+// GET sales revenue by period
+router.get('/api/sales-revenue', (req, res) => {
+  const { period = 'day' } = req.query;
+  
+  let dateCondition = '';
+  switch (period) {
+    case 'day':
+      dateCondition = 'DATE(s.changed_at) = CURDATE()';
+      break;
+    case 'week':
+      dateCondition = 'YEARWEEK(s.changed_at, 1) = YEARWEEK(CURDATE(), 1)';
+      break;
+    case 'month':
+      dateCondition = 'YEAR(s.changed_at) = YEAR(CURDATE()) AND MONTH(s.changed_at) = MONTH(CURDATE())';
+      break;
+    case 'year':
+      dateCondition = 'YEAR(s.changed_at) = YEAR(CURDATE())';
+      break;
+    default:
+      dateCondition = 'DATE(s.changed_at) = CURDATE()';
+  }
+
+  db.query(
+    `SELECT 
+      SUM(ABS(s.stock_change) * m.price) as revenue
+    FROM sales s
+    JOIN medicines m ON s.medicine_id = m.id
+    WHERE s.change_type = 'STOCK_OUT'
+    AND ${dateCondition}`,
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Failed to fetch revenue data' });
+      }
+      res.json({ 
+        revenue: results[0]?.revenue || 0 
+      });
+    }
+  );
+});
+
+// GET detailed sales by period
+router.get('/api/detailed-sales', (req, res) => {
+  const { period = 'day' } = req.query;
+  
+  let dateCondition = '';
+  switch (period) {
+    case 'day':
+      dateCondition = 'DATE(s.changed_at) = CURDATE()';
+      break;
+    case 'week':
+      dateCondition = 'YEARWEEK(s.changed_at, 1) = YEARWEEK(CURDATE(), 1)';
+      break;
+    case 'month':
+      dateCondition = 'YEAR(s.changed_at) = YEAR(CURDATE()) AND MONTH(s.changed_at) = MONTH(CURDATE())';
+      break;
+    case 'year':
+      dateCondition = 'YEAR(s.changed_at) = YEAR(CURDATE())';
+      break;
+    default:
+      dateCondition = 'DATE(s.changed_at) = CURDATE()';
+  }
+
+  db.query(
+    `SELECT 
+      m.id,
+      m.name,
+      m.price,
+      SUM(ABS(s.stock_change)) as quantity_sold,
+      SUM(ABS(s.stock_change) * m.price) as total_revenue
+    FROM sales s
+    JOIN medicines m ON s.medicine_id = m.id
+    WHERE s.change_type = 'STOCK_OUT'
+    AND ${dateCondition}
+    GROUP BY m.id, m.name, m.price
+    ORDER BY total_revenue DESC`,
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Failed to fetch detailed sales' });
+      }
+      res.json(results);
+    }
+  );
+});
+
+
+
+
+
 
 module.exports = router;

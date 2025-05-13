@@ -59,7 +59,7 @@ export default function Header() {
       }}
     >
       {/* Search Bar */}
-      <div style={{ position: "relative", flex: "1" }}>
+      *<div style={{ position: "relative", flex: "1" }}>
         <div style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }}>
           <Search size={20} color="#9ca3af" />
         </div>

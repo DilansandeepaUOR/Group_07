@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { FaPlus, FaEdit, FaTrash } from "react-icons/fa"
+import { Button } from "@/components/ui/button"
 
 export default function ProductsSection() {
   const API_BASE_URL = "http://localhost:3001/pharmacy/api/medicines";
@@ -28,15 +30,6 @@ export default function ProductsSection() {
   })
   const itemsPerPage = 4
 
-  // Add this helper function to create notifications
-const createNotification = async (title, description, type, related_id = null) => {
-  await db.execute(
-    'INSERT INTO notifications (title, description, type, related_id) VALUES (?, ?, ?, ?)',
-    [title, description, type, related_id]
-  );
-};
-
-
   const getStockStatus = (stock) => {
     const stockCount = parseInt(stock);
     if (stockCount === 0) return "Out of Stock";
@@ -44,7 +37,6 @@ const createNotification = async (title, description, type, related_id = null) =
     return "In Stock";
   };
 
-  // Pagination handlers
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(prev => prev + 1);
@@ -63,7 +55,6 @@ const createNotification = async (title, description, type, related_id = null) =
     }
   };
 
-  // Fetch medicines from backend
   useEffect(() => {
     const fetchMedicines = async () => {
       try {
@@ -257,541 +248,307 @@ const createNotification = async (title, description, type, related_id = null) =
   }
 
   return (
-    <div className="container">
-      <h1 className="title">List Of Medicine</h1>
-
-      {error && <div className="error">Error: {error}</div>}
-
-      <div className="searchAddContainer">
-        <input
-          type="text"
-          placeholder="Search medicines..."
-          className="searchInput"
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value)
-            setCurrentPage(1)
-          }}
-        />
-        <button 
-          className="primaryButton"
-          onClick={() => setShowAddForm(true)}
-        >
-          Add Medicine
-        </button>
-      </div>
-
-      {showAddForm && (
-        <div className="addForm">
-          <h2>Add New Medicine</h2>
-          <div className="formGroup">
-            <label className="formLabel">Name:</label>
+    <div className="min-h-screen bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-800">Medicine Inventory</h1>
+          <div className="flex items-center space-x-4">
             <input
               type="text"
-              name="name"
-              className="formInput"
-              value={addFormData.name}
-              onChange={(e) => handleFormChange(e, 'add')}
-              required
-            />
-          </div>
-          <div className="formGroup">
-            <label className="formLabel">Category:</label>
-            <input
-              type="text"
-              name="category"
-              className="formInput"
-              value={addFormData.category}
-              onChange={(e) => handleFormChange(e, 'add')}
-              required
-            />
-          </div>
-          <div className="formGroup">
-            <label className="formLabel">Price (Rs):</label>
-            <input
-              type="number"
-              name="price"
-              className="formInput"
-              value={addFormData.price}
-              onChange={(e) => handleFormChange(e, 'add')}
-              step="0.01"
-              min="0"
-              required
-              onKeyDown={(e) => {
-                if (e.key === '-' || e.key === 'e' || e.key === 'E') {
-                  e.preventDefault()
-                }
+              placeholder="Search medicines..."
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#71C9CE]"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                setCurrentPage(1)
               }}
             />
-          </div>
-          <div className="formGroup">
-            <label className="formLabel">Stock:</label>
-            <input
-              type="number"
-              name="stock"
-              className="formInput"
-              value={addFormData.stock}
-              onChange={(e) => handleFormChange(e, 'add')}
-              min="0"
-              required
-              onKeyDown={(e) => {
-                if (e.key === '-' || e.key === 'e' || e.key === 'E') {
-                  e.preventDefault()
-                }
-              }}
-            />
-          </div>
-          <div className="formGroup">
-            <label className="formLabel">Status:</label>
-            <select
-              name="status"
-              className="formSelect"
-              value={addFormData.status}
-              onChange={(e) => handleFormChange(e, 'add')}
+            <Button
+              className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900 flex items-center"
+              onClick={() => setShowAddForm(true)}
             >
-              <option value="In Stock">In Stock</option>
-              <option value="Low Stock">Low Stock</option>
-              <option value="Out of Stock">Out of Stock</option>
-            </select>
-          </div>
-          <div className="formButtons">
-            <button 
-              className="primaryButton"
-              onClick={handleAddSubmit}
-              disabled={loading}
-            >
-              {loading ? 'Saving...' : 'Save'}
-            </button>
-            <button 
-              className="actionButton deleteButton"
-              onClick={handleCancelAdd}
-              disabled={loading}
-            >
-              Cancel
-            </button>
+              <FaPlus className="mr-2" /> Add Medicine
+            </Button>
           </div>
         </div>
-      )}
 
-      {loading ? (
-        <div className="loading">Loading medicines...</div>
-      ) : (
-        <>
-          <div className="tableWrapper">
-            <table className="medicineTable">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Category</th>
-                  <th>Price</th>
-                  <th>Stock</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {medicines.length > 0 ? (
-                  medicines.map((medicine) => (
-                    <tr key={medicine.id}>
-                      <td>{medicine.id}</td>
-                      <td>
-                        {editingMedicine === medicine.id ? (
-                          <input
-                            type="text"
-                            name="name"
-                            value={editFormData.name}
-                            onChange={(e) => handleFormChange(e, 'edit')}
-                            className="formInput"
-                            required
-                          />
-                        ) : (
-                          medicine.name
-                        )}
-                      </td>
-                      <td>
-                        {editingMedicine === medicine.id ? (
-                          <input
-                            type="text"
-                            name="category"
-                            value={editFormData.category}
-                            onChange={(e) => handleFormChange(e, 'edit')}
-                            className="formInput"
-                            required
-                          />
-                        ) : (
-                          medicine.category
-                        )}
-                      </td>
-                      <td>
-                        {editingMedicine === medicine.id ? (
-                          <input
-                            type="number"
-                            name="price"
-                            value={editFormData.price}
-                            onChange={(e) => handleFormChange(e, 'edit')}
-                            step="0.01"
-                            className="formInput"
-                            min="0"
-                            required
-                            onKeyDown={(e) => {
-                              if (e.key === '-' || e.key === 'e' || e.key === 'E') {
-                                e.preventDefault()
-                              }
-                            }}
-                          />
-                        ) : (
-                          `Rs ${medicine.price}`
-                        )}
-                      </td>
-                      <td>
-                        {editingMedicine === medicine.id ? (
-                          <input
-                            type="number"
-                            name="stock"
-                            value={editFormData.stock}
-                            onChange={(e) => handleFormChange(e, 'edit')}
-                            className="formInput"
-                            min="0"
-                            required
-                            onKeyDown={(e) => {
-                              if (e.key === '-' || e.key === 'e' || e.key === 'E') {
-                                e.preventDefault()
-                              }
-                            }}
-                          />
-                        ) : (
-                          medicine.stock
-                        )}
-                      </td>
-                      <td>
-                        {editingMedicine === medicine.id ? (
-                          <select
-                            name="status"
-                            value={editFormData.status}
-                            onChange={(e) => handleFormChange(e, 'edit')}
-                            className="formSelect"
-                          >
-                            <option value="In Stock">In Stock</option>
-                            <option value="Low Stock">Low Stock</option>
-                            <option value="Out of Stock">Out of Stock</option>
-                          </select>
-                        ) : (
-                          <span className={`statusBadge ${
-                            medicine.status === "In Stock" ? 'inStock' :
-                            medicine.status === "Low Stock" ? 'lowStock' :
-                            'outOfStock'
-                          }`}>
-                            {medicine.status}
-                          </span>
-                        )}
-                      </td>
-                      <td>
-                        {editingMedicine === medicine.id ? (
-                          <div className="editFormButtons">
-                            <button 
-                              className="actionButton editButton"
-                              onClick={() => handleEditSubmit(medicine.id)}
-                              disabled={loading}
-                            >
-                              {loading ? 'Saving...' : 'Save'}
-                            </button>
-                            <button 
-                              className="actionButton deleteButton"
-                              onClick={handleCancelEdit}
-                              disabled={loading}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            <button 
-                              className="actionButton editButton"
-                              onClick={() => handleEditClick(medicine)}
-                              disabled={loading}
-                            >
-                              Edit
-                            </button>
-                            <button 
-                              className="actionButton deleteButton"
-                              onClick={() => handleDelete(medicine.id)}
-                              disabled={loading}
-                            >
-                              Delete
-                            </button>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>
-                      No medicines found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+        {error && (
+          <div className="p-3 mb-6 bg-red-100 border border-red-400 text-red-700 rounded">
+            Error: {error}
           </div>
+        )}
 
-          {/* Pagination controls */}
-          <div className="paginationControls">
-            <button
-              className={`paginationButton ${currentPage === 1 ? 'disabled' : ''}`}
-              onClick={goToPrevPage}
-              disabled={currentPage === 1 || loading}
-            >
-              Previous
-            </button>
-            
-            <div className="pageNumbers">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                <button
-                  key={page}
-                  className={`pageNumber ${currentPage === page ? 'active' : ''}`}
-                  onClick={() => goToPage(page)}
-                  disabled={loading}
-                >
-                  {page}
-                </button>
-              ))}
+        {showAddForm && (
+          <div className="bg-white/30 backdrop-blur-md p-6 rounded-lg shadow-lg mb-6 border border-[#71C9CE]">
+            <div className="bg-white p-6 rounded-lg">
+              <h2 className="text-xl font-semibold mb-4 text-[#028478]">Add New Medicine</h2>
+              <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-medium mb-1">Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    className="w-full p-2 border rounded-md"
+                    value={addFormData.name}
+                    onChange={(e) => handleFormChange(e, 'add')}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Category</label>
+                  <input
+                    type="text"
+                    name="category"
+                    className="w-full p-2 border rounded-md"
+                    value={addFormData.category}
+                    onChange={(e) => handleFormChange(e, 'add')}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Price (Rs)</label>
+                  <input
+                    type="number"
+                    name="price"
+                    className="w-full p-2 border rounded-md"
+                    value={addFormData.price}
+                    onChange={(e) => handleFormChange(e, 'add')}
+                    step="0.01"
+                    min="0"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Stock</label>
+                  <input
+                    type="number"
+                    name="stock"
+                    className="w-full p-2 border rounded-md"
+                    value={addFormData.stock}
+                    onChange={(e) => handleFormChange(e, 'add')}
+                    min="0"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Status</label>
+                  <select
+                    name="status"
+                    className="w-full p-2 border rounded-md"
+                    value={addFormData.status}
+                    onChange={(e) => handleFormChange(e, 'add')}
+                  >
+                    <option value="In Stock">In Stock</option>
+                    <option value="Low Stock">Low Stock</option>
+                    <option value="Out of Stock">Out of Stock</option>
+                  </select>
+                </div>
+                <div className="col-span-2 flex space-x-4 mt-4">
+                  <Button
+                    type="button"
+                    className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
+                    onClick={handleAddSubmit}
+                  >
+                    Add Medicine
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCancelAdd}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
             </div>
-            
-            <button
-              className={`paginationButton ${currentPage === totalPages ? 'disabled' : ''}`}
-              onClick={goToNextPage}
-              disabled={currentPage === totalPages || loading}
-            >
-              Next
-            </button>
           </div>
-        </>
-      )}
+        )}
 
-      <style jsx>{`
-        .container {
-          padding: 1.5rem;
-          background-color: #f9fafb;
-        }
-        
-        .title {
-          font-size: 1.5rem;
-          font-weight: bold;
-          margin-bottom: 1.25rem;
-        }
-        
-        .searchAddContainer {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 1.25rem;
-          gap: 1rem;
-        }
-        
-        .searchInput {
-          flex: 1;
-          padding: 0.5rem 0.75rem;
-          border: 1px solid #e2e8f0;
-          border-radius: 0.375rem;
-          max-width: 24rem;
-        }
-        
-        .primaryButton {
-          background-color: #4f46e5;
-          color: white;
-          padding: 0.5rem 1rem;
-          border: none;
-          border-radius: 0.375rem;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-        
-        .primaryButton:hover {
-          background-color: #4338ca;
-        }
-        
-        .tableWrapper {
-          overflow-x: auto;
-          border-radius: 0.5rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          background-color: white;
-          padding: 1rem;
-        }
-        
-        .medicineTable {
-          width: 100%;
-          border-collapse: collapse;
-        }
-        
-        .medicineTable th {
-          background-color: #f8fafc;
-          padding: 0.75rem 1rem;
-          text-align: left;
-          font-weight: 600;
-          color: #64748b;
-          border-bottom: 1px solid #e2e8f0;
-        }
-        
-        .medicineTable td {
-          padding: 0.75rem 1rem;
-          border-bottom: 1px solid #e2e8f0;
-          color: #334155;
-        }
-        
-        .statusBadge {
-          padding: 0.25rem 0.5rem;
-          border-radius: 0.75rem;
-          font-size: 0.75rem;
-          font-weight: 500;
-        }
-        
-        .inStock {
-          background-color: #dcfce7;
-          color: #166534;
-        }
-        
-        .lowStock {
-          background-color: #fef9c3;
-          color: #854d0e;
-        }
-        
-        .outOfStock {
-          background-color: #fee2e2;
-          color: #991b1b;
-        }
-        
-        .actionButton {
-          padding: 0.25rem 0.5rem;
-          border: none;
-          border-radius: 0.25rem;
-          cursor: pointer;
-          margin-right: 0.5rem;
-        }
-        
-        .editButton {
-          background-color: #e0f2fe;
-          color: #0369a1;
-        }
-        
-        .deleteButton {
-          background-color: #fee2e2;
-          color: #b91c1c;
-        }
-        
-        .loading {
-          text-align: center;
-          padding: 2rem;
-          color: #64748b;
-        }
-        
-        .error {
-          color: #ef4444;
-          padding: 1rem;
-          background-color: #fee2e2;
-          border-radius: 0.375rem;
-          margin-bottom: 1rem;
-        }
-        
-        .addForm {
-          background-color: #f8fafc;
-          padding: 1rem;
-          margin-bottom: 1rem;
-          border-radius: 0.5rem;
-          border: 1px solid #e2e8f0;
-        }
-        
-        .formGroup {
-          margin-bottom: 1rem;
-        }
-        
-        .formLabel {
-          display: block;
-          margin-bottom: 0.5rem;
-          font-weight: 500;
-          color: #334155;
-        }
-        
-        .formInput {
-          width: 100%;
-          padding: 0.5rem 0.75rem;
-          border: 1px solid #e2e8f0;
-          border-radius: 0.375rem;
-        }
-        
-        .formSelect {
-          width: 100%;
-          padding: 0.5rem 0.75rem;
-          border: 1px solid #e2e8f0;
-          border-radius: 0.375rem;
-          background-color: white;
-        }
-        
-        .formButtons {
-          display: flex;
-          gap: 0.5rem;
-          margin-top: 1rem;
-        }
+        {loading ? (
+          <div className="text-center p-10 text-[#71C9CE]">Loading medicines...</div>
+        ) : (
+          <>
+            <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-[#71C9CE] text-gray-900 sticky top-0">
+                    <tr>
+                      <th className="p-3 border-l-2">ID</th>
+                      <th className="p-3 border-l-2">Name</th>
+                      <th className="p-3 border-l-2">Category</th>
+                      <th className="p-3 border-l-2">Price</th>
+                      <th className="p-3 border-l-2">Stock</th>
+                      <th className="p-3 border-l-2">Status</th>
+                      <th className="p-3 border-l-2">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {medicines.length > 0 ? (
+                      medicines.map((medicine) => (
+                        <tr key={medicine.id} className="border-t hover:bg-gray-50/50">
+                          <td className="p-3">{medicine.id}</td>
+                          <td className="p-3">
+                            {editingMedicine === medicine.id ? (
+                              <input
+                                type="text"
+                                name="name"
+                                className="w-full p-2 border rounded-md"
+                                value={editFormData.name}
+                                onChange={(e) => handleFormChange(e, 'edit')}
+                                required
+                              />
+                            ) : (
+                              medicine.name
+                            )}
+                          </td>
+                          <td className="p-3">
+                            {editingMedicine === medicine.id ? (
+                              <input
+                                type="text"
+                                name="category"
+                                className="w-full p-2 border rounded-md"
+                                value={editFormData.category}
+                                onChange={(e) => handleFormChange(e, 'edit')}
+                                required
+                              />
+                            ) : (
+                              medicine.category
+                            )}
+                          </td>
+                          <td className="p-3">
+                            {editingMedicine === medicine.id ? (
+                              <input
+                                type="number"
+                                name="price"
+                                className="w-full p-2 border rounded-md"
+                                value={editFormData.price}
+                                onChange={(e) => handleFormChange(e, 'edit')}
+                                step="0.01"
+                                min="0"
+                                required
+                              />
+                            ) : (
+                              `Rs ${medicine.price}`
+                            )}
+                          </td>
+                          <td className="p-3">
+                            {editingMedicine === medicine.id ? (
+                              <input
+                                type="number"
+                                name="stock"
+                                className="w-full p-2 border rounded-md"
+                                value={editFormData.stock}
+                                onChange={(e) => handleFormChange(e, 'edit')}
+                                min="0"
+                                required
+                              />
+                            ) : (
+                              medicine.stock
+                            )}
+                          </td>
+                          <td className="p-3">
+                            {editingMedicine === medicine.id ? (
+                              <select
+                                name="status"
+                                className="w-full p-2 border rounded-md"
+                                value={editFormData.status}
+                                onChange={(e) => handleFormChange(e, 'edit')}
+                              >
+                                <option value="In Stock">In Stock</option>
+                                <option value="Low Stock">Low Stock</option>
+                                <option value="Out of Stock">Out of Stock</option>
+                              </select>
+                            ) : (
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                medicine.status === "In Stock" ? "bg-green-100 text-green-800" :
+                                medicine.status === "Low Stock" ? "bg-yellow-100 text-yellow-800" :
+                                "bg-red-100 text-red-800"
+                              }`}>
+                                {medicine.status}
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-3 space-x-2">
+                            {editingMedicine === medicine.id ? (
+                              <>
+                                <Button
+                                  size="sm"
+                                  className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
+                                  onClick={() => handleEditSubmit(medicine.id)}
+                                >
+                                  Save
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={handleCancelEdit}
+                                >
+                                  Cancel
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleEditClick(medicine)}
+                                >
+                                  <FaEdit />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleDelete(medicine.id)}
+                                >
+                                  <FaTrash />
+                                </Button>
+                              </>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="7" className="text-center p-10 text-gray-500">
+                          No medicines found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
-        .paginationControls {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          margin-top: 1.5rem;
-          padding: 1rem;
-          background-color: white;
-          border-radius: 0.5rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          gap: 1rem;
-        }
-        
-        .paginationButton {
-          background-color: #4f46e5;
-          color: white;
-          padding: 0.5rem 1rem;
-          border: none;
-          border-radius: 0.375rem;
-          font-size: 0.875rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          min-width: 100px;
-        }
-        
-        .paginationButton:hover:not(.disabled) {
-          background-color: #4338ca;
-        }
-        
-        .paginationButton.disabled {
-          background-color: #e2e8f0;
-          color: #94a3b8;
-          cursor: not-allowed;
-        }
-        
-        .pageNumbers {
-          display: flex;
-          gap: 0.5rem;
-        }
-        
-        .pageNumber {
-          padding: 0.5rem 0.75rem;
-          border: 1px solid #e2e8f0;
-          border-radius: 0.375rem;
-          background-color: white;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        
-        .pageNumber:hover {
-          background-color: #f1f5f9;
-        }
-        
-        .pageNumber.active {
-          background-color: #4f46e5;
-          color: white;
-          border-color: #4f46e5;
-        }
-      `}</style>
+            <div className="flex justify-center items-center mt-6 space-x-4">
+              <Button
+                className={`${currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#71C9CE] hover:bg-[#A6E3E9]'} text-gray-900`}
+                onClick={goToPrevPage}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <div className="flex space-x-2">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    className={`${currentPage === page ? 'bg-[#71C9CE] text-gray-900' : ''}`}
+                    onClick={() => goToPage(page)}
+                  >
+                    {page}
+                  </Button>
+                ))}
+              </div>
+              <Button
+                className={`${currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#71C9CE] hover:bg-[#A6E3E9]'} text-gray-900`}
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }
