@@ -5,7 +5,7 @@ const db = require('../../db');
 // Test database connection
 router.get('/test-connection', async (req, res) => {
   try {
-    const [rows] = await db.promise().query('SELECT 1 + 1 AS solution');
+    const [rows] = await db.query('SELECT 1 + 1 AS solution');
     res.json({ 
       success: true,
       solution: rows[0].solution
@@ -32,7 +32,7 @@ router.get('/search-owners', async (req, res) => {
   }
   
   try {
-    const [rows] = await db.promise().query(
+    const [rows] = await db.query(
       'SELECT * FROM pet_owner WHERE Owner_name LIKE ?',
       [`%${searchTerm}%`]
     );
@@ -75,7 +75,7 @@ router.post('/search-owners-new', async (req, res) => {
   }
   
   try {
-    const [rows] = await db.promise().query(
+    const [rows] = await db.query(
       'SELECT Owner_id, Owner_name, Owner_address, Phone_number, E_mail FROM pet_owner WHERE Owner_name LIKE ?',
       [`%${searchTerm}%`]
     );
@@ -113,7 +113,7 @@ router.post('/get-pets', async (req, res) => {
   }
   
   try {
-    const [rows] = await db.promise().query(
+    const [rows] = await db.query(
       'SELECT * FROM pet WHERE Owner_id = ?',
       [ownerId]
     );
@@ -147,7 +147,7 @@ router.post('/get-records', async (req, res) => {
   }
   
   try {
-    const [rows] = await db.promise().query(
+    const [rows] = await db.query(
       'SELECT * FROM record WHERE Pet_id = ? ORDER BY date DESC',
       [petId]
     );
@@ -191,7 +191,7 @@ router.get('/all-records', async (req, res) => {
       ORDER BY r.date DESC
     `;
     
-    const [rows] = await db.promise().query(query);
+    const [rows] = await db.query(query);
     res.json(rows);
   } catch (error) {
     console.error('Error fetching all records:', error);
@@ -254,7 +254,7 @@ router.post('/filtered-records', async (req, res) => {
     
     query += ' ORDER BY r.date DESC';
     
-    const [rows] = await db.promise().query(query, params);
+    const [rows] = await db.query(query, params);
     res.json(rows);
   } catch (error) {
     console.error('Error fetching filtered records:', error);
@@ -268,7 +268,7 @@ router.post('/filtered-records', async (req, res) => {
 // Get years with records for filter dropdown
 router.get('/record-years', async (req, res) => {
   try {
-    const [rows] = await db.promise().query(
+    const [rows] = await db.query(
       'SELECT DISTINCT YEAR(date) as year FROM record ORDER BY year DESC'
     );
     res.json(rows);
@@ -284,7 +284,7 @@ router.get('/record-years', async (req, res) => {
 // Delete record by ID
 router.delete('/delete-record/:id', async (req, res) => {
   try {
-    const [result] = await db.promise().query(
+    const [result] = await db.query(
       'DELETE FROM record WHERE id = ?',
       [req.params.id]
     );
@@ -309,7 +309,7 @@ router.delete('/delete-record/:id', async (req, res) => {
 // Get single record by ID (for editing)
 router.get('/get-record/:id', async (req, res) => {
   try {
-    const [rows] = await db.promise().query(
+    const [rows] = await db.query(
       'SELECT * FROM record WHERE id = ?',
       [req.params.id]
     );
@@ -426,7 +426,7 @@ router.put('/update-record/:id', async (req, res) => {
 router.get('/full-record/:id', async (req, res) => {
   try {
     // Get the basic record information
-    const [recordRows] = await db.promise().query(
+    const [recordRows] = await db.query(
       `SELECT r.id, r.date, r.surgery, r.other, r.vaccination_id,
               p.Pet_id, p.Pet_name, p.Pet_type, p.Pet_dob,
               o.Owner_id, o.Owner_name, o.E_mail, o.Phone_number
@@ -448,7 +448,7 @@ router.get('/full-record/:id', async (req, res) => {
     
     // Get vaccination data if exists
     if (record.vaccination_id) {
-      const [vaccineRows] = await db.promise().query(
+      const [vaccineRows] = await db.query(
         'SELECT * FROM vaccination WHERE vaccination_id = ?',
         [record.vaccination_id]
       );
@@ -477,17 +477,17 @@ router.put('/update-record/:id', async (req, res) => {
   
   try {
     // Start transaction using the pool directly
-    await db.promise().query('START TRANSACTION');
+    await db.query('START TRANSACTION');
 
     try {
       // 1. First get the existing record to check for existing vaccination
-      const [existingRecord] = await db.promise().query(
+      const [existingRecord] = await db.query(
         `SELECT * FROM record WHERE id = ?`,
         [req.params.id]
       );
 
       if (existingRecord.length === 0) {
-        await db.promise().query('ROLLBACK');
+        await db.query('ROLLBACK');
         return res.status(404).json({ 
           error: 'Record not found',
           details: 'No record exists with the specified ID' 
@@ -504,7 +504,7 @@ router.put('/update-record/:id', async (req, res) => {
 
         if (vaccinationId) {
           // Update existing vaccination record
-          await db.promise().query(
+          await db.query(
             `UPDATE vaccination 
              SET vaccine_type = ?, vaccine_name = ?, other_vaccine = ?, vaccination_date = ?, notes = ?
              WHERE vaccination_id = ?`,
@@ -512,7 +512,7 @@ router.put('/update-record/:id', async (req, res) => {
           );
         } else {
           // Create new vaccination record
-          const [vaccinationResult] = await db.promise().query(
+          const [vaccinationResult] = await db.query(
             `INSERT INTO vaccination 
              (pet_id, vaccine_type, vaccine_name, other_vaccine, vaccination_date, notes) 
              VALUES (?, ?, ?, ?, ?, ?)`,
@@ -522,7 +522,7 @@ router.put('/update-record/:id', async (req, res) => {
         }
       } else if (vaccinationId) {
         // If no vaccine data provided but record had vaccination, delete it
-        await db.promise().query(
+        await db.query(
           `DELETE FROM vaccination WHERE vaccination_id = ?`,
           [vaccinationId]
         );
@@ -530,21 +530,21 @@ router.put('/update-record/:id', async (req, res) => {
       }
 
       // 3. Update the main record
-      const [result] = await db.promise().query(
+      const [result] = await db.query(
         `UPDATE record 
          SET date = ?, surgery = ?, other = ?, vaccination_id = ?
          WHERE id = ?`,
         [date, surgery || null, other || null, vaccinationId, req.params.id]
       );
       
-      await db.promise().query('COMMIT');
+      await db.query('COMMIT');
       res.json({ 
         success: true, 
         message: 'Record updated successfully',
         vaccinationId: vaccinationId
       });
     } catch (error) {
-      await db.promise().query('ROLLBACK');
+      await db.query('ROLLBACK');
       throw error;
     }
   } catch (error) {
@@ -560,7 +560,7 @@ router.put('/update-record/:id', async (req, res) => {
 // Get all owners for dropdown
 router.get('/all-owners', async (req, res) => {
   try {
-    const [rows] = await db.promise().query(
+    const [rows] = await db.query(
       'SELECT Owner_id, Owner_name, Owner_address FROM pet_owner ORDER BY Owner_name'
     );
     res.json(rows);
@@ -663,13 +663,13 @@ router.get('/get-records-with-vaccination', async (req, res) => {
 
   try {
     // First get all records for the pet
-    const [records] = await db.promise().query(
+    const [records] = await db.query(
       'SELECT * FROM record WHERE Pet_id = ? ORDER BY date DESC',
       [petId]
     );
 
     // Then get all vaccinations for the pet
-    const [vaccinations] = await db.promise().query(
+    const [vaccinations] = await db.query(
       'SELECT * FROM vaccination WHERE pet_id = ? ORDER BY vaccination_date DESC',
       [petId]
     );
@@ -705,7 +705,7 @@ router.get('/get-records-with-vaccination', async (req, res) => {
 // Notification routes
 router.get('/notification-templates', async (req, res) => {
   try {
-    const [templates] = await db.promise().query('SELECT * FROM notification_templates');
+    const [templates] = await db.query('SELECT * FROM notification_templates');
     res.json(templates);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -716,7 +716,7 @@ router.put('/notification-templates/:id', async (req, res) => {
   const { subject, message_body, days_before, is_active } = req.body;
   
   try {
-    await db.promise().query(
+    await db.query(
       'UPDATE notification_templates SET subject = ?, message_body = ?, days_before = ?, is_active = ? WHERE template_id = ?',
       [subject, message_body, days_before, is_active, req.params.id]
     );
@@ -756,7 +756,7 @@ router.get('/sent-notifications', async (req, res) => {
   query += ' ORDER BY n.sent_date DESC';
   
   try {
-    const [notifications] = await db.promise().query(query, params);
+    const [notifications] = await db.query(query, params);
     res.json(notifications);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -777,7 +777,7 @@ router.post('/check-notifications', async (req, res) => {
 // Add this new route to handle vaccination data
 router.get('/vaccination/:id', async (req, res) => {
   try {
-    const [rows] = await db.promise().query(
+    const [rows] = await db.query(
       'SELECT * FROM vaccination WHERE vaccination_id = ?',
       [req.params.id]
     );

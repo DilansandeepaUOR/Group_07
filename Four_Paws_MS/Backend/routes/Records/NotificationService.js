@@ -4,7 +4,7 @@ const router = express.Router();
 const mysql = require('mysql2/promise');
 const moment = require('moment');
 const cron = require('node-cron');
-const env = require('dotenv');
+require('dotenv');
 const db = require('../../db');
 
 // Email transporter configuration
@@ -12,14 +12,13 @@ const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+    pass: process.env.EMAIL_PASS,
   }
 });
 
-// Verify email configuration
-transporter.verify(function(error, success) {
+transporter.verify((error, success) => {
   if (error) {
-    console.error('Email transporter failed:', error);
+    console.error('Email transporter failed:', error.message);
   } else {
     console.log('Email transporter ready');
   }

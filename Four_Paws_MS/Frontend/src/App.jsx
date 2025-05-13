@@ -11,8 +11,9 @@ import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import Appointment from "./Pages/Appointment";
 import Adlogin from "./Admin/Pages/Adlogin";
-
-
+import VaccineNotify from "./Pages/VaccineNotify";
+import VaccineSent from "./Pages/VaccineSent";
+import MobileService from "./Pages/MobileService";
 
 import EditRecords from "./Pages/EditRecords";
 import SearchRecords from "./Pages/SearchRecords";
@@ -40,7 +41,6 @@ import Assistprofile from "./Otherusers/Assitdoctor/assistprofile";
 import Psprofile from "./Otherusers/Petshopper/psprofile";
 import PsDashboard from "./Otherusers/Petshopper/psdashboard";
 
-
 const App = () => {
   return (
     <>
@@ -50,19 +50,9 @@ const App = () => {
         <Route path="/Contactus" element={<Contactus />} />
         <Route path="/Ourservices" element={<Ourservices />} />
         <Route path="/Petshop" element={<Petshop />} />
-       
-        
         <Route path="/appointment" element={<Appointment/>}/>
-        {/* <Route path="/RecordsEntry" element={<RecordsEntry/>}/> */}
-
+        
         {/* Records  */}
-        {/* <Route path="/records" element={<RecordsEntry />} />
-        <Route path="/edit/:id" element={<EditRecords />} />
-        <Route path="/search" element={<SearchRecords />} />
-        <Route path="/delete" element={<useDeleteRecord />} /> */}
-
-
-        {/* New Record */}
         <Route path="/recordselection" element={<PetRecordPDF />} />
         <Route path="/recordsNew" element={<AllRecords />} />
         <Route path="/records/edit/:id" element={<RecordEdit />} />
@@ -71,11 +61,8 @@ const App = () => {
         <Route path="/sentnotification" element={<VaccineSent />} />
 
         <Route path="/appointment" element={<Appointment />} />
-        {/* <Route path="/RecordsEntry" element={<RecordsEntry />} /> */}
-        {/* <Route path="/records" element={<RecordsEntry />} /> */}
         <Route path="/edit/:id" element={<EditRecords />} />
         <Route path="/search" element={<SearchRecords />} />
-
 
         {/* Petowner Routes  */}
         <Route path="/Login" element={<Login />} />
@@ -88,7 +75,6 @@ const App = () => {
         <Route path="/adprofile" element={<ProtectedRoutes allowedRoles={["Admin"]}><Adprofile /></ProtectedRoutes>} />
         <Route path="/Addashboard/adminpetshop/petshopproductoperations/:id" element={<ProtectedRoutes allowedRoles={["Admin"]}><PsOperations /></ProtectedRoutes>} />
 
-
         {/* Other user Routes  */}
         <Route path="/psdashboard" element={<ProtectedRoutes allowedRoles={["Pet Shopper"]}><PsDashboard /></ProtectedRoutes>} />
         <Route path="/psprofile" element={<ProtectedRoutes allowedRoles={["Pet Shopper"]}><Psprofile /></ProtectedRoutes>} />
@@ -99,12 +85,11 @@ const App = () => {
         <Route path="/assistdashboard" element={<ProtectedRoutes allowedRoles={["Assistant Doctor"]}><AssistDashboard /></ProtectedRoutes>} />
         <Route path="/assistprofile" element={<ProtectedRoutes allowedRoles={["Assistant Doctor"]}><Assistprofile /></ProtectedRoutes>} />
 
-        <Route path="/Pharmacy" element={<Pharmacy />}></Route>
+        <Route path="/Pharmacy" element={<Pharmacy />} />
+        <Route path="/mobileservice" element={<MobileService />} />
         
-
         <Route path="/unauth" element={<Unauth/>} />
         <Route path="*" element={<h1>404 Not Found</h1>} />
-        <Route path="/mobileservice" element={<Mobileservice />} />
       </Routes>
     </>
   );
