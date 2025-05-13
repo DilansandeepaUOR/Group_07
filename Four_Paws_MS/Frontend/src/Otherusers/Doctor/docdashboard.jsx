@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,lazy,Suspense } from "react";
 import {
   FaCalendarAlt,
   FaUser,
   FaPills,
   FaSignOutAlt,
 } from "react-icons/fa";
-
 import axios from "axios";
 import dp from "../../../src/assets/paw_vector.png";
 import { Link } from "react-router-dom";
+const PetRecordPDF = lazy(() => import("../../Pages/PetRecordPDF"));
+const NewRecord = lazy(() => import("../../Pages/RecordNew"));
+const ViewRecords = lazy(() => import("../../Pages/AllRecords"));
+const Notify = lazy(() => import("../../Pages/VaccineNotify"));
+const SentNotify = lazy(() => import("../../Pages/VaccineSent"));
 
 const DoctorDashboard = () => {
   const [activeTab, setActiveTab] = useState("home");
@@ -52,7 +56,9 @@ const DoctorDashboard = () => {
             <h2 className="text-2xl font-semibold text-[#028478]">
               Welcome to the Doctor Dashboard
             </h2>
-            <p className="mt-4">Please select a section from the sidebar to get started.</p>
+            <p className="mt-4">
+              Please select a section from the sidebar to get started.
+            </p>
           </div>
         );
     }
@@ -66,7 +72,7 @@ const DoctorDashboard = () => {
 
         <div className="items-center gap-4 mt-4">
           <img
-            src={dp || "Doctor"} // Use optional chaining and default image
+            src={dp || "Doctor"}
             alt="Doctor"
             className="w-24 h-24 rounded-full border border-gray-400"
           />
@@ -114,13 +120,12 @@ const DoctorDashboard = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-8">
-        {renderContent()}
-      </main>
+      <main className="flex-1 p-8">{renderContent()}</main>
     </div>
   );
 };
 
+// Appointments
 const AppointmentsSection = () => (
   <div>
     <h2 className="text-2xl font-semibold text-[#028478]">Appointments</h2>
@@ -128,45 +133,101 @@ const AppointmentsSection = () => (
   </div>
 );
 
+// Patients
 const PatientsSection = () => (
   <div>
     <h2 className="text-2xl font-semibold text-[#028478]">Patients</h2>
-    <p className="mt-4">patient area</p>
+    <p className="mt-4">Patient area</p>
   </div>
 );
 
-const MedicationsSection = () => (
-  <div>
-    <h2 className="text-2xl font-semibold text-[#028478]">Medications</h2>
-    <Link 
-      to="/RecordsEntry" 
-      className="mt-4 inline-block px-4 py-2 bg-[#028478] text-white rounded hover:bg-[#71C9CE] transition"
-    >
-      Go to Records Entry
-    </Link>
-    <Link to="/recordselection">
-      <button className="bg-blue-500 text-white px-4 py-2 rounded flex items-center gap-2">
-        <p></p>
-      Generate PDF Records
-      </button>
-    </Link>
+// Medications with sub-slider
+const MedicationsSection = () => {
+  const [activeSubTab, setActiveSubTab] = useState("entry");
+
+  const renderSubContent = () => {
+    switch (activeSubTab) {
+      case "pdf":
+        return (
+          <div className="bg-white p-4 rounded shadow mt-4">
+            <h3 className="text-lg font-semibold mb-2"></h3>
+            <Suspense fallback={<div>Loading PDF Generator...</div>}>
+            <PetRecordPDF />
+            </Suspense>
+          </div>
+        );
+      case "view":
+        return (
+          <div className="bg-white p-4 rounded shadow mt-4">
+            <h3 className="text-lg font-semibold mb-2"></h3>
+            <Suspense fallback={<div>Loading All Records...</div>}>
+            <ViewRecords />
+            </Suspense>
+          </div>
+        );
+      case "new":
+        return (
+          <div className="bg-white p-4 rounded shadow mt-4">
+            <h3 className="text-lg font-semibold mb-2">Enter New Record</h3>
+            <Suspense fallback={<div>Loading Form...</div>}>
+            <NewRecord />
+            </Suspense>
+          </div>
+        );
+        case "notify":
+        return (
+          <div className="bg-white p-4 rounded shadow mt-4">
+            <h3 className="text-lg font-semibold mb-2">Edit Notifications</h3>
+            <Suspense fallback={<div>Loading Notifications...</div>}>
+            <Notify />
+            </Suspense>
+          </div>
+        );
+        case "sentnotify":
+        return (
+          <div className="bg-white p-4 rounded shadow mt-4">
+            <h3 className="text-lg font-semibold mb-2">Sent Notifications</h3>
+            <Suspense fallback={<div>Loading Notifications...</div>}>
+            <SentNotify />
+            </Suspense>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
     <div>
-      <Link to="/recordsNew">
-      <button className="bg-blue-500 text-white px-4 py-2 rounded flex items-center gap-2">
-        <p></p>
-        View All Records
-      </button>
-      </Link>
+      <h2 className="text-2xl font-semibold text-[#028478]">Medications</h2>
+
+      {/* Subcategory Slider */}
+      <div className="flex overflow-x-auto mt-4 space-x-4">
+        {[
+          { key: "pdf", label: "Generate PDF" },
+          { key: "view", label: "View Records" },
+          { key: "new", label: "New Record" },
+          { key: "notify", label: "Edit Notifications" },
+          { key: "sentnotify", label: "Notifications" },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            className={`px-4 py-2 rounded ${
+              activeSubTab === tab.key
+                ? "bg-[#028478] text-white"
+                : "bg-white border border-[#028478] text-[#028478]"
+            }`}
+            onClick={() => setActiveSubTab(tab.key)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Dynamic Subcategory Content */}
+      <div className="mt-6">{renderSubContent()}</div>
     </div>
-    <div>
-      <Link to="/records/new">
-      <button className="bg-blue-500 text-white px-4 py-2 rounded flex items-center gap-2">
-        <p></p>
-        Enter New Record
-      </button>
-      </Link>
-    </div>
-  </div>
-);
+  );
+};
 
 export default DoctorDashboard;
