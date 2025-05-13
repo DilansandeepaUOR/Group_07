@@ -2,6 +2,9 @@
 
 import React, { useContext, createContext, useState, useEffect } from "react"
 import { MoreVertical, ChevronLast, ChevronFirst, Menu, X, ChevronDown } from "lucide-react"
+import axios from "axios";
+
+
 
 const SidebarContext = createContext({ 
   expanded: true, 
@@ -14,14 +17,29 @@ export default function Sidebar({ children }) {
   const [expanded, setExpanded] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [activeSection, setActiveSection] = useState("")
+  const [pharmuser, setpharmUser] = useState(null);
 
-  const colors = {
-    darkBackground: '#22292f',
-    tealAccent: '#3bcdbf',
-    yellowAccent: '#FFD700',
-    lightText: '#f3f4f6',
-    cardBackground: '#2c3339'
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/api/auth/admins", { withCredentials: true })
+      .then((response) => {
+        setpharmUser(response.data);
+      })
+      .catch(() => {
+        setpharmUser(null);
+      });
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await axios.get("http://localhost:3001/api/auth/logout", {
+        withCredentials: true,
+      });
+      alert("Logged out!");
+      setUser(null);
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
   };
 
   useEffect(() => {
@@ -192,8 +210,24 @@ export default function Sidebar({ children }) {
               }}
             >
               <div style={{ lineHeight: "1rem" }}>
-                <h4 style={{ fontWeight: "600", color: colors.yellowAccent, margin: 0 }}>John Doe</h4>
-                <span style={{ fontSize: "0.75rem", color: colors.tealAccent }}>johndoe@gmail.com</span>
+                <h4 style={{ fontWeight: "600", color: "#4b5563" }}>{pharmuser?.fname} {pharmuser?.lname}</h4>
+                <span style={{ fontSize: "0.75rem", color: "#4b5563" }}>{pharmuser?.email}</span>
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    marginTop: "8px",
+                    padding: "8px 12px",
+                    borderRadius: "6px",
+                    backgroundColor: "#ef4444",
+                    color: "white",
+                    fontWeight: "500",
+                    border: "none",
+                    cursor: "pointer",
+                    transition: "background-color 150ms",
+                  }}
+                >
+                  <a href="/Adlogin">Logout</a>
+                </button>
               </div>
               <MoreVertical size={20} color={colors.tealAccent} />
             </div>

@@ -2,17 +2,17 @@ const { z } = require("zod");
 
 const empRegisterValidator = z.object({
 
-    fname: z.string().min(2, "Your first name must be at least 2 characters"),
+  first_name: z.string().min(2, "Your first name must be at least 2 characters"),
 
-    lname: z.string().min(2, "Your last name must be at least 2 characters"),
+  last_name: z.string().min(2, "Your last name must be at least 2 characters"),
 
   address: z.string().min(5, "Your address must be at least 5 characters"),
 
-  phone: z.string().min(10, "Your phone number must be include at least 10 numbers"),
+  phone_number: z.string().min(10, "Your phone number must be include at least 10 numbers"),
 
   email: z.string().email("Invalid Email format"),
 
-  dob: z.string()
+  date_of_birth: z.string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Date of Birth must be in YYYY-MM-DD format")
   .transform((str) => new Date(str)) 
   .refine(date => !isNaN(date.getTime()), "Invalid date")

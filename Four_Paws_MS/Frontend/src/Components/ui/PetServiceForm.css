@@ -1,6 +1,6 @@
 /* Modern Google Forms-Inspired Styles */
 .form-container {
-    max-width: 600px;
+    max: 800px;
     margin: 5% auto;
     padding: 25px;
     border-radius: 10px;
@@ -136,4 +136,84 @@
 .form-input::placeholder {
     color: rgba(0, 0, 0, 0.4); /* Light gray color */
     font-style: italic; /* Makes it look more subtle */
+}
+.parent-div {
+    position: relative; /* Required for absolute positioning */
+  }
+  
+  .cancel-btn {
+    position: absolute;
+    right: 20px;       /* Distance from right */
+    top: 20px;         /* Distance from top */
+    /* Keep your existing styles */
+  }
+  .cancel-btn {
+    margin-left: auto;  /* Pushes button to right */
+    display: block;     /* Required for margin-auto to work */
+    width: fit-content; /* Shrink-to-fit width */
+    /* Keep your existing styles */
+    }
+  
+  .cancel-btn {
+    background-color: #d93025;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    font-weight: 500;
+    color: white;
+    
+    /* Hover effects */
+    &:hover {
+      background-color: #c5221f;
+      transform: translateY(-1px);
+    }
+  }
+
+  .form-title {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #202124;
+    font-weight: 500;
+    font-size: 24px;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  }
+  .action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .edit-container, .search-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .search-box {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+  }
+  
+  .search-box input {
+    flex-grow: 1;
+    padding: 8px;
+  }
+  /* Loading state for buttons */
+.button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* Form container specific to edit page */
+.edit-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
 }

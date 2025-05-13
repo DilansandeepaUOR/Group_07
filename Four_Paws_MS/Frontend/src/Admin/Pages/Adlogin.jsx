@@ -1,12 +1,11 @@
 import React, { useState } from "react";
-import {
-  FaEye,
-  FaEyeSlash,
-  FaExclamationCircle,
-} from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaExclamationCircle } from "react-icons/fa";
 import paw from "../../assets/paw_vector.png";
 import "../../Styles/Fonts/Fonts.css";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import logo from "../../assets/logo.png";
 
 function Adlogin() {
   const [email, setEmail] = useState("");
@@ -14,9 +13,25 @@ function Adlogin() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const storeSession = (sessionData) => {
-    sessionStorage.setItem("authToken", sessionData);
-  };
+  const navigate = useNavigate();
+
+  // Clear session when login page loads
+  useEffect(() => {
+    const clearSession = async () => {
+      try {
+        await axios.get("http://localhost:3001/api/auth/logout", {
+          withCredentials: true,
+        });
+        sessionStorage.clear();
+        navigate("/Adlogin"); // Redirect to login page
+      } catch (err) {
+        console.error("Session cleanup failed:", err);
+      }
+    };
+
+    clearSession();
+  }, []);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -26,20 +41,36 @@ function Adlogin() {
     }
 
     try {
-      axios
-        .post(
-          "http://localhost:3001/api/adloginform/adlogin",
-          { email, password },
-          { withCredentials: true }
-        )
-        .then((response) => {
-          storeSession(response.data.session);
-          alert("Login successful!");
-          window.location.href = "/Addashboard"; // Redirect to admin login
-        })
-        .catch((error) => {
-          alert("Login failed: " + error.response.data.error);
-        });
+      const response = await axios.post(
+        "http://localhost:3001/api/adloginform/adlogin",
+        { email, password },
+        { withCredentials: true }
+      );
+
+      const logedUser = await axios.get(
+        "http://localhost:3001/api/auth/admins",
+        { withCredentials: true }
+      ); //response.data contains the logged user information
+      const user = logedUser.data;
+
+      if (user?.role === "Admin") {
+        alert("Admin Login Successful!");
+        window.location.href = "/Addashboard";
+      } else if (user?.role === "Doctor") {
+        alert("Doctor Login Successful!");
+        window.location.href = "/docdashboard";
+      } else if (user?.role === "Assistant Doctor") {
+        alert("Assistant Doctor Login Successful!");
+        window.location.href = "/assistdashboard";
+      } else if (user?.role === "Pharmacist") {
+        alert("Pharmacist Login Successful!");
+        window.location.href = "/Pharmacy";
+      } else if (user?.role === "Pet Shopper") {
+        alert("Pet Shopper Login Successful!");
+        window.location.href = "/psdashboard";
+      } else {
+        alert("Unauthorized role");
+      }
     } catch (err) {
       if (err.response && err.response.data) {
         console.error("Backend error response:", err.response.data);
@@ -59,17 +90,18 @@ function Adlogin() {
   };
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center bg-transparent bg-opacity-50 backdrop-blur-md z-50 ">
+    <div className="fixed inset-0 flex justify-center items-center bg-transparent bg-opacity-50 backdrop-blur-md z-50 bg-gradient-to-b from-[#22292F] via-[#028478] to-[#22292F]">
+      <div className="absolute top-5 left-5 object-cover w-[200px]">
+              <img src={logo} alt="logo" />
+            </div>
       <div className="bg-gradient-to-b from-[#69cac2] to-[#cbfffb] items-center p-8 rounded-lg shadow-lg w-96 relative border-2 border-gray-800">
-        
-
         {/* Title */}
         <h2 className="text-2xl font-bold text-center text-[#182020] mb-4 Poppins">
-          Four Paws Admin
+          Four Paws Administrative login
         </h2>
         <span>
           <img
-            src={paw}
+            src={paw || "Admin"}
             alt="paw"
             className="absolute justify-center w-16 h-16 top-[-15px] left-[50%] translate-x-[-50%]"
           />
@@ -121,24 +153,15 @@ function Adlogin() {
         {/* Buttons */}
         <div className="flex justify-between items-center">
           <button
-            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-400 transition cursor-pointer"
+            onClick={handleLogin}
+            className="px-4 py-2 rounded-lg transition flex items-center justify-center w-full gap-2 bg-[#028478] hover:bg-[#5ba29c] text-white cursor-pointer"
           >
-            Cancel
+            Login
           </button>
-
-          <div>
-            <button
-              onClick={handleLogin}
-              className="px-4 py-2 rounded-lg transition flex items-center gap-2 bg-[#028478] hover:bg-[#5ba29c] text-white cursor-pointer"
-            >
-              Login
-            </button>
-          </div>
         </div>
 
         {/* Divider */}
         <div className="my-6 border-t border-[#46dfd0]"></div>
-
       </div>
     </div>
   );

@@ -18,8 +18,8 @@ app.use('/appointments', appointmentRoutes);
 
 //user authentications
 
-const recordEntryRoutes = require('./routes/RecordEntry/recordHandle');  // Import router correctly
-app.use('/record', recordEntryRoutes);  // Correctly register the endpoint
+const recordEntryRoutes = require('./routes/RecordEntry/recordHandle');
+app.use('/record', recordEntryRoutes);
 
 
 const registerRoutes =require('./routes/Userinformations/petownerregister');
@@ -40,14 +40,52 @@ app.use('/api/', petProfileRoutes);
 
 
 //admin routes
+//admin register
 const adminRegRoutes =require('./routes/Admininformations/adregister');
 app.use('/api/adregform', adminRegRoutes);
 
+const adminUsersRegRoutes =require('./routes/Admininformations/reguserregister');
+app.use('/api/adreguserform', adminUsersRegRoutes);
+
+//admin login
 const adminloginRoutes =require('./routes/Admininformations/adlogin');
 app.use('/api/adloginform/', adminloginRoutes);
 
+//admin profile
+const adminprofileRoutes =require("./routes/Admininformations/adgetprofile");
+app.use('/api/',adminprofileRoutes);
+
+//admin petshop
+const adminpetshopRoutes =require('./routes/Admininformations/adpetshop');
+app.use('/api/adminpetshop',adminpetshopRoutes);
+app.use('/uploads', express.static('uploads'));
+
 const pharmacy =require('./routes/Pharmacy/pharmacy');
 app.use('/pharmacy', pharmacy);
+
+//assistant doctor
+const assistantdoctorRoutes =require('./routes/Assitdoctor/assistantdoctor');
+app.use('/api/assistantdoctor', assistantdoctorRoutes);
+
+//Contact info routes
+const contactInfoRoutes = require('./routes/Contactinfo/contact');
+app.use('/contact', contactInfoRoutes);
+
+
+//Record Selection
+//const mysql = require('mysql2/promise');
+//const router = express.Router();
+// Middleware
+
+app.use(express.json());
+// Use the routes
+const recordRoutes = require('./routes/Records/RecordSelection');
+app.use('/api', recordRoutes);
+
+
+
+
+
 
 
 //Sample code
@@ -61,7 +99,9 @@ app.use('/pharmacy', pharmacy);
 //     res.json(results); 
 //   });
 // });
-
+app.get('/api/test-route', (req, res) => {
+  res.json({ message: "Test route works!" });
+});
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

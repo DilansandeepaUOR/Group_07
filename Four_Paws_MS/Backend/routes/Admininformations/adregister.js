@@ -1,52 +1,186 @@
 const express = require("express");
 const router = express.Router();
-const db = require('../../db');
-const bcrypt= require('bcrypt');
-const validEMPRegister=require('../../validations/adregvalidator');
+const db = require("../../db");
+const bcrypt = require("bcrypt");
+const validEMPRegister = require("../../validations/adregvalidator");
 
 router.use(express.json());
-router.use(express.urlencoded({extended: true}));
+router.use(express.urlencoded({ extended: true }));
 
-router.use((req,res,next) => {
-    console.log(`${req.method} request for '${req.url}'`);
-    next();
+router.use((req, res, next) => {
+  console.log(`${req.method} request for '${req.url}'`);
+  next();
 });
 
-router.post("/empregister",validEMPRegister, async (req, res) => {
+router.post("/empregister", validEMPRegister, async (req, res) => {
+  const {
+    first_name,
+    last_name,
+    email,
+    phone_number,
+    date_of_birth,
+    gender,
+    role,
+    address,
+    password,
+  } = req.body;
 
-    const {fname, lname, email, phone, dob, gender, role, address, password} =req.body;
-    
-    
-    try {
-        //existance of email
-        db.query('SELECT * FROM employee WHERE email = ?', [email], async (err, results) => {
+  try {
+    //existance of email
+    db.query(
+      "SELECT * FROM employee WHERE email = ?",
+      [email],
+      async (err, results) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ error: "Database error" });
+        }
+
+        if (results.length > 0) {
+          return res.status(409).json({ error: "User already exists" });
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const emp =
+          "INSERT INTO employee (first_name, last_name, email, phone_number, role, date_of_birth, gender, address, password) VALUES (?, ?, ?, ?, ?,?,?,?,?)";
+
+        db.query(
+          emp,
+          [
+            first_name,
+            last_name,
+            email,
+            phone_number,
+            role,
+            date_of_birth,
+            gender,
+            address,
+            hashedPassword,
+          ],
+          (err, result) => {
             if (err) {
-                console.error(err);
-                return res.status(500).json({ error: "Database error" });
+              return res
+                .status(500)
+                .json({ error: "Error inserting employee" });
             }
 
-            if (results.length > 0) {
-                return res.status(409).json({ error: "User already exists" });
-            }
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ error: "User not found!" });
+              }
 
-            // Hash password
-            const hashedPassword = await bcrypt.hash(password, 10);
-            const emp= "INSERT INTO employee (first_name, last_name, email, phone_number, role, date_of_birth, gender, address, password) VALUES (?, ?, ?, ?, ?,?,?,?,?)";
+            res.status(201).json({ message: "employee added successfully" });
+          }
+        );
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
-            db.query(emp,[fname,lname,email,phone,role,dob,gender,address,hashedPassword], (err, ownerResult) => {
-                if(err) {
-                    return res.status(500).json({error: "Error inserting employee"});
-                }
+router.get("/employees", async (req, res) => {
+  const usersql = "SELECT * FROM employee WHERE role <> 'Admin';";
+  try {
+    db.query(usersql, (err, results) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ error: "Error retrieving users" });
+      }
 
-                res.status(201).json({message: "employee added successfully"});
+      //console.log("Database results:", results);
 
-            });
+      if (results.length === 0) {
+        return res.status(404).json({ error: "No users Found" });
+      }
 
-        });
+      res.json(results);
+    });
+  } catch (err) {
+    console.error("Database error:", err);
+    res.status(500).json({ error: "Error retrieving user" });
+  }
+});
 
-    } catch (error) {
-        res.status(500).json({error: "Internal server error"});
-    }
-})
+router.put("/empupdate", async (req, res) => {
+  const { employee_id } = req.body;
+
+  //console.log("ID:", employee_id); // Log the ID to check if it's being received correctly
+  //console.log("Request Body:", req.body); // Log the request body to check the data being sent
+
+  if (!employee_id) {
+    return res.status(400).json({ error: "ID query parameter is required" });
+  }
+
+  try {
+    const {
+      first_name,
+      last_name,
+      email,
+      phone_number,
+      role,
+      date_of_birth,
+      gender,
+      address,
+      status
+    } = req.body;
+    const empsql =
+      "UPDATE employee SET first_name = ?, last_name = ?, email = ?, phone_number = ?, role = ?, date_of_birth = ?, gender = ?, address = ?, status = ? WHERE employee_id = ?";
+
+    db.query(
+      empsql,
+      [
+        first_name,
+        last_name,
+        email,
+        phone_number,
+        role,
+        date_of_birth,
+        gender,
+        address,
+        status,
+        employee_id,
+      ],
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({ error: "Error inserting user" });
+        }
+        if (results.affectedRows === 0) {
+          return res.status(404).json({ error: "User not found" });
+        }
+      }
+
+    );
+    res.status(200).json({ message: "Employee updated successfully" });
+
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).json({ error: "Error updating user" });
+  }
+});
+
+router.delete("/empdelete", async (req, res) => {
+  const {employee_id}=req.query;
+
+  if (!employee_id) {
+    return res.status(400).json({ error: "ID query parameter is required" });
+  }
+
+  const delsql="DELETE FROM employee WHERE employee_id=?";
+  try {
+
+    db.query(delsql, [employee_id], (error, result) => {
+      if(error){
+        res.status(500).json({message: "Error deleting user!"});
+      }
+    });
+
+    res.status(200).json({message: "User Deleted!!"});
+    
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).json({ error: "Error updating user" });
+  }
+});
 
 module.exports = router;

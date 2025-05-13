@@ -1,8 +1,10 @@
 const jwt = require("jsonwebtoken");
-const SECRET_KEY = "12345";
+require("dotenv").config();
+
+const SECRET_KEY=process.env.SECRET_KEY;
 
 const verifyToken = (req, res, next) => {
-    const token = req.cookies.token; // Get token from cookies
+    const token = req.cookies.token || req.headers['authorization']?.split(' ')[1]; // token from cookies or authorization header; // Get token from cookies 
 
     if (!token) return res.status(401).json({ error: "Unauthorized: No token provided" });
 
