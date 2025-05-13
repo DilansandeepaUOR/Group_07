@@ -12,10 +12,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Fix the path to NotificationService
-const { router: notificationRouter } = require('./routes/Records/NotificationService');
-app.use('/api/notifications', notificationRouter);
-const { dailyNotificationCheck } = require('./routes/Records/NotificationService');
-dailyNotificationCheck();
+// const { router: notificationRouter } = require('./routes/Records/NotificationService');
+// app.use('/api/notifications', notificationRouter);
+// const { dailyNotificationCheck } = require('./routes/Records/NotificationService');
+// dailyNotificationCheck();
 
 // Routes
 const appointmentRoutes = require('./routes/Appointment/appointment');
