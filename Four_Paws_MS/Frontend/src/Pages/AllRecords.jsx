@@ -298,8 +298,11 @@ const AllRecords = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
+                        <div className="text-sm text-gray-900">
                         {record.surgery && <p><span className="font-medium">Surgery:</span> {record.surgery}</p>}
+                        {record.other && <p><span className="font-medium">Notes:</span> {record.other}</p>}
+                        
+                        {/* Vaccination Info */}
                         {(record.vaccine_name || record.other_vaccine) && (
                           <div className="mt-1">
                             <span className="font-medium">Vaccination:</span>
@@ -313,11 +316,12 @@ const AllRecords = () => {
                               {record.other_vaccine && (
                                 <p>Other Vaccine: {record.other_vaccine}</p>
                               )}
+                              {record.vaccination_notes && (
+                                <p>Notes: {record.vaccination_notes}</p>
+                              )}
                             </div>
                           </div>
                         )}
-                        {record.other && <p><span className="font-medium">Notes:</span> {record.other}</p>}
-                        {record.vaccination_notes && <p className="mt-1"><span className="font-medium">Vaccination Notes:</span> {record.vaccination_notes}</p>}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

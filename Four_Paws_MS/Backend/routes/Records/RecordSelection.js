@@ -2,13 +2,23 @@ const express = require('express');
 const router = express.Router();
 const db = require('../../db');
 
+// Helper function to promisify db.query
+const query = (sql, params) => {
+  return new Promise((resolve, reject) => {
+    db.query(sql, params, (err, results) => {
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+};
+
 // Test database connection
 router.get('/test-connection', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT 1 + 1 AS solution');
+    const results = await query('SELECT 1 + 1 AS solution');
     res.json({ 
       success: true,
-      solution: rows[0].solution
+      solution: results[0].solution
     });
   } catch (error) {
     res.status(500).json({
@@ -22,7 +32,6 @@ router.get('/test-connection', async (req, res) => {
 router.get('/search-owners', async (req, res) => {
   const { searchTerm } = req.query;
   
-  
   if (!searchTerm || searchTerm.trim() === '') {
     return res.status(400).json({ 
       success: false,
@@ -32,14 +41,12 @@ router.get('/search-owners', async (req, res) => {
   }
   
   try {
-    const [rows] = await db.query(
+    const results = await query(
       'SELECT * FROM pet_owner WHERE Owner_name LIKE ?',
       [`%${searchTerm}%`]
     );
     
-    console.log('Received search term:', searchTerm);
-    console.log('Query result:', rows);
-    if (rows.length === 0) {
+    if (results.length === 0) {
       return res.json({ 
         success: false,
         message: 'No matching owners found',
@@ -49,7 +56,7 @@ router.get('/search-owners', async (req, res) => {
     
     res.json({
       success: true,
-      data: rows
+      data: results
     });
   } catch (error) {
     console.error('Error searching owners:', error);
@@ -61,11 +68,9 @@ router.get('/search-owners', async (req, res) => {
   }
 });
 
-
-
 // Get owner by ID
 router.post('/search-owners-new', async (req, res) => {
-  const { searchTerm } = req.body; // Changed from req.query to req.body
+  const { searchTerm } = req.body;
   
   if (!searchTerm || searchTerm.trim() === '') {
     return res.status(400).json({ 
@@ -75,14 +80,14 @@ router.post('/search-owners-new', async (req, res) => {
   }
   
   try {
-    const [rows] = await db.query(
+    const results = await query(
       'SELECT Owner_id, Owner_name, Owner_address, Phone_number, E_mail FROM pet_owner WHERE Owner_name LIKE ?',
       [`%${searchTerm}%`]
     );
     
-    if (rows.length === 0) {
+    if (results.length === 0) {
       return res.json({ 
-        success: true, // Still success even if no results
+        success: true,
         data: [],
         message: 'No matching owners found'
       });
@@ -90,7 +95,7 @@ router.post('/search-owners-new', async (req, res) => {
     
     res.json({
       success: true,
-      data: rows
+      data: results
     });
   } catch (error) {
     console.error('Error searching owners:', error);
@@ -113,19 +118,19 @@ router.post('/get-pets', async (req, res) => {
   }
   
   try {
-    const [rows] = await db.query(
+    const results = await query(
       'SELECT * FROM pet WHERE Owner_id = ?',
       [ownerId]
     );
     
-    if (rows.length === 0) {
+    if (results.length === 0) {
       return res.status(404).json({ 
         error: 'No pets found',
         details: 'This owner has no registered pets' 
       });
     }
     
-    res.json(rows);
+    res.json(results);
   } catch (error) {
     console.error('Error fetching pets:', error);
     res.status(500).json({ 
@@ -147,19 +152,19 @@ router.post('/get-records', async (req, res) => {
   }
   
   try {
-    const [rows] = await db.query(
+    const results = await query(
       'SELECT * FROM record WHERE Pet_id = ? ORDER BY date DESC',
       [petId]
     );
     
-    if (rows.length === 0) {
+    if (results.length === 0) {
       return res.status(404).json({ 
         error: 'No records found',
         details: 'No medical records found for this pet' 
       });
     }
     
-    res.json(rows);
+    res.json(results);
   } catch (error) {
     console.error('Error fetching records:', error);
     res.status(500).json({ 
@@ -172,13 +177,26 @@ router.post('/get-records', async (req, res) => {
 // Get all records with optional filtering
 router.get('/all-records', async (req, res) => {
   try {
-    const query = `
+    const queryStr = `
       SELECT 
-      r.id, r.date, r.surgery, r.other,
-      p.Pet_id, p.Pet_name, p.Pet_type, p.Pet_dob,
-      o.Owner_id, o.Owner_name, o.E_mail, o.Phone_number,
-      v.vaccination_id, v.vaccine_type, v.vaccine_name, 
-      v.other_vaccine, v.vaccination_date, v.notes AS vaccination_notes
+        r.id, 
+        r.date, 
+        r.surgery, 
+        r.other,
+        r.vaccination_id,
+        p.Pet_id, 
+        p.Pet_name, 
+        p.Pet_type, 
+        p.Pet_dob,
+        o.Owner_id, 
+        o.Owner_name, 
+        o.E_mail, 
+        o.Phone_number,
+        v.vaccine_type, 
+        v.vaccine_name, 
+        v.other_vaccine, 
+        v.vaccination_date, 
+        v.notes AS vaccination_notes
       FROM record r
       JOIN pet p ON r.Pet_id = p.Pet_id
       JOIN pet_owner o ON p.Owner_id = o.Owner_id
@@ -186,8 +204,8 @@ router.get('/all-records', async (req, res) => {
       ORDER BY r.date DESC
     `;
     
-    const [rows] = await db.query(query);
-    res.json(rows);
+    const results = await query(queryStr);
+    res.json(results);
   } catch (error) {
     console.error('Error fetching all records:', error);
     res.status(500).json({ 
@@ -202,11 +220,16 @@ router.post('/filtered-records', async (req, res) => {
   const { searchTerm, year, month, date } = req.body;
   
   try {
-    let query = `
+    let queryStr = `
       SELECT 
-        r.*, 
+        r.id, 
+        r.date, 
+        r.surgery, 
+        r.other,
+        r.vaccination_id,
+        p.Pet_id, 
         p.Pet_name, 
-        p.Pet_type, 
+        p.Pet_type,
         o.Owner_name, 
         o.E_mail,
         v.vaccine_type,
@@ -217,7 +240,7 @@ router.post('/filtered-records', async (req, res) => {
       FROM record r
       JOIN pet p ON r.Pet_id = p.Pet_id
       JOIN pet_owner o ON p.Owner_id = o.Owner_id
-      LEFT JOIN vaccination v ON r.Pet_id = v.pet_id AND r.date = v.vaccination_date
+      LEFT JOIN vaccination v ON r.vaccination_id = v.vaccination_id
     `;
     
     const conditions = [];
@@ -244,13 +267,13 @@ router.post('/filtered-records', async (req, res) => {
     }
     
     if (conditions.length > 0) {
-      query += ' WHERE ' + conditions.join(' AND ');
+      queryStr += ' WHERE ' + conditions.join(' AND ');
     }
     
-    query += ' ORDER BY r.date DESC';
+    queryStr += ' ORDER BY r.date DESC';
     
-    const [rows] = await db.query(query, params);
-    res.json(rows);
+    const results = await query(queryStr, params);
+    res.json(results);
   } catch (error) {
     console.error('Error fetching filtered records:', error);
     res.status(500).json({ 
@@ -263,10 +286,10 @@ router.post('/filtered-records', async (req, res) => {
 // Get years with records for filter dropdown
 router.get('/record-years', async (req, res) => {
   try {
-    const [rows] = await db.query(
+    const results = await query(
       'SELECT DISTINCT YEAR(date) as year FROM record ORDER BY year DESC'
     );
-    res.json(rows);
+    res.json(results);
   } catch (error) {
     console.error('Error fetching record years:', error);
     res.status(500).json({ 
@@ -279,12 +302,12 @@ router.get('/record-years', async (req, res) => {
 // Delete record by ID
 router.delete('/delete-record/:id', async (req, res) => {
   try {
-    const [result] = await db.query(
+    const results = await query(
       'DELETE FROM record WHERE id = ?',
       [req.params.id]
     );
     
-    if (result.affectedRows === 0) {
+    if (results.affectedRows === 0) {
       return res.status(404).json({ 
         error: 'Record not found',
         details: 'No record exists with the specified ID' 
@@ -304,19 +327,19 @@ router.delete('/delete-record/:id', async (req, res) => {
 // Get single record by ID (for editing)
 router.get('/get-record/:id', async (req, res) => {
   try {
-    const [rows] = await db.query(
+    const results = await query(
       'SELECT * FROM record WHERE id = ?',
       [req.params.id]
     );
     
-    if (rows.length === 0) {
+    if (results.length === 0) {
       return res.status(404).json({ 
         error: 'Record not found',
         details: 'No record exists with the specified ID' 
       });
     }
     
-    res.json(rows[0]);
+    res.json(results[0]);
   } catch (error) {
     console.error('Error fetching record:', error);
     res.status(500).json({ 
@@ -331,81 +354,67 @@ router.put('/update-record/:id', async (req, res) => {
   const { date, surgery, other, vaccineType, coreVaccine, lifestyleVaccine, otherVaccine, petId } = req.body;
   
   try {
-    // Get a connection from the pool
-    const connection = await db.getConnection();
-    
-    try {
-      await connection.beginTransaction();
+    // Get existing record
+    const existingRecord = await query(
+      `SELECT * FROM record WHERE id = ?`,
+      [req.params.id]
+    );
 
-      // 1. First get the existing record to check for existing vaccination
-      const [existingRecord] = await connection.query(
-        `SELECT * FROM record WHERE id = ?`,
-        [req.params.id]
-      );
-
-      if (existingRecord.length === 0) {
-        await connection.rollback();
-        return res.status(404).json({ 
-          error: 'Record not found',
-          details: 'No record exists with the specified ID' 
-        });
-      }
-
-      let vaccinationId = existingRecord[0].vaccination_id || null;
-
-      // 2. Handle vaccination data if provided
-      if (vaccineType) {
-        const vaccineName = vaccineType === 'core' ? coreVaccine : 
-                         vaccineType === 'lifestyle' ? lifestyleVaccine : 
-                         otherVaccine;
-
-        if (vaccinationId) {
-          // Update existing vaccination record
-          await connection.query(
-            `UPDATE vaccination 
-             SET vaccine_type = ?, vaccine_name = ?, other_vaccine = ?, vaccination_date = ?, notes = ?
-             WHERE vaccination_id = ?`,
-            [vaccineType, vaccineName, otherVaccine || null, date, other || null, vaccinationId]
-          );
-        } else {
-          // Create new vaccination record
-          const [vaccinationResult] = await connection.query(
-            `INSERT INTO vaccination 
-             (pet_id, vaccine_type, vaccine_name, other_vaccine, vaccination_date, notes) 
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            [petId, vaccineType, vaccineName, otherVaccine || null, date, other || null]
-          );
-          vaccinationId = vaccinationResult.insertId;
-        }
-      } else if (vaccinationId) {
-        // If no vaccine data provided but record had vaccination, delete it
-        await connection.query(
-          `DELETE FROM vaccination WHERE vaccination_id = ?`,
-          [vaccinationId]
-        );
-        vaccinationId = null;
-      }
-
-      // 3. Update the main record
-      const [result] = await connection.query(
-        `UPDATE record 
-         SET date = ?, surgery = ?, other = ?, vaccination_id = ?
-         WHERE id = ?`,
-        [date, surgery || null, other || null, vaccinationId, req.params.id]
-      );
-      
-      await connection.commit();
-      res.json({ 
-        success: true, 
-        message: 'Record updated successfully',
-        vaccinationId: vaccinationId
+    if (existingRecord.length === 0) {
+      return res.status(404).json({ 
+        error: 'Record not found',
+        details: 'No record exists with the specified ID' 
       });
-    } catch (error) {
-      await connection.rollback();
-      throw error;
-    } finally {
-      connection.release();
     }
+
+    let vaccinationId = existingRecord[0].vaccination_id || null;
+
+    // Handle vaccination data if provided
+    if (vaccineType) {
+      const vaccineName = vaccineType === 'core' ? coreVaccine : 
+                       vaccineType === 'lifestyle' ? lifestyleVaccine : 
+                       otherVaccine;
+
+      if (vaccinationId) {
+        // Update existing vaccination record
+        await query(
+          `UPDATE vaccination 
+           SET vaccine_type = ?, vaccine_name = ?, other_vaccine = ?, vaccination_date = ?, notes = ?
+           WHERE vaccination_id = ?`,
+          [vaccineType, vaccineName, otherVaccine || null, date, other || null, vaccinationId]
+        );
+      } else {
+        // Create new vaccination record
+        const vaccinationResult = await query(
+          `INSERT INTO vaccination 
+           (pet_id, vaccine_type, vaccine_name, other_vaccine, vaccination_date, notes) 
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [petId, vaccineType, vaccineName, otherVaccine || null, date, other || null]
+        );
+        vaccinationId = vaccinationResult.insertId;
+      }
+    } else if (vaccinationId) {
+      // If no vaccine data provided but record had vaccination, delete it
+      await query(
+        `DELETE FROM vaccination WHERE vaccination_id = ?`,
+        [vaccinationId]
+      );
+      vaccinationId = null;
+    }
+
+    // Update the main record
+    await query(
+      `UPDATE record 
+       SET date = ?, surgery = ?, other = ?, vaccination_id = ?
+       WHERE id = ?`,
+      [date, surgery || null, other || null, vaccinationId, req.params.id]
+    );
+    
+    res.json({ 
+      success: true, 
+      message: 'Record updated successfully',
+      vaccinationId: vaccinationId
+    });
   } catch (error) {
     console.error('Error updating record:', error);
     res.status(500).json({ 
@@ -417,11 +426,10 @@ router.put('/update-record/:id', async (req, res) => {
 });
 
 // Get full record details with owner and pet info
-// Update the full-record endpoint
 router.get('/full-record/:id', async (req, res) => {
   try {
     // Get the basic record information
-    const [recordRows] = await db.query(
+    const recordRows = await query(
       `SELECT r.id, r.date, r.surgery, r.other, r.vaccination_id,
               p.Pet_id, p.Pet_name, p.Pet_type, p.Pet_dob,
               o.Owner_id, o.Owner_name, o.E_mail, o.Phone_number
@@ -443,7 +451,7 @@ router.get('/full-record/:id', async (req, res) => {
     
     // Get vaccination data if exists
     if (record.vaccination_id) {
-      const [vaccineRows] = await db.query(
+      const vaccineRows = await query(
         'SELECT * FROM vaccination WHERE vaccination_id = ?',
         [record.vaccination_id]
       );
@@ -466,99 +474,13 @@ router.get('/full-record/:id', async (req, res) => {
   }
 });
 
-// Update the update-record endpoint
-router.put('/update-record/:id', async (req, res) => {
-  const { date, surgery, other, vaccineType, coreVaccine, lifestyleVaccine, otherVaccine, petId } = req.body;
-  
-  try {
-    // Start transaction using the pool directly
-    await db.query('START TRANSACTION');
-
-    try {
-      // 1. First get the existing record to check for existing vaccination
-      const [existingRecord] = await db.query(
-        `SELECT * FROM record WHERE id = ?`,
-        [req.params.id]
-      );
-
-      if (existingRecord.length === 0) {
-        await db.query('ROLLBACK');
-        return res.status(404).json({ 
-          error: 'Record not found',
-          details: 'No record exists with the specified ID' 
-        });
-      }
-
-      let vaccinationId = existingRecord[0].vaccination_id || null;
-
-      // 2. Handle vaccination data if provided
-      if (vaccineType) {
-        const vaccineName = vaccineType === 'core' ? coreVaccine : 
-                         vaccineType === 'lifestyle' ? lifestyleVaccine : 
-                         otherVaccine;
-
-        if (vaccinationId) {
-          // Update existing vaccination record
-          await db.query(
-            `UPDATE vaccination 
-             SET vaccine_type = ?, vaccine_name = ?, other_vaccine = ?, vaccination_date = ?, notes = ?
-             WHERE vaccination_id = ?`,
-            [vaccineType, vaccineName, otherVaccine || null, date, other || null, vaccinationId]
-          );
-        } else {
-          // Create new vaccination record
-          const [vaccinationResult] = await db.query(
-            `INSERT INTO vaccination 
-             (pet_id, vaccine_type, vaccine_name, other_vaccine, vaccination_date, notes) 
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            [petId, vaccineType, vaccineName, otherVaccine || null, date, other || null]
-          );
-          vaccinationId = vaccinationResult.insertId;
-        }
-      } else if (vaccinationId) {
-        // If no vaccine data provided but record had vaccination, delete it
-        await db.query(
-          `DELETE FROM vaccination WHERE vaccination_id = ?`,
-          [vaccinationId]
-        );
-        vaccinationId = null;
-      }
-
-      // 3. Update the main record
-      const [result] = await db.query(
-        `UPDATE record 
-         SET date = ?, surgery = ?, other = ?, vaccination_id = ?
-         WHERE id = ?`,
-        [date, surgery || null, other || null, vaccinationId, req.params.id]
-      );
-      
-      await db.query('COMMIT');
-      res.json({ 
-        success: true, 
-        message: 'Record updated successfully',
-        vaccinationId: vaccinationId
-      });
-    } catch (error) {
-      await db.query('ROLLBACK');
-      throw error;
-    }
-  } catch (error) {
-    console.error('Error updating record:', error);
-    res.status(500).json({ 
-      error: 'Error updating record',
-      details: error.message,
-      sqlMessage: error.sqlMessage
-    });
-  }
-});
-
 // Get all owners for dropdown
 router.get('/all-owners', async (req, res) => {
   try {
-    const [rows] = await db.query(
+    const results = await query(
       'SELECT Owner_id, Owner_name, Owner_address FROM pet_owner ORDER BY Owner_name'
     );
-    res.json(rows);
+    res.json(results);
   } catch (error) {
     console.error('Error fetching owners:', error);
     res.status(500).json({ 
@@ -568,79 +490,55 @@ router.get('/all-owners', async (req, res) => {
   }
 });
 
-// Create new record
-// Modify the /records endpoint to properly link vaccination records
+// Create new record with vaccination
 router.post('/records', async (req, res) => {
-  const { ownerId, petId, date, surgery, vaccineType, coreVaccine, lifestyleVaccine, otherVaccine, other } = req.body;
-  
-  if (!petId || !ownerId || !date) {
-    return res.status(400).json({ 
-      error: 'Validation error',
-      details: 'Pet ID, Owner ID and date are required' 
-    });
-  }
-
-  const connection = await db.promise();
-  
   try {
-    await connection.beginTransaction();
-
-    // Verify pet exists and belongs to owner
-    const [pet] = await connection.query(
-      'SELECT * FROM pet WHERE Pet_id = ? AND Owner_id = ?',
-      [petId, ownerId]
-    );
-    
-    if (pet.length === 0) {
-      return res.status(400).json({
-        error: 'Invalid pet',
-        details: 'The specified pet does not exist or does not belong to this owner'
-      });
-    }
-
-    // Insert vaccination first if provided
     let vaccinationId = null;
-    if (vaccineType) {
-      const vaccineName = vaccineType === 'core' ? coreVaccine : lifestyleVaccine;
-      const [vaccinationResult] = await connection.query(
+    
+    // Handle vaccination if provided
+    if (req.body.vaccineType) {
+      const vaccResult = await query(
         `INSERT INTO vaccination 
          (pet_id, vaccine_type, vaccine_name, other_vaccine, vaccination_date, notes)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [
-          petId,
-          vaccineType,
-          vaccineName || null,
-          otherVaccine || null,
-          date,
-          other || null
+          req.body.petId,
+          req.body.vaccineType,
+          req.body.vaccineType === 'core' ? req.body.coreVaccine : req.body.lifestyleVaccine,
+          req.body.otherVaccine || null,
+          req.body.date,
+          req.body.other || null
         ]
       );
-      vaccinationId = vaccinationResult.insertId;
+      vaccinationId = vaccResult.insertId;
     }
 
-    // Insert medical record with vaccination_id reference
-    const [recordResult] = await connection.query(
+    // Create the record
+    const recordResult = await query(
       `INSERT INTO record 
-       (Pet_id, Owner_id, date, surgery, other, vaccination_id, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, NOW())`,
-      [petId, ownerId, date, surgery || null, other || null, vaccinationId]
+       (Pet_id, Owner_id, date, surgery, other, vaccination_id)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        req.body.petId,
+        req.body.ownerId,
+        req.body.date,
+        req.body.surgery || null,
+        req.body.other || null,
+        vaccinationId
+      ]
     );
-
-    await connection.commit();
 
     res.status(201).json({ 
       success: true,
       recordId: recordResult.insertId,
-      vaccinationId: vaccinationId,
-      message: 'Record created successfully'
+      vaccinationId
     });
   } catch (error) {
-    await connection.rollback();
-    console.error('Database error:', error);
+    console.error('Error creating record:', error);
     res.status(500).json({ 
-      error: 'Database operation failed',
-      details: error.message,
-      sqlMessage: error.sqlMessage
+      success: false,
+      error: 'Error creating record',
+      details: error.message
     });
   }
 });
@@ -658,13 +556,13 @@ router.get('/get-records-with-vaccination', async (req, res) => {
 
   try {
     // First get all records for the pet
-    const [records] = await db.query(
+    const records = await query(
       'SELECT * FROM record WHERE Pet_id = ? ORDER BY date DESC',
       [petId]
     );
 
     // Then get all vaccinations for the pet
-    const [vaccinations] = await db.query(
+    const vaccinations = await query(
       'SELECT * FROM vaccination WHERE pet_id = ? ORDER BY vaccination_date DESC',
       [petId]
     );
@@ -696,12 +594,11 @@ router.get('/get-records-with-vaccination', async (req, res) => {
   }
 });
 
-
 // Notification routes
 router.get('/notification-templates', async (req, res) => {
   try {
-    const [templates] = await db.query('SELECT * FROM notification_templates');
-    res.json(templates);
+    const results = await query('SELECT * FROM notification_templates');
+    res.json(results);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -711,7 +608,7 @@ router.put('/notification-templates/:id', async (req, res) => {
   const { subject, message_body, days_before, is_active } = req.body;
   
   try {
-    await db.query(
+    await query(
       'UPDATE notification_templates SET subject = ?, message_body = ?, days_before = ?, is_active = ? WHERE template_id = ?',
       [subject, message_body, days_before, is_active, req.params.id]
     );
@@ -723,7 +620,7 @@ router.put('/notification-templates/:id', async (req, res) => {
 
 router.get('/sent-notifications', async (req, res) => {
   const { pet_id, owner_id, status } = req.query;
-  let query = 'SELECT n.*, p.Pet_name, o.Owner_name FROM sent_notifications n ' +
+  let queryStr = 'SELECT n.*, p.Pet_name, o.Owner_name FROM sent_notifications n ' +
               'JOIN pet p ON n.pet_id = p.Pet_id ' +
               'JOIN pet_owner o ON n.owner_id = o.Owner_id ';
   const conditions = [];
@@ -745,161 +642,40 @@ router.get('/sent-notifications', async (req, res) => {
   }
   
   if (conditions.length > 0) {
-    query += ' WHERE ' + conditions.join(' AND ');
+    queryStr += ' WHERE ' + conditions.join(' AND ');
   }
   
-  query += ' ORDER BY n.sent_date DESC';
+  queryStr += ' ORDER BY n.sent_date DESC';
   
   try {
-    const [notifications] = await db.query(query, params);
-    res.json(notifications);
+    const results = await query(queryStr, params);
+    res.json(results);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Endpoint to manually trigger notification check (for testing)
-router.post('/check-notifications', async (req, res) => {
-  try {
-    await notificationService.dailyNotificationCheck();
-    res.json({ success: true, message: 'Notification check completed' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-
-// Add this new route to handle vaccination data
+// Get vaccination by ID
 router.get('/vaccination/:id', async (req, res) => {
   try {
-    const [rows] = await db.query(
+    const results = await query(
       'SELECT * FROM vaccination WHERE vaccination_id = ?',
       [req.params.id]
     );
     
-    if (rows.length === 0) {
+    if (results.length === 0) {
       return res.status(404).json({ 
         error: 'Vaccination not found',
         details: 'No vaccination exists with the specified ID' 
       });
     }
     
-    res.json(rows[0]);
+    res.json(results[0]);
   } catch (error) {
     console.error('Error fetching vaccination:', error);
     res.status(500).json({ 
       error: 'Error fetching vaccination',
       details: error.message 
-    });
-  }
-});
-
-// Update the update-record endpoint to handle vaccination data
-router.put('/update-record/:id', async (req, res) => {
-  const { 
-    ownerId, 
-    petId, 
-    date, 
-    surgery, 
-    vaccineType, 
-    coreVaccine, 
-    lifestyleVaccine, 
-    otherVaccine, 
-    other 
-  } = req.body;
-  
-  const connection = await db.promise();
-  
-  try {
-    await connection.beginTransaction();
-
-    // First get the existing record to check for vaccination_id
-    const [existingRecord] = await connection.query(
-      'SELECT * FROM record WHERE id = ?',
-      [req.params.id]
-    );
-    
-    if (existingRecord.length === 0) {
-      return res.status(404).json({ 
-        error: 'Record not found',
-        details: 'No record exists with the specified ID' 
-      });
-    }
-
-    // Handle vaccination data
-    let vaccinationId = existingRecord[0].vaccination_id;
-    
-    if (vaccineType) {
-      const vaccineName = vaccineType === 'core' ? coreVaccine : lifestyleVaccine;
-      
-      if (vaccinationId) {
-        // Update existing vaccination
-        await connection.query(
-          `UPDATE vaccination SET
-           vaccine_type = ?,
-           vaccine_name = ?,
-           other_vaccine = ?,
-           vaccination_date = ?,
-           notes = ?
-           WHERE vaccination_id = ?`,
-          [
-            vaccineType,
-            vaccineName || null,
-            otherVaccine || null,
-            date,
-            other || null,
-            vaccinationId
-          ]
-        );
-      } else {
-        // Create new vaccination
-        const [vaccinationResult] = await connection.query(
-          `INSERT INTO vaccination 
-           (pet_id, vaccine_type, vaccine_name, other_vaccine, vaccination_date, notes)
-           VALUES (?, ?, ?, ?, ?, ?)`,
-          [
-            petId,
-            vaccineType,
-            vaccineName || null,
-            otherVaccine || null,
-            date,
-            other || null
-          ]
-        );
-        vaccinationId = vaccinationResult.insertId;
-      }
-    } else if (vaccinationId) {
-      // Remove vaccination if it exists but vaccineType is not provided
-      await connection.query(
-        'DELETE FROM vaccination WHERE vaccination_id = ?',
-        [vaccinationId]
-      );
-      vaccinationId = null;
-    }
-
-    // Update the medical record
-    const [result] = await connection.query(
-      `UPDATE record 
-       SET date = ?, surgery = ?, other = ?, vaccination_id = ?
-       WHERE id = ?`,
-      [date, surgery || null, other || null, vaccinationId, req.params.id]
-    );
-    
-    await connection.commit();
-
-    res.json({ 
-      success: true,
-      message: 'Record updated successfully',
-      recordId: req.params.id,
-      vaccinationId: vaccinationId
-    });
-  } catch (error) {
-    await connection.rollback();
-    console.error('Error updating record:', error);
-    res.status(500).json({ 
-      error: 'Error updating record',
-      details: error.message,
-      sqlMessage: error.sqlMessage
     });
   }
 });
