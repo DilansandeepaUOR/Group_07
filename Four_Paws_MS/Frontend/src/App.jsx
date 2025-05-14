@@ -15,13 +15,13 @@ import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import Appointment from "./Pages/Appointment";
 
-import RecordsEntry from "./Pages/RecordsEntry";
+
 import Mobileservice from "./Pages/MobileService";
 
 // Records Pages
-import EditRecords from "./Pages/EditRecords";
 
-import Adlogin from "./Admin/Pages/Adlogin";
+
+//import Adlogin from "./Admin/Pages/Adlogin";
 import VaccineNotify from "./Pages/VaccineNotify";
 import VaccineSent from "./Pages/VaccineSent";
 import MobileService from "./Pages/MobileService";
@@ -81,7 +81,6 @@ const App = () => {
         <Route path="/records/edit/:id" element={<RecordEdit />} />
         <Route path="/records/new" element={<RecordNew />} />
 
-        <Route path="/edit/:id" element={<EditRecords />} />
         <Route path="/search" element={<SearchRecords />} />
         <Route path="/Reports" element={<ReportsSection />} />
 
@@ -94,14 +93,7 @@ const App = () => {
             </ProtectedRoutesUser>
           } 
         />
-        <Route 
-          path="/RecordsEntry" 
-          element={
-            <ProtectedRoutesUser allowedRolesUser={["Petowner"]}>
-              <RecordsEntry />
-            </ProtectedRoutesUser>
-          } 
-        />
+        
 
         {/* Protected Admin Routes */}
         <Route 
