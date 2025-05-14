@@ -3,8 +3,12 @@ const express = require('express');
 const router = express.Router();
 const moment = require('moment');
 const cron = require('node-cron');
-require('dotenv');
+require('dotenv').config();
 const db = require('../../db');
+
+// Promisify the db connection
+const util = require('util');
+db.query = util.promisify(db.query).bind(db);
 
 // Email transporter configuration
 let transporter;
@@ -28,46 +32,377 @@ try {
   console.error('Failed to create email transporter:', error);
 }
 
-// Calculate pet's age in weeks at a given date
 function getAgeInWeeks(dob, date) {
-  if (!dob || !date) {
-    console.error('Missing date for age calculation');
-    return 0;
-  }
-  
+  if (!dob || !date) return 0;
+  const birthDate = moment(dob);
+  const checkDate = moment(date);
+  return checkDate.diff(birthDate, 'weeks');
+}
+
+
+
+async function logFailedNotification(pet, template, error) {
+  await db.query(`INSERT INTO sent_notifications SET ?`, {
+    template_id: template.template_id,
+    pet_id: pet.Pet_id,
+    owner_id: pet.Owner_id,
+    vaccination_id: null,
+    scheduled_date: new Date(),
+    sent_date: new Date(),
+    email: pet.E_mail,
+    subject: template.subject,
+    message: template.message_body,
+    status: 'failed',
+    error_message: error.message
+  });
+}
+
+
+async function sendFirstDoseNotification(pet, template, vaccineName) {
   try {
-    const birthDate = moment(dob);
-    const checkDate = moment(date);
+    const recommendedDate = moment().format('YYYY-MM-DD');
     
-    if (!birthDate.isValid() || !checkDate.isValid()) {
-      console.error('Invalid date format for age calculation');
-      return 0;
-    }
+    // Customize message for first dose
+    let message = template.message_body
+      .replace(/{pet_name}/g, pet.Pet_name)
+      .replace(/{next_vaccination_date}/g, recommendedDate)
+      .replace(/second dose/g, 'first dose');
     
-    return checkDate.diff(birthDate, 'weeks');
+    let subject = template.subject.replace(/{pet_name}/g, pet.Pet_name);
+
+    // Send email
+    await transporter.sendMail({
+      from: `"Four Paws Clinic" <${process.env.EMAIL_USER}>`,
+      to: pet.E_mail,
+      subject: subject,
+      text: message,
+      html: `<div>${message.replace(/\n/g, '<br>')}</div>`
+    });
+
+    // Log in sent_notifications table with NULL vaccination_id
+    await db.query(`INSERT INTO sent_notifications SET ?`, {
+      template_id: template.template_id,
+      pet_id: pet.Pet_id,
+      owner_id: pet.Owner_id,
+      vaccination_id: null,
+      scheduled_date: new Date(),
+      sent_date: new Date(),
+      email: pet.E_mail,
+      subject,
+      message,
+      status: 'sent'
+    });
+
+    console.log(`Sent first dose reminder for ${pet.Pet_name} (${vaccineName})`);
   } catch (error) {
-    console.error('Error calculating age:', error);
-    return 0;
+    console.error('Failed to send first dose reminder:', error);
+    await logFailedNotification(pet, template, error);
   }
 }
+
+
+async function handleFirstDoseReminder(pet, template, vaccineName, ageInWeeks) {
+  // Check if pet already has this vaccination
+  const existingVaccinations = await db.query(`
+    SELECT 1 FROM vaccination 
+    WHERE pet_id = ? 
+    AND vaccine_name = ?
+    LIMIT 1
+  `, [pet.Pet_id, vaccineName]);
+  
+  // Only send if no existing vaccination
+  if (existingVaccinations.length === 0) {
+    await sendFirstDoseNotification(pet, template, vaccineName);
+  }
+}
+
+
+async function checkPreviousDoseExists(petId, vaccineName, currentTemplate) {
+  // Check vaccination table for previous dose
+  const vaccinations = await db.query(`
+    SELECT 1 FROM vaccination 
+    WHERE pet_id = ? 
+    AND vaccine_name = ?
+    LIMIT 1
+  `, [petId, vaccineName]);
+  
+  if (vaccinations.length > 0) return true;
+  
+  // Check sent_notifications for first dose reminder
+  const previousNotifications = await db.query(`
+    SELECT 1 FROM sent_notifications sn
+    JOIN notification_templates nt ON sn.template_id = nt.template_id
+    WHERE sn.pet_id = ?
+    AND nt.trigger_condition LIKE ?
+    AND sn.vaccination_id IS NULL
+    LIMIT 1
+  `, [petId, `%${vaccineName}%`]);
+  
+  return previousNotifications.length > 0;
+}
+
+
+
+// Send follow-up dose notification
+async function sendFollowUpNotification(pet, template, vaccineName) {
+  try {
+    // Get the most recent vaccination for this pet and vaccine
+    const [latestVaccination] = await db.query(`
+      SELECT * FROM vaccination 
+      WHERE pet_id = ? 
+      AND vaccine_name = ?
+      ORDER BY vaccination_date DESC
+      LIMIT 1
+    `, [pet.Pet_id, vaccineName]);
+
+    if (!latestVaccination) {
+      console.log(`No vaccination record found for follow-up dose for ${pet.Pet_name}`);
+      return;
+    }
+
+    const nextVaccinationDate = calculateNextVaccinationDate(
+      vaccineName,
+      latestVaccination.vaccination_date
+    );
+
+    let message = template.message_body
+      .replace(/{pet_name}/g, pet.Pet_name)
+      .replace(/{next_vaccination_date}/g, nextVaccinationDate);
+    
+    let subject = template.subject.replace(/{pet_name}/g, pet.Pet_name);
+
+    // Send email
+    await transporter.sendMail({
+      from: `"Four Paws Clinic" <${process.env.EMAIL_USER}>`,
+      to: pet.E_mail,
+      subject: subject,
+      text: message,
+      html: `<div>${message.replace(/\n/g, '<br>')}</div>`
+    });
+
+    // Log in sent_notifications table with vaccination_id
+    await db.query(`INSERT INTO sent_notifications SET ?`, {
+      template_id: template.template_id,
+      pet_id: pet.Pet_id,
+      owner_id: pet.Owner_id,
+      vaccination_id: latestVaccination.vaccination_id,
+      scheduled_date: new Date(),
+      sent_date: new Date(),
+      email: pet.E_mail,
+      subject,
+      message,
+      status: 'sent'
+    });
+
+    console.log(`Sent follow-up dose reminder for ${pet.Pet_name} (${vaccineName})`);
+  } catch (error) {
+    console.error('Failed to send follow-up dose reminder:', error);
+    await logFailedNotification(pet, template, error);
+  }
+}
+
+
+async function handleFollowUpDoses(pet, template, vaccineName, ageInWeeks) {
+  // Check if there's a previous dose notification or vaccination record
+  const hasPreviousDose = await checkPreviousDoseExists(pet.Pet_id, vaccineName, template);
+  
+  if (hasPreviousDose) {
+    await sendFollowUpNotification(pet, template, vaccineName);
+  }
+}
+
+
+async function checkAgeBasedNotifications() {
+  try {
+    // Get all active templates
+    const templates = await db.query(`
+      SELECT * FROM notification_templates 
+      WHERE is_active = 1
+    `);
+
+    // Get all pets with their owners' information
+    const pets = await db.query(`
+      SELECT p.*, o.E_mail, o.Owner_name, o.Owner_id
+      FROM pet p
+      JOIN pet_owner o ON p.Owner_id = o.Owner_id
+      WHERE p.Pet_dob IS NOT NULL
+    `);
+
+    for (const pet of pets) {
+      const ageInWeeks = getAgeInWeeks(pet.Pet_dob, new Date());
+      
+      for (const template of templates) {
+        const conditions = template.trigger_condition.split(' AND ');
+        const ageMatch = checkAgeCondition(conditions, ageInWeeks);
+        const vaccineName = getVaccineNameFromCondition(template.trigger_condition);
+        
+        if (ageMatch && vaccineName) {
+          // Check if this is a first dose reminder
+          const isFirstDose = template.template_name.toLowerCase().includes('first dose');
+          
+          if (isFirstDose) {
+            await handleFirstDoseReminder(pet, template, vaccineName, ageInWeeks);
+          } else {
+            await handleFollowUpDoses(pet, template, vaccineName, ageInWeeks);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error in checkAgeBasedNotifications:', error);
+  }
+}
+
+// Helper function to get vaccine name from condition
+function getVaccineNameFromCondition(condition) {
+  const vaccineMatch = condition.match(/vaccine_name="([^"]+)"/);
+  return vaccineMatch ? vaccineMatch[1] : null;
+}
+
+
+async function sendFirstDoseReminder(pet, template, ageInWeeks) {
+  try {
+    // Extract vaccine name from template
+    const vaccineMatch = template.trigger_condition.match(/vaccine_name="([^"]+)"/);
+    const vaccineName = vaccineMatch ? vaccineMatch[1] : '';
+    
+    // Calculate recommended vaccination date (current date)
+    const recommendedDate = moment().format('YYYY-MM-DD');
+    
+    // Customize message for first dose
+    let message = template.message_body
+      .replace(/{pet_name}/g, pet.Pet_name)
+      .replace(/{next_vaccination_date}/g, recommendedDate)
+      .replace(/second dose/g, 'first dose'); // Update wording for first dose
+    
+    let subject = template.subject.replace(/{pet_name}/g, pet.Pet_name);
+
+    // Send email
+    await transporter.sendMail({
+      from: `"Four Paws Clinic" <${process.env.EMAIL_USER}>`,
+      to: pet.E_mail,
+      subject: subject,
+      text: message,
+      html: `<div>${message.replace(/\n/g, '<br>')}</div>`
+    });
+
+    // Log in sent_notifications table
+    await db.query(`INSERT INTO sent_notifications SET ?`, {
+      template_id: template.template_id,
+      pet_id: pet.Pet_id,
+      owner_id: pet.Owner_id,
+      vaccination_id: null, // No vaccination record yet
+      scheduled_date: new Date(),
+      sent_date: new Date(),
+      email: pet.E_mail,
+      subject,
+      message,
+      status: 'sent'
+    });
+
+    console.log(`Sent first dose reminder for ${pet.Pet_name} (${vaccineName})`);
+  } catch (error) {
+    console.error('Failed to send first dose reminder:', error);
+    await db.query(`INSERT INTO sent_notifications SET ?`, {
+      template_id: template.template_id,
+      pet_id: pet.Pet_id,
+      owner_id: pet.Owner_id,
+      vaccination_id: null,
+      scheduled_date: new Date(),
+      sent_date: new Date(),
+      email: pet.E_mail,
+      subject: template.subject,
+      message: template.message_body,
+      status: 'failed',
+      error_message: error.message
+    });
+  }
+}
+
 
 // Calculate next vaccination date based on vaccine type and current vaccination date
 function calculateNextVaccinationDate(vaccineName, currentVaccinationDate) {
   const date = moment(currentVaccinationDate);
-  
   switch (vaccineName.toLowerCase()) {
     case 'da2pp':
-      return date.add(4, 'weeks').format('YYYY-MM-DD');
     case 'leptospirosis':
       return date.add(4, 'weeks').format('YYYY-MM-DD');
     case 'rabies':
-      return date.add(52, 'weeks').format('YYYY-MM-DD'); // Annual
+      return date.add(52, 'weeks').format('YYYY-MM-DD');
     case 'bordetella':
-      return date.add(26, 'weeks').format('YYYY-MM-DD'); // Semi-annual
     case 'parainfluenza':
-      return date.add(26, 'weeks').format('YYYY-MM-DD'); // Semi-annual
+      return date.add(26, 'weeks').format('YYYY-MM-DD');
     default:
       return date.add(4, 'weeks').format('YYYY-MM-DD');
+  }
+}
+
+// Process vaccination records for follow-ups
+
+async function processVaccinationFollowUps() {
+  const vaccinations = await db.query(`
+    SELECT v.*, p.Pet_name, p.Pet_dob, o.E_mail, o.Owner_name
+    FROM vaccination v
+    JOIN pet p ON v.pet_id = p.Pet_id
+    JOIN pet_owner o ON p.Owner_id = o.Owner_id
+  `);
+
+  for (const vacc of vaccinations) {
+    const templates = await db.query(`
+      SELECT * FROM notification_templates 
+      WHERE is_active = 1 
+      AND trigger_condition LIKE ?
+    `, [`%${vacc.vaccine_name}%`]);
+
+    for (const template of templates) {
+      await sendNotification({ ...vacc, Pet_id: vacc.pet_id, Owner_id: vacc.Owner_id }, template);
+    }
+  }
+}
+
+
+async function sendNotification(pet, template) {
+  try {
+    const message = template.message_body
+      .replace(/{pet_name}/g, pet.Pet_name)
+      .replace(/{next_vaccination_date}/g, new Date().toLocaleDateString());
+
+    const subject = template.subject.replace(/{pet_name}/g, pet.Pet_name);
+
+    await transporter.sendMail({
+      from: `"Four Paws Clinic" <${process.env.EMAIL_USER}>`,
+      to: pet.E_mail,
+      subject: subject,
+      text: message
+    });
+
+    await db.query(`INSERT INTO sent_notifications SET ?`, {
+      template_id: template.template_id,
+      pet_id: pet.Pet_id,
+      owner_id: pet.Owner_id,
+      vaccination_id: pet.vaccination_id || null,
+      scheduled_date: new Date(),
+      sent_date: new Date(),
+      email: pet.E_mail,
+      subject,
+      message,
+      status: 'sent'
+    });
+  } catch (error) {
+    console.error('Notification failed:', error);
+    await db.query(`INSERT INTO sent_notifications SET ?`, {
+      template_id: template.template_id,
+      pet_id: pet.Pet_id,
+      owner_id: pet.Owner_id,
+      vaccination_id: pet.vaccination_id || null,
+      scheduled_date: new Date(),
+      sent_date: new Date(),
+      email: pet.E_mail,
+      subject: template.subject,
+      message: template.message_body,
+      status: 'failed',
+      error_message: error.message
+    });
   }
 }
 
@@ -119,6 +454,7 @@ async function scheduleVaccinationNotifications(vaccinationId) {
                       }
 
                       if (existing.length === 0) {
+                        // When scheduling notifications
                         db.query(
                           'INSERT INTO notification_schedules SET ?',
                           {
@@ -128,11 +464,13 @@ async function scheduleVaccinationNotifications(vaccinationId) {
                             scheduled_date: scheduledDate,
                             is_sent: 0
                           },
-                          (err) => {
+                          (err, result) => {
                             if (err) {
-                              console.error('Error scheduling notification:', err);
-                            } else {
-                              console.log(`Scheduled notification for ${vacc.Pet_name}`);
+                              if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+                                console.error('Invalid foreign key reference');
+                              } else {
+                                console.error('Error scheduling notification:', err);
+                              }
                             }
                           }
                         );
@@ -152,15 +490,31 @@ async function scheduleVaccinationNotifications(vaccinationId) {
 
 function checkAgeCondition(conditions, ageInWeeks) {
   const ageCondition = conditions.find(c => c.includes('age'));
-  if (!ageCondition) return true;
+  if (!ageCondition) return false; // We only want age-based notifications here
   
-  const ageRange = ageCondition.match(/age (\d+)-(\d+) weeks/);
-  if (!ageRange) return false;
+  // Handle different age condition formats
+  if (ageCondition.includes('between')) {
+    // Format: "age 10 between 12 weeks"
+    const range = ageCondition.match(/age (\d+) between (\d+) weeks/);
+    if (!range) return false;
+    return ageInWeeks >= parseInt(range[1]) && ageInWeeks <= parseInt(range[2]);
+  } else if (ageCondition.includes('-')) {
+    // Format: "age 6-8 weeks"
+    const range = ageCondition.match(/age (\d+)-(\d+) weeks/);
+    if (!range) return false;
+    return ageInWeeks >= parseInt(range[1]) && ageInWeeks <= parseInt(range[2]);
+  } else if (ageCondition.includes('>')) {
+    // Format: "age > 16 weeks"
+    const threshold = ageCondition.match(/age > (\d+) weeks/);
+    if (!threshold) return false;
+    return ageInWeeks > parseInt(threshold[1]);
+  }
   
-  const minAge = parseInt(ageRange[1]);
-  const maxAge = parseInt(ageRange[2]);
-  return ageInWeeks >= minAge && ageInWeeks <= maxAge;
+  return false;
 }
+
+
+
 
 function checkVaccineCondition(conditions, vaccineName) {
   const vaccineCondition = conditions.find(c => c.includes('vaccine_name'));
@@ -261,10 +615,10 @@ async function processScheduledNotifications() {
 // API Endpoints
 router.get('/notification-templates', async (req, res) => {
   try {
-    const [templates] = await db.query('SELECT * FROM notification_templates');
+    const templates = await db.query('SELECT * FROM notification_templates');
     res.json(templates);
-  } catch (error) {
-    console.error('Error fetching templates:', error);
+  } catch (err) {
+    console.error('Error fetching templates:', err);
     res.status(500).json({ error: 'Failed to fetch templates' });
   }
 });
@@ -273,23 +627,20 @@ router.put('/notification-templates/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { subject, message_body, days_before, is_active } = req.body;
-    
     await db.query(
       'UPDATE notification_templates SET subject = ?, message_body = ?, days_before = ?, is_active = ? WHERE template_id = ?',
       [subject, message_body, days_before, is_active, id]
     );
-    
     res.json({ message: 'Template updated successfully' });
-  } catch (error) {
-    console.error('Error updating template:', error);
+  } catch (err) {
+    console.error('Error updating template:', err);
     res.status(500).json({ error: 'Failed to update template' });
   }
 });
 
 router.get('/notification-history', async (req, res) => {
   try {
-    console.log('Fetching notification history');
-    const [history] = await db.query(
+    const history = await db.query(
       'SELECT sn.*, nt.template_name, p.Pet_name, po.Owner_name ' +
       'FROM sent_notifications sn ' +
       'JOIN notification_templates nt ON sn.template_id = nt.template_id ' +
@@ -297,31 +648,36 @@ router.get('/notification-history', async (req, res) => {
       'JOIN pet_owner po ON sn.owner_id = po.Owner_id ' +
       'ORDER BY sn.sent_date DESC'
     );
-    console.log('Found notification history records:', history.length);
     res.json(history);
-  } catch (error) {
-    console.error('Error fetching notification history:', error);
-    res.status(500).json({ error: 'Failed to fetch notification history' });
+  } catch (err) {
+    console.error('Error fetching history:', err);
+    res.status(500).json({ error: 'Failed to fetch history' });
   }
 });
 
 // Run this daily (set up with cron job)
+// Main daily runner
 async function dailyNotificationCheck() {
   try {
-    db.query(
-      'SELECT v.vaccination_id FROM vaccination v ' +
-      'LEFT JOIN notification_schedules s ON v.vaccination_id = s.vaccination_id ' +
-      'WHERE s.vaccination_id IS NULL',
-      async (err, newVaccinations) => {
-        if (err) throw err;
-        
-        for (const vacc of newVaccinations) {
-          await scheduleVaccinationNotifications(vacc.vaccination_id);
-        }
+    // Process age-based notifications first
+    await checkAgeBasedNotifications();
+    
+    // Process scheduled notifications from vaccination records
+    const newVaccinations = await db.query(`
+      SELECT v.vaccination_id FROM vaccination v 
+      LEFT JOIN notification_schedules s ON v.vaccination_id = s.vaccination_id 
+      WHERE s.vaccination_id IS NULL
+    `);
 
-        await processScheduledNotifications();
-      }
-    );
+    for (const vacc of newVaccinations) {
+      await scheduleVaccinationNotifications(vacc.vaccination_id);
+    }
+
+    // Process any scheduled notifications
+    await processScheduledNotifications();
+    
+    // Process follow-ups for existing vaccinations
+    await processVaccinationFollowUps();
   } catch (error) {
     console.error('Error in daily notification check:', error);
   }
@@ -331,8 +687,7 @@ async function dailyNotificationCheck() {
 // Test endpoint to manually trigger notifications
 router.post('/test-notification', async (req, res) => {
   try {
-    // Get the latest vaccination record
-    const [vaccinations] = await db.query(
+    const vaccinations = await db.query(
       'SELECT v.*, p.Pet_name, p.Pet_dob, o.Owner_id, o.E_mail, o.Owner_name ' +
       'FROM vaccination v ' +
       'JOIN pet p ON v.pet_id = p.Pet_id ' +
@@ -345,25 +700,20 @@ router.post('/test-notification', async (req, res) => {
     }
 
     const vacc = vaccinations[0];
-    console.log('Testing notification for vaccination:', vacc);
-
-    // Schedule notifications for this vaccination
     await scheduleVaccinationNotifications(vacc.vaccination_id);
-
-    // Process notifications immediately
     await processScheduledNotifications();
 
     res.json({ message: 'Test notification processed' });
-  } catch (error) {
-    console.error('Error in test notification:', error);
-    res.status(500).json({ error: 'Failed to process test notification' });
+  } catch (err) {
+    console.error('Test notification error:', err);
+    res.status(500).json({ error: 'Test notification failed' });
   }
 });
 
 // Debug endpoint to check vaccination records
 router.get('/debug-vaccinations', async (req, res) => {
-  try {
-    const [vaccinations] = await db.query(
+   try {
+    const vaccinations = await db.query(
       'SELECT v.*, p.Pet_name, p.Pet_dob, o.Owner_id, o.E_mail, o.Owner_name ' +
       'FROM vaccination v ' +
       'JOIN pet p ON v.pet_id = p.Pet_id ' +
@@ -371,7 +721,7 @@ router.get('/debug-vaccinations', async (req, res) => {
       'ORDER BY v.vaccination_id DESC LIMIT 5'
     );
 
-    const [templates] = await db.query(
+    const templates = await db.query(
       'SELECT * FROM notification_templates WHERE is_active = 1'
     );
 
@@ -380,15 +730,15 @@ router.get('/debug-vaccinations', async (req, res) => {
       templates,
       message: 'Debug information retrieved successfully'
     });
-  } catch (error) {
-    console.error('Error in debug endpoint:', error);
-    res.status(500).json({ error: 'Failed to retrieve debug information' });
+  } catch (err) {
+    console.error('Debug error:', err);
+    res.status(500).json({ error: 'Debug fetch failed' });
   }
 });
 
 
 router.post('/trigger-notifications', async (req, res) => {
-  try {
+ try {
     await dailyNotificationCheck();
     res.json({ success: true, message: 'Notifications processed successfully' });
   } catch (error) {
