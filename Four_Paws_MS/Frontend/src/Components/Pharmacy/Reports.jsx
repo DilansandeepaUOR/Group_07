@@ -331,13 +331,7 @@ export default function ReportsSection() {
                 </SelectContent>
               </Select>
             </div>
-            <Button 
-              onClick={exportPDF}
-              className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
-              disabled={loadingRevenue || loadingDetailed}
-            >
-              Export as PDF
-            </Button>
+            
           </div>
 
           <div className="p-6 bg-white/50 rounded-lg shadow-inner flex justify-center items-center min-h-32 mb-6">
