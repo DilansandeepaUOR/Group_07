@@ -11,7 +11,7 @@ const db = mysql.createConnection({
   host: 'localhost',
   user: 'fourpaws',
   password: '1234',
-  database: 'fourpaws'
+  database: 'fourpaws_db'
 });
 
 

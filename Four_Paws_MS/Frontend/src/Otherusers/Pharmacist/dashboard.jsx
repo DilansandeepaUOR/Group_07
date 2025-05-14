@@ -66,7 +66,7 @@ export default function DashboardSection() {
     {
       icon: <DollarSign className="w-8 h-8" />,
       title: "Rs. 8,55,875",
-      subtitle: "Revenue - Jan 2022",
+      subtitle: "Revenue",
       buttonText: "View Detailed Report",
       onClick: () => navigate("/reports"), // Fixed path to lowercase
       status: "revenue",

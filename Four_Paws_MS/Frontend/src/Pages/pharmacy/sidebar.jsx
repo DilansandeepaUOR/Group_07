@@ -196,16 +196,7 @@ export default function Sidebar({ children }) {
               padding: "12px",
             }}
           >
-            <img
-              src="https://ui-avatars.com/api/?background=3bcdbf&color=ffffff&bold=true"
-              alt="User avatar"
-              style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "6px",
-                border: `1px solid ${colors.tealAccent}`
-              }}
-            />
+            
             <div
               style={{
                 display: "flex",
@@ -218,12 +209,12 @@ export default function Sidebar({ children }) {
                 color: colors.lightText
               }}
             >
-              <div style={{ lineHeight: "1rem" }}>
+              <div style={{ lineHeight: "1rem", alignItems:"center"}}>
                 <h4 style={{ fontWeight: "600", color: colors.yellowAccent, margin: 0 }}>{pharmacist?.fname} {pharmacist?.lname}</h4>
                 <span style={{ fontSize: "0.75rem", color: colors.tealAccent }}>{pharmacist?.email}</span>
                 <button className="m-5 cursor-pointer" onClick={handleLogout}>Logout</button>
               </div>
-              <MoreVertical size={20} color={colors.tealAccent} />
+              
             </div>
           </div>
         </nav>

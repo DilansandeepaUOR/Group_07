@@ -77,7 +77,6 @@ const App = () => {
         <Route path="/records/edit/:id" element={<RecordEdit />} />
         <Route path="/records/new" element={<RecordNew />} />
 
-        <Route path="/edit/:id" element={<EditRecords />} />
         <Route path="/search" element={<SearchRecords />} />
         <Route path="/Reports" element={<ReportsSection />} />
 
@@ -90,14 +89,7 @@ const App = () => {
             </ProtectedRoutesUser>
           } 
         />
-        <Route 
-          path="/RecordsEntry" 
-          element={
-            <ProtectedRoutesUser allowedRolesUser={["Petowner"]}>
-              <RecordsEntry />
-            </ProtectedRoutesUser>
-          } 
-        />
+        
 
         {/* Protected Admin Routes */}
         <Route 

@@ -90,18 +90,18 @@ router.get('/api/medicines/low-stock', (req, res) => {
   });
 });
 
-// In your server-side code
-router.get('/api/sales/total-sold', async (req, res) => {
-  try {
-    const [results] = await pool.query(
-      "SELECT SUM(ABS(stock_change)) as totalSold FROM sales WHERE change_type = 'STOCK_OUT'"
-    );
+// Get total number of sold medicines
+router.get('/api/sales/total-sold', (req, res) => {
+  const sql = "SELECT SUM(ABS(stock_change)) AS totalSold FROM sales WHERE change_type = 'STOCK_OUT'";
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("Error fetching total medicines sold:", err);
+      return res.status(500).json({ error: "Failed to fetch total medicines sold" });
+    }
     res.json({ totalSold: results[0].totalSold || 0 });
-  } catch (err) {
-    console.error("Error fetching total medicines sold:", err);
-    res.status(500).json({ error: "Failed to fetch total medicines sold" });
-  }
+  });
 });
+
 /**--------------------------------------------------------------------------------- */
 
 // GET all medicines (with optional search and pagination)
