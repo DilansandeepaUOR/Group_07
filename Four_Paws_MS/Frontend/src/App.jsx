@@ -46,6 +46,9 @@ import PsDashboard from "./Otherusers/Petshopper/psdashboard";
 // Miscellaneous
 import Unauth from "./Pages/Unauth";
 import ReportsSection from "./Components/Pharmacy/Reports";
+import MedicineListSection from "./Components/Pharmacy/Inventory"
+import MedicineGroupSection from "./Components/Pharmacy/MedicineGroup"
+
 
 const App = () => {
   return (
@@ -79,6 +82,9 @@ const App = () => {
 
         <Route path="/search" element={<SearchRecords />} />
         <Route path="/Reports" element={<ReportsSection />} />
+        <Route path='/Inventory' element={<MedicineListSection />} />
+        <Route path='/Inventory2' element={<MedicineGroupSection />} />
+
 
         {/* Protected Petowner Routes */}
         <Route 
