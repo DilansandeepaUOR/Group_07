@@ -90,18 +90,54 @@ router.get('/api/medicines/low-stock', (req, res) => {
   });
 });
 
-// In your server-side code
-router.get('/api/sales/total-sold', async (req, res) => {
-  try {
-    const [results] = await pool.query(
-      "SELECT SUM(ABS(stock_change)) as totalSold FROM sales WHERE change_type = 'STOCK_OUT'"
-    );
+// Get total number of sold medicines (sum of all quantities)
+router.get('/api/sales/total-sold', (req, res) => {
+  const sql = "SELECT SUM(ABS(stock_change)) AS totalSold FROM sales WHERE change_type = 'STOCK_OUT'";
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("Error fetching total medicines sold:", err);
+      return res.status(500).json({ error: "Failed to fetch total medicines sold" });
+    }
     res.json({ totalSold: results[0].totalSold || 0 });
-  } catch (err) {
-    console.error("Error fetching total medicines sold:", err);
-    res.status(500).json({ error: "Failed to fetch total medicines sold" });
-  }
+  });
 });
+
+router.get('/api/total-sales', (req, res) => {
+  db.query(
+    `SELECT 
+      m.id,
+      m.name,
+      m.price,
+      SUM(ABS(s.stock_change)) as quantity_sold,
+      SUM(ABS(s.stock_change) * m.price) as total_revenue
+    FROM sales s
+    JOIN medicines m ON s.medicine_id = m.id
+    WHERE s.change_type = 'STOCK_OUT'
+    GROUP BY m.id, m.name, m.price
+    ORDER BY total_revenue DESC`,
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ 
+          items: [],
+          grandTotal: 0 
+        });
+      }
+      
+      // Convert string numbers to proper numbers before summing
+      const grandTotal = results.reduce((sum, item) => {
+        const revenue = parseFloat(item.total_revenue) || 0;
+        return sum + revenue;
+      }, 0);
+      
+      res.json({
+        items: results,
+        grandTotal: grandTotal
+      });
+    }
+  );
+});
+
 /**--------------------------------------------------------------------------------- */
 
 // GET all medicines (with optional search and pagination)

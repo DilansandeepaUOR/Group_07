@@ -60,15 +60,15 @@ export default function DashboardSection() {
       title: loading ? "Loading..." : (lowStockCount >= 10 || outOfStockCount >= 10 ? "Attention Needed" : "All Good"),
       subtitle: "Inventory Status",
       buttonText: "View Detailed Report",
-      onClick: () => navigate("/reports"), // Fixed path to lowercase
+      onClick: () => navigate("/inventory"), 
       status: lowStockCount >= 10 || outOfStockCount >= 10 ? "warning" : "success",
     },
     {
       icon: <DollarSign className="w-8 h-8" />,
       title: "Rs. 8,55,875",
-      subtitle: "Revenue - Jan 2022",
+      subtitle: "Revenue",
       buttonText: "View Detailed Report",
-      onClick: () => navigate("/reports"), // Fixed path to lowercase
+      onClick: () => navigate("/reports"), 
       status: "revenue",
     },
     {
