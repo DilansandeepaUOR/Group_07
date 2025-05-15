@@ -14,27 +14,31 @@ export default function DashboardSection() {
   const [customerCount, setCustomerCount] = useState(0);
   const [employeeCount, setEmployeeCount] = useState(0);
   const [medicinesSold, setMedicinesSold] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [medicineRes, groupRes, outOfStockResponse, lowStockResponse, custRes, empRes] = await Promise.all([
+        const [medicineRes, groupRes, outOfStockResponse, lowStockResponse, custRes, empRes, salesRes, totalSalesRes] = await Promise.all([
           fetch('http://localhost:3001/pharmacy/api/medicines/count'),
           fetch('http://localhost:3001/pharmacy/api/medicine-groups/count'),
           fetch('http://localhost:3001/pharmacy/api/medicines/out-of-stock'),
           fetch('http://localhost:3001/pharmacy/api/medicines/low-stock'),
           fetch('http://localhost:3001/pharmacy/api/pet-owner/count'),
           fetch('http://localhost:3001/pharmacy/api/employees/count'),
-          fetch('http://localhost:3001/pharmacy/api/sales/total-sold')
+          fetch('http://localhost:3001/pharmacy/api/sales/total-sold'),
+          fetch('http://localhost:3001/pharmacy/api/total-sales')
         ]);
 
-        const [medicineData, groupData, outOfStockData, lowStockData, custData, empData] = await Promise.all([
+        const [medicineData, groupData, outOfStockData, lowStockData, custData, empData, salesData, totalSalesData] = await Promise.all([
           medicineRes.json(),
           groupRes.json(),
           outOfStockResponse.json(),
           lowStockResponse.json(),
           custRes.json(),
-          empRes.json()
+          empRes.json(),
+          salesRes.json(),
+          totalSalesRes.json()  
         ]);
 
         setMedicineCount(medicineData.count);
@@ -44,6 +48,8 @@ export default function DashboardSection() {
         setCustomerCount(custData.count);
         setEmployeeCount(empData.count);
         setLoading(false);
+        setMedicinesSold(salesData.totalSold || 0);
+        setTotalRevenue(totalSalesData.grandTotal || 0);
       } catch (err) {
         console.error("Dashboard fetch error:", err);
         setError(err.message);
@@ -54,21 +60,35 @@ export default function DashboardSection() {
     fetchData();
   }, []);
 
+  // Format the revenue with Rupee formatting
+const formatIndianRupees = (amount) => {
+  // Ensure amount is a valid number
+  const numAmount = Number(amount) || 0;
+  
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'LKR',
+    maximumFractionDigits: 0
+  }).format(numAmount);
+};
+
+
+
   const overviewCards = [
     {
       icon: <ShieldCheck className="w-8 h-8" />,
       title: loading ? "Loading..." : (lowStockCount >= 10 || outOfStockCount >= 10 ? "Attention Needed" : "All Good"),
       subtitle: "Inventory Status",
       buttonText: "View Detailed Report",
-      onClick: () => navigate("/reports"), // Fixed path to lowercase
+      onClick: () => navigate("/reports"), 
       status: lowStockCount >= 10 || outOfStockCount >= 10 ? "warning" : "success",
     },
     {
       icon: <DollarSign className="w-8 h-8" />,
-      title: "Rs. 8,55,875",
+      title: loading ? "Loading..." : formatIndianRupees(totalRevenue),
       subtitle: "Revenue",
       buttonText: "View Detailed Report",
-      onClick: () => navigate("/reports"), // Fixed path to lowercase
+      onClick: () => navigate("/reports"), 
       status: "revenue",
     },
     {
