@@ -10,6 +10,7 @@ import MedicineListSection from "../../Components/Pharmacy/Inventory.jsx"
 import MedicineGroupSection from "../../Components/Pharmacy/MedicineGroup.jsx"
 import ReportsSection from "../../Components/Pharmacy/Reports.jsx"
 import NotificationsSection from "../../Components/Pharmacy/Notifications.jsx"
+
 import { Receipt, BarChart3, LayoutDashboard, Bell } from "lucide-react"
 import React, { useState, useEffect } from "react"
 
@@ -42,6 +43,7 @@ const Pharmacy = () => {
         return <ReportsSection />
       case "notifications":
         return <NotificationsSection />
+      
       default:
         return <DashboardSection />
     }
@@ -78,6 +80,8 @@ const Pharmacy = () => {
             onSectionChange={setActiveSection}
           />
         </SidebarItem>
+
+       
 
         <SidebarItem
           icon={<BarChart3 size={20} />}
