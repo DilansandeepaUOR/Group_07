@@ -15,9 +15,15 @@ import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import Appointment from "./Pages/Appointment";
 
+
+
 import Mobileservice from "./Pages/MobileService";
 
 // Records Pages
+
+
+//import Adlogin from "./Admin/Pages/Adlogin";
+
 import VaccineNotify from "./Pages/VaccineNotify";
 import VaccineSent from "./Pages/VaccineSent";
 import MobileService from "./Pages/MobileService";
