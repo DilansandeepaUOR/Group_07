@@ -305,10 +305,10 @@ export default function ReportsSection() {
                       <td className="px-4 py-2 text-sm font-semibold text-gray-800">Total</td>
                       <td className="px-4 py-2 text-sm text-right text-gray-800"></td>
                       <td className="px-4 py-2 text-sm text-right font-semibold text-gray-800">
-                        {totalQuantity.toLocaleString()}
+                        {detailedSales.reduce((sum, item) => sum + (Number(item.quantity_sold) || 0), 0).toLocaleString()}
                       </td>
                       <td className="px-4 py-2 text-sm text-right font-semibold text-gray-800">
-                        {formatCurrency(totalDetailedRevenue)}
+                        {formatCurrency(detailedSales.reduce((sum, item) => sum + (Number(item.total_revenue) || 0), 0))}
                       </td>
                     </tr>
                   </tfoot>

@@ -10,8 +10,9 @@ import MedicineListSection from "../../Components/Pharmacy/Inventory.jsx"
 import MedicineGroupSection from "../../Components/Pharmacy/MedicineGroup.jsx"
 import ReportsSection from "../../Components/Pharmacy/Reports.jsx"
 import NotificationsSection from "../../Components/Pharmacy/Notifications.jsx"
+import BillsSection from "../../Otherusers/Pharmacist/Bills.jsx"
 
-import { Receipt, BarChart3, LayoutDashboard, Bell } from "lucide-react"
+import { Receipt, BarChart3, LayoutDashboard, Bell, FileText } from "lucide-react"
 import React, { useState, useEffect } from "react"
 
 const Pharmacy = () => {
@@ -43,7 +44,8 @@ const Pharmacy = () => {
         return <ReportsSection />
       case "notifications":
         return <NotificationsSection />
-      
+      case "bills":
+        return <BillsSection />
       default:
         return <DashboardSection />
     }
@@ -81,7 +83,13 @@ const Pharmacy = () => {
           />
         </SidebarItem>
 
-       
+        <SidebarItem
+          icon={<FileText size={20} />}
+          text="Bills"
+          active={activeSection === "bills"}
+          onSectionChange={setActiveSection}
+          section="bills"
+        />
 
         <SidebarItem
           icon={<BarChart3 size={20} />}

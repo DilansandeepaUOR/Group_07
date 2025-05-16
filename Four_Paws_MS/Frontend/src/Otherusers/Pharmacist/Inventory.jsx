@@ -19,14 +19,18 @@ export default function ProductsSection() {
     category: '',
     price: '',
     stock: '',
-    status: 'In Stock'
+    status: 'In Stock',
+    manufactureDate: '',
+    expiryDate: ''
   })
   const [editFormData, setEditFormData] = useState({
     name: '',
     category: '',
     price: '',
     stock: '',
-    status: 'In Stock'
+    status: 'In Stock',
+    manufactureDate: '',
+    expiryDate: ''
   })
   const itemsPerPage = 4
 
@@ -120,7 +124,9 @@ export default function ProductsSection() {
       category: medicine.category,
       price: medicine.price.toString().replace('Rs ', ''),
       stock: medicine.stock.toString(),
-      status: getStockStatus(medicine.stock)
+      status: getStockStatus(medicine.stock),
+      manufactureDate: medicine.manufactureDate || '',
+      expiryDate: medicine.expiryDate || ''
     })
   }
 
@@ -194,6 +200,25 @@ export default function ProductsSection() {
       setError('Stock and price cannot be negative');
       return;
     }
+
+    if (!addFormData.manufactureDate || !addFormData.expiryDate) {
+      setError('Manufacture date and expiry date are required');
+      return;
+    }
+
+    const manufactureDate = new Date(addFormData.manufactureDate);
+    const expiryDate = new Date(addFormData.expiryDate);
+    const today = new Date();
+
+    if (manufactureDate > today) {
+      setError('Manufacture date cannot be in the future');
+      return;
+    }
+
+    if (expiryDate <= manufactureDate) {
+      setError('Expiry date must be after manufacture date');
+      return;
+    }
     
     try {
       setLoading(true);
@@ -201,7 +226,9 @@ export default function ProductsSection() {
         ...addFormData,
         price: parseFloat(addFormData.price),
         stock: parseInt(addFormData.stock),
-        status: getStockStatus(addFormData.stock)
+        status: getStockStatus(addFormData.stock),
+        manufactureDate: addFormData.manufactureDate,
+        expiryDate: addFormData.expiryDate
       };
   
       const response = await fetch(API_BASE_URL, {
@@ -220,7 +247,9 @@ export default function ProductsSection() {
         category: '',
         price: '',
         stock: '',
-        status: 'In Stock'
+        status: 'In Stock',
+        manufactureDate: '',
+        expiryDate: ''
       });
       setShowAddForm(false);
       setError(null);
@@ -243,7 +272,9 @@ export default function ProductsSection() {
       category: '',
       price: '',
       stock: '',
-      status: 'In Stock'
+      status: 'In Stock',
+      manufactureDate: '',
+      expiryDate: ''
     })
   }
 
@@ -331,6 +362,28 @@ export default function ProductsSection() {
                   />
                 </div>
                 <div>
+                  <label className="block font-medium mb-1">Manufacture Date</label>
+                  <input
+                    type="date"
+                    name="manufactureDate"
+                    className="w-full p-2 border rounded-md"
+                    value={addFormData.manufactureDate}
+                    onChange={(e) => handleFormChange(e, 'add')}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Expiry Date</label>
+                  <input
+                    type="date"
+                    name="expiryDate"
+                    className="w-full p-2 border rounded-md"
+                    value={addFormData.expiryDate}
+                    onChange={(e) => handleFormChange(e, 'add')}
+                    required
+                  />
+                </div>
+                <div>
                   <label className="block font-medium mb-1">Status</label>
                   <select
                     name="status"
@@ -378,6 +431,8 @@ export default function ProductsSection() {
                       <th className="p-3 border-l-2">Category</th>
                       <th className="p-3 border-l-2">Price</th>
                       <th className="p-3 border-l-2">Stock</th>
+                      <th className="p-3 border-l-2">Manufacture Date</th>
+                      <th className="p-3 border-l-2">Expiry Date</th>
                       <th className="p-3 border-l-2">Status</th>
                       <th className="p-3 border-l-2">Actions</th>
                     </tr>
@@ -447,6 +502,12 @@ export default function ProductsSection() {
                             )}
                           </td>
                           <td className="p-3">
+                            {medicine.manufactureDate ? new Date(medicine.manufactureDate).toLocaleDateString() : 'N/A'}
+                          </td>
+                          <td className="p-3">
+                            {medicine.expiryDate ? new Date(medicine.expiryDate).toLocaleDateString() : 'N/A'}
+                          </td>
+                          <td className="p-3">
                             {editingMedicine === medicine.id ? (
                               <select
                                 name="status"
@@ -508,7 +569,7 @@ export default function ProductsSection() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="7" className="text-center p-10 text-gray-500">
+                        <td colSpan="9" className="text-center p-10 text-gray-500">
                           No medicines found
                         </td>
                       </tr>
@@ -542,8 +603,7 @@ export default function ProductsSection() {
                 className={`${currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#71C9CE] hover:bg-[#A6E3E9]'} text-gray-900`}
                 onClick={goToNextPage}
                 disabled={currentPage === totalPages}
-              > 
-              
+              >
                 Next
               </Button>
             </div>
