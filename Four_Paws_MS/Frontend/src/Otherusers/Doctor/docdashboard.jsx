@@ -168,7 +168,7 @@ const MedicationsSection = () => {
       case "new":
         return (
           <div className="bg-white p-4 rounded shadow mt-4">
-            <h3 className="text-lg font-semibold mb-2">Enter New Record</h3>
+            <h3 className="text-lg font-semibold mb-2"></h3>
             <Suspense fallback={<div>Loading Form...</div>}>
             <NewRecord />
             </Suspense>
@@ -177,7 +177,7 @@ const MedicationsSection = () => {
         case "notify":
         return (
           <div className="bg-white p-4 rounded shadow mt-4">
-            <h3 className="text-lg font-semibold mb-2">Edit Notifications</h3>
+            <h3 className="text-lg font-semibold mb-2"></h3>
             <Suspense fallback={<div>Loading Notifications...</div>}>
             <Notify />
             </Suspense>
@@ -186,7 +186,7 @@ const MedicationsSection = () => {
         case "sentnotify":
         return (
           <div className="bg-white p-4 rounded shadow mt-4">
-            <h3 className="text-lg font-semibold mb-2">Sent Notifications</h3>
+            <h3 className="text-lg font-semibold mb-2"></h3>
             <Suspense fallback={<div>Loading Notifications...</div>}>
             <SentNotify />
             </Suspense>
@@ -207,7 +207,7 @@ const MedicationsSection = () => {
           { key: "pdf", label: "Generate PDF" },
           { key: "view", label: "View Records" },
           { key: "new", label: "New Record" },
-          { key: "notify", label: "Edit Notifications" },
+          { key: "notify", label: "Templates" },
           { key: "sentnotify", label: "Notifications" },
         ].map((tab) => (
           <button

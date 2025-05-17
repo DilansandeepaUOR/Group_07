@@ -594,29 +594,9 @@ router.get('/get-records-with-vaccination', async (req, res) => {
   }
 });
 
-// Notification routes
-router.get('/notification-templates', async (req, res) => {
-  try {
-    const results = await query('SELECT * FROM notification_templates');
-    res.json(results);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
 
-router.put('/notification-templates/:id', async (req, res) => {
-  const { subject, message_body, days_before, is_active } = req.body;
-  
-  try {
-    await query(
-      'UPDATE notification_templates SET subject = ?, message_body = ?, days_before = ?, is_active = ? WHERE template_id = ?',
-      [subject, message_body, days_before, is_active, req.params.id]
-    );
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+
+
 
 router.get('/sent-notifications', async (req, res) => {
   const { pet_id, owner_id, status } = req.query;
