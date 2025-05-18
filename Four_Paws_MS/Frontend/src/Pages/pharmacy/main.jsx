@@ -9,15 +9,29 @@ import DashboardSection from "../../Components/Pharmacy/dashboard.jsx"
 import MedicineListSection from "../../Components/Pharmacy/Inventory.jsx"
 import MedicineGroupSection from "../../Components/Pharmacy/MedicineGroup.jsx"
 import ReportsSection from "../../Components/Pharmacy/Reports.jsx"
-import NotificationsSection from "../../Components/Pharmacy/Notifications.jsx"
+import NotificationsSection from "../../Otherusers/Pharmacist/Notifications.jsx"
 import BillsSection from "../../Otherusers/Pharmacist/Bills.jsx"
 
 import { Receipt, BarChart3, LayoutDashboard, Bell, FileText } from "lucide-react"
 import React, { useState, useEffect } from "react"
+import axios from "axios"
 
 const Pharmacy = () => {
   const [isMobile, setIsMobile] = useState(false)
   const [activeSection, setActiveSection] = useState("dashboard")
+  const [notifications, setNotifications] = useState([])
+  const [unreadNotifications, setUnreadNotifications] = useState(0)
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await axios.get('http://localhost:3001/pharmacy/api/notifications');
+      setNotifications(response.data);
+      const unreadCount = response.data.filter(n => !n.is_read).length;
+      setUnreadNotifications(unreadCount);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -32,6 +46,34 @@ const Pharmacy = () => {
     }
   }, [])
 
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 60000); // Check every minute
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleMarkAsRead = async (id) => {
+    try {
+      await axios.patch(`http://localhost:3001/pharmacy/api/notifications/${id}/read`);
+      setNotifications(notifications.map(notification => 
+        notification.id === id ? { ...notification, is_read: true } : notification
+      ));
+      setUnreadNotifications(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await axios.patch('http://localhost:3001/pharmacy/api/notifications/mark-all-read');
+      setNotifications(notifications.map(notification => ({ ...notification, is_read: true })));
+      setUnreadNotifications(0);
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  };
+
   const renderSection = () => {
     switch (activeSection) {
       case "dashboard":
@@ -43,7 +85,12 @@ const Pharmacy = () => {
       case "reports":
         return <ReportsSection />
       case "notifications":
-        return <NotificationsSection />
+        return <NotificationsSection 
+          notifications={notifications}
+          onMarkAsRead={handleMarkAsRead}
+          onMarkAllAsRead={handleMarkAllAsRead}
+          onRefresh={fetchNotifications}
+        />
       case "bills":
         return <BillsSection />
       default:
@@ -58,7 +105,6 @@ const Pharmacy = () => {
           icon={<LayoutDashboard size={20} />}
           text="Dashboard"
           active={activeSection === "dashboard"}
-          alert={activeSection !== "dashboard"}
           onSectionChange={setActiveSection}
           section="dashboard"
         />
@@ -103,7 +149,8 @@ const Pharmacy = () => {
           icon={<Bell size={20} />}
           text="Notifications"
           active={activeSection === "notifications"}
-          alert={activeSection !== "notifications"}
+          alert={unreadNotifications > 0}
+          badge={unreadNotifications > 0 ? unreadNotifications : null}
           onSectionChange={setActiveSection}
           section="notifications"
         />

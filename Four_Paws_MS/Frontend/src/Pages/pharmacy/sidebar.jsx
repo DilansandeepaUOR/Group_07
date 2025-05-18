@@ -223,7 +223,7 @@ export default function Sidebar({ children }) {
   )
 }
 
-export function SidebarItem({ icon, text, active, children, section, onSectionChange }) {
+export function SidebarItem({ icon, text, active, children, section, onSectionChange, alert, badge }) {
   const { expanded, isMobile, activeSection, setActiveSection } = useContext(SidebarContext)
   const [isHovered, setIsHovered] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -275,10 +275,46 @@ export function SidebarItem({ icon, text, active, children, section, onSectionCh
         onMouseLeave={() => setIsHovered(false)}
         onClick={handleClick}
       >
-        {icon && React.cloneElement(icon, {
-          color: active ? colors.yellowAccent : colors.tealAccent,
-          size: 20
-        })}
+        <div style={{ position: 'relative' }}>
+          {icon && React.cloneElement(icon, {
+            color: active ? colors.yellowAccent : colors.tealAccent,
+            size: 20
+          })}
+          {alert && (
+            <span
+              style={{
+                position: 'absolute',
+                top: -2,
+                right: -2,
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                backgroundColor: '#ff4444',
+              }}
+            />
+          )}
+          {badge && (
+            <span
+              style={{
+                position: 'absolute',
+                top: -6,
+                right: -6,
+                minWidth: 16,
+                height: 16,
+                borderRadius: 8,
+                backgroundColor: '#ff4444',
+                color: '#ffffff',
+                fontSize: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 4px',
+              }}
+            >
+              {badge}
+            </span>
+          )}
+        </div>
         <span
           style={{
             overflow: "hidden",
@@ -319,6 +355,20 @@ export function SidebarItem({ icon, text, active, children, section, onSectionCh
             }}
           >
             {text}
+            {badge && (
+              <span
+                style={{
+                  marginLeft: 8,
+                  backgroundColor: '#ff4444',
+                  color: '#ffffff',
+                  borderRadius: 8,
+                  padding: '2px 6px',
+                  fontSize: '10px',
+                }}
+              >
+                {badge}
+              </span>
+            )}
           </div>
         )}
       </div>
