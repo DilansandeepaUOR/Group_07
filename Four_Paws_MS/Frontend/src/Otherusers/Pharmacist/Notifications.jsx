@@ -1,56 +1,31 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Button } from "@/components/ui/button";
 import { Bell, BellOff, CheckCircle, X } from "lucide-react";
 
-export default function NotificationsSection() {
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function NotificationsSection({ 
+  notifications, 
+  onMarkAsRead, 
+  onMarkAllAsRead, 
+  onRefresh 
+}) {
   const [displayCount, setDisplayCount] = useState(5);
-  const [totalNotifications, setTotalNotifications] = useState(0);
   const [selectedNotification, setSelectedNotification] = useState(null);
 
+  // Add polling for notifications
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const response = await axios.get('http://localhost:3001/pharmacy/api/notifications');
-        setNotifications(response.data);
-        setTotalNotifications(response.data.length);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-        setLoading(false);
-      }
-    };
+    // Initial fetch
+    onRefresh();
 
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 60000);
-    return () => clearInterval(interval);
-  }, []);
+    // Set up polling interval (every 10 seconds)
+    const pollInterval = setInterval(() => {
+      onRefresh();
+    }, 10000);
 
-  const markAsRead = async (id) => {
-    try {
-      await axios.patch(`http://localhost:3001/pharmacy/api/notifications/${id}/read`);
-      setNotifications(notifications.map(notification => 
-        notification.id === id ? { ...notification, is_read: true } : notification
-      ));
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      await axios.patch('http://localhost:3001/pharmacy/api/notifications/mark-all-read');
-      setNotifications(notifications.map(notification => 
-        ({ ...notification, is_read: true })
-      ));
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-    }
-  };
+    // Cleanup interval on component unmount
+    return () => clearInterval(pollInterval);
+  }, [onRefresh]);
 
   const loadMore = () => {
     setDisplayCount(prevCount => Math.min(prevCount + 5, 15));
@@ -60,7 +35,7 @@ export default function NotificationsSection() {
     setSelectedNotification(notification);
     // Mark as read when viewing details
     if (!notification.is_read) {
-      markAsRead(notification.id);
+      onMarkAsRead(notification.id);
     }
   };
 
@@ -68,7 +43,7 @@ export default function NotificationsSection() {
     setSelectedNotification(null);
   };
 
-  if (loading) {
+  if (!notifications) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6">
         <div className="max-w-7xl mx-auto text-center text-gray-800">
@@ -94,14 +69,16 @@ export default function NotificationsSection() {
               </span>
             )}
           </h1>
-          <Button
-            className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
-            onClick={markAllAsRead}
-            disabled={unreadCount === 0}
-          >
-            <CheckCircle className="mr-2 w-4 h-4" />
-            Mark all as read
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
+              onClick={onMarkAllAsRead}
+              disabled={unreadCount === 0}
+            >
+              <CheckCircle className="mr-2 w-4 h-4" />
+              Mark all as read
+            </Button>
+          </div>
         </div>
 
         <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg p-6 border border-[#71C9CE]">
@@ -148,7 +125,7 @@ export default function NotificationsSection() {
                         variant="ghost"
                         size="sm"
                         className="text-xs bg-green-100 hover:bg-green-200 text-green-800"
-                        onClick={() => markAsRead(notification.id)}
+                        onClick={() => onMarkAsRead(notification.id)}
                       >
                         Mark as read
                       </Button>
@@ -171,9 +148,9 @@ export default function NotificationsSection() {
             </div>
           )}
 
-          {displayCount >= 15 && totalNotifications > 15 && (
+          {displayCount >= 15 && notifications.length > 15 && (
             <div className="text-center mt-4 text-sm text-gray-600">
-              Showing 15 of {totalNotifications} notifications
+              Showing 15 of {notifications.length} notifications
             </div>
           )}
         </div>

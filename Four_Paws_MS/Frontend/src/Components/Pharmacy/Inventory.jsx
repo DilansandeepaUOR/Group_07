@@ -19,16 +19,21 @@ export default function ProductsSection() {
     category: '',
     price: '',
     stock: '',
-    status: 'In Stock'
+    status: 'In Stock',
+    manufactureDate: '',
+    expiryDate: ''
   })
   const [editFormData, setEditFormData] = useState({
     name: '',
     category: '',
     price: '',
     stock: '',
-    status: 'In Stock'
+    status: 'In Stock',
+    manufactureDate: '',
+    expiryDate: ''
   })
   const itemsPerPage = 4
+  const [showDeleted, setShowDeleted] = useState(false);
 
   const getStockStatus = (stock) => {
     const stockCount = parseInt(stock);
@@ -60,7 +65,7 @@ export default function ProductsSection() {
       try {
         setLoading(true);
         const response = await fetch(
-          `${API_BASE_URL}?search=${searchTerm}&page=${currentPage}&limit=${itemsPerPage}`
+          `${API_BASE_URL}?search=${searchTerm}&page=${currentPage}&limit=${itemsPerPage}&showDeleted=${showDeleted}`
         );
         if (!response.ok) throw new Error('Failed to fetch medicines');
         
@@ -86,7 +91,7 @@ export default function ProductsSection() {
     };
     
     fetchMedicines();
-  }, [searchTerm, currentPage, itemsPerPage]);
+  }, [searchTerm, currentPage, itemsPerPage, showDeleted]);
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this medicine?')) {
@@ -120,7 +125,9 @@ export default function ProductsSection() {
       category: medicine.category,
       price: medicine.price.toString().replace('Rs ', ''),
       stock: medicine.stock.toString(),
-      status: getStockStatus(medicine.stock)
+      status: getStockStatus(medicine.stock),
+      manufactureDate: medicine.manufactureDate ? new Date(medicine.manufactureDate).toISOString().split('T')[0] : '',
+      expiryDate: medicine.expiryDate ? new Date(medicine.expiryDate).toISOString().split('T')[0] : ''
     })
   }
 
@@ -151,6 +158,25 @@ export default function ProductsSection() {
       setError('Stock and price cannot be negative');
       return;
     }
+
+    if (!editFormData.manufactureDate || !editFormData.expiryDate) {
+      setError('Manufacture date and expiry date are required');
+      return;
+    }
+
+    const manufactureDate = new Date(editFormData.manufactureDate);
+    const expiryDate = new Date(editFormData.expiryDate);
+    const today = new Date();
+
+    if (manufactureDate > today) {
+      setError('Manufacture date cannot be in the future');
+      return;
+    }
+
+    if (expiryDate <= manufactureDate) {
+      setError('Expiry date must be after manufacture date');
+      return;
+    }
     
     try {
       setLoading(true);
@@ -158,7 +184,9 @@ export default function ProductsSection() {
         ...editFormData,
         price: parseFloat(editFormData.price),
         stock: parseInt(editFormData.stock),
-        status: getStockStatus(editFormData.stock)
+        status: getStockStatus(editFormData.stock),
+        manufactureDate: editFormData.manufactureDate,
+        expiryDate: editFormData.expiryDate
       };
   
       const response = await fetch(`${API_BASE_URL}/${id}`, {
@@ -194,6 +222,25 @@ export default function ProductsSection() {
       setError('Stock and price cannot be negative');
       return;
     }
+
+    if (!addFormData.manufactureDate || !addFormData.expiryDate) {
+      setError('Manufacture date and expiry date are required');
+      return;
+    }
+
+    const manufactureDate = new Date(addFormData.manufactureDate);
+    const expiryDate = new Date(addFormData.expiryDate);
+    const today = new Date();
+
+    if (manufactureDate > today) {
+      setError('Manufacture date cannot be in the future');
+      return;
+    }
+
+    if (expiryDate <= manufactureDate) {
+      setError('Expiry date must be after manufacture date');
+      return;
+    }
     
     try {
       setLoading(true);
@@ -201,7 +248,9 @@ export default function ProductsSection() {
         ...addFormData,
         price: parseFloat(addFormData.price),
         stock: parseInt(addFormData.stock),
-        status: getStockStatus(addFormData.stock)
+        status: getStockStatus(addFormData.stock),
+        manufactureDate: addFormData.manufactureDate,
+        expiryDate: addFormData.expiryDate
       };
   
       const response = await fetch(API_BASE_URL, {
@@ -220,7 +269,9 @@ export default function ProductsSection() {
         category: '',
         price: '',
         stock: '',
-        status: 'In Stock'
+        status: 'In Stock',
+        manufactureDate: '',
+        expiryDate: ''
       });
       setShowAddForm(false);
       setError(null);
@@ -243,9 +294,75 @@ export default function ProductsSection() {
       category: '',
       price: '',
       stock: '',
-      status: 'In Stock'
+      status: 'In Stock',
+      manufactureDate: '',
+      expiryDate: ''
     })
   }
+
+  const handleSoftDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to archive this medicine?')) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/${id}/soft`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to archive medicine');
+      }
+      
+      // Update the medicine's status in the local state
+      setMedicines(medicines.map(medicine => 
+        medicine.id === id 
+          ? { ...medicine, deleted_at: new Date().toISOString(), isDeleted: true }
+          : medicine
+      ));
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      console.error("Error archiving medicine:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRestore = async (id) => {
+    if (!window.confirm('Are you sure you want to restore this medicine?')) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/${id}/restore`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to restore medicine');
+      }
+      
+      // Update the medicine's status in the local state
+      setMedicines(medicines.map(medicine => 
+        medicine.id === id 
+          ? { ...medicine, deleted_at: null, isDeleted: false }
+          : medicine
+      ));
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      console.error("Error restoring medicine:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6">
@@ -253,6 +370,18 @@ export default function ProductsSection() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Medicine Inventory</h1>
           <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="showDeleted"
+                checked={showDeleted}
+                onChange={(e) => setShowDeleted(e.target.checked)}
+                className="rounded border-gray-300 text-[#71C9CE] focus:ring-[#71C9CE]"
+              />
+              <label htmlFor="showDeleted" className="text-sm text-gray-600">
+                Show Archived
+              </label>
+            </div>
             <input
               type="text"
               placeholder="Search medicines..."
@@ -331,6 +460,28 @@ export default function ProductsSection() {
                   />
                 </div>
                 <div>
+                  <label className="block font-medium mb-1">Manufacture Date</label>
+                  <input
+                    type="date"
+                    name="manufactureDate"
+                    className="w-full p-2 border rounded-md"
+                    value={addFormData.manufactureDate}
+                    onChange={(e) => handleFormChange(e, 'add')}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Expiry Date</label>
+                  <input
+                    type="date"
+                    name="expiryDate"
+                    className="w-full p-2 border rounded-md"
+                    value={addFormData.expiryDate}
+                    onChange={(e) => handleFormChange(e, 'add')}
+                    required
+                  />
+                </div>
+                <div>
                   <label className="block font-medium mb-1">Status</label>
                   <select
                     name="status"
@@ -378,6 +529,8 @@ export default function ProductsSection() {
                       <th className="p-3 border-l-2">Category</th>
                       <th className="p-3 border-l-2">Price</th>
                       <th className="p-3 border-l-2">Stock</th>
+                      <th className="p-3 border-l-2">Manufacture Date</th>
+                      <th className="p-3 border-l-2">Expiry Date</th>
                       <th className="p-3 border-l-2">Status</th>
                       <th className="p-3 border-l-2">Actions</th>
                     </tr>
@@ -385,7 +538,7 @@ export default function ProductsSection() {
                   <tbody>
                     {medicines.length > 0 ? (
                       medicines.map((medicine) => (
-                        <tr key={medicine.id} className="border-t hover:bg-gray-50/50">
+                        <tr key={medicine.id} className={`border-t hover:bg-gray-50/50 ${medicine.isDeleted ? 'bg-gray-100' : ''}`}>
                           <td className="p-3">{medicine.id}</td>
                           <td className="p-3">
                             {editingMedicine === medicine.id ? (
@@ -398,7 +551,9 @@ export default function ProductsSection() {
                                 required
                               />
                             ) : (
-                              medicine.name
+                              <span className={medicine.isDeleted ? 'line-through text-gray-500' : ''}>
+                                {medicine.name}
+                              </span>
                             )}
                           </td>
                           <td className="p-3">
@@ -448,6 +603,34 @@ export default function ProductsSection() {
                           </td>
                           <td className="p-3">
                             {editingMedicine === medicine.id ? (
+                              <input
+                                type="date"
+                                name="manufactureDate"
+                                className="w-full p-2 border rounded-md"
+                                value={editFormData.manufactureDate}
+                                onChange={(e) => handleFormChange(e, 'edit')}
+                                required
+                              />
+                            ) : (
+                              medicine.manufactureDate ? new Date(medicine.manufactureDate).toLocaleDateString() : 'N/A'
+                            )}
+                          </td>
+                          <td className="p-3">
+                            {editingMedicine === medicine.id ? (
+                              <input
+                                type="date"
+                                name="expiryDate"
+                                className="w-full p-2 border rounded-md"
+                                value={editFormData.expiryDate}
+                                onChange={(e) => handleFormChange(e, 'edit')}
+                                required
+                              />
+                            ) : (
+                              medicine.expiryDate ? new Date(medicine.expiryDate).toLocaleDateString() : 'N/A'
+                            )}
+                          </td>
+                          <td className="p-3">
+                            {editingMedicine === medicine.id ? (
                               <select
                                 name="status"
                                 className="w-full p-2 border rounded-md"
@@ -488,19 +671,32 @@ export default function ProductsSection() {
                               </>
                             ) : (
                               <>
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleEditClick(medicine)}
-                                >
-                                  <FaEdit />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => handleDelete(medicine.id)}
-                                >
-                                  <FaTrash />
-                                </Button>
+                                {!medicine.isDeleted && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleEditClick(medicine)}
+                                    >
+                                      <FaEdit />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => handleSoftDelete(medicine.id)}
+                                    >
+                                      <FaTrash />
+                                    </Button>
+                                  </>
+                                )}
+                                {medicine.isDeleted && (
+                                  <Button
+                                    size="sm"
+                                    className="bg-green-500 hover:bg-green-600 text-white"
+                                    onClick={() => handleRestore(medicine.id)}
+                                  >
+                                    Restore
+                                  </Button>
+                                )}
                               </>
                             )}
                           </td>
@@ -508,7 +704,7 @@ export default function ProductsSection() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="7" className="text-center p-10 text-gray-500">
+                        <td colSpan="9" className="text-center p-10 text-gray-500">
                           No medicines found
                         </td>
                       </tr>

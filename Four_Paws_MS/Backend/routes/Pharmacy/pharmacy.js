@@ -12,7 +12,13 @@ router.use((req, res, next) => {
   next();
 });
 
-
+// Helper function to determine stock status
+const getStockStatus = (stock) => {
+  const stockNum = parseInt(stock);
+  if (stockNum === 0) return "Out of Stock";
+  if (stockNum > 0 && stockNum <= 15) return "Low Stock";
+  return "In Stock";
+};
 
 // Add this helper function to create notifications
 const createNotification = async (title, description, type, related_id = null) => {
@@ -141,60 +147,51 @@ router.get('/api/total-sales', (req, res) => {
 /**--------------------------------------------------------------------------------- */
 
 // GET all medicines (with optional search and pagination)
-router.get('/api/medicines', (req, res) => {
+router.get('/api/medicines', async (req, res) => {
   try {
-    const { search = '', page = 1, limit = 5 } = req.query;
+    const { search = '', page = 1, limit = 5, showDeleted = false } = req.query;
     const offset = (page - 1) * limit;
 
-    // Get total count
-    db.query(
-      'SELECT COUNT(*) as total FROM medicines WHERE name LIKE ? OR category LIKE ?',
-      [`%${search}%`, `%${search}%`],
-      (countErr, countRows) => {
-        if (countErr) {
-          console.error(countErr);
-          return res.status(500).json({ error: 'Failed to count medicines' });
-        }
+    // Convert showDeleted to boolean
+    const includeDeleted = showDeleted === 'true';
 
-        const total = countRows[0].total;
-        const totalPages = Math.ceil(total / limit);
-
-        // Get paginated data
-        db.query(
-          `SELECT * FROM medicines 
-          WHERE name LIKE ? OR category LIKE ?
-          ORDER BY name ASC
-          LIMIT ? OFFSET ?`,
-          [`%${search}%`, `%${search}%`, parseInt(limit), parseInt(offset)],
-          (medErr, medicines) => {
-            if (medErr) {
-              console.error(medErr);
-              return res.status(500).json({ error: 'Failed to fetch medicines' });
-            }
-
-            // Process medicines to include status based on stock
-            const processedMedicines = medicines.map(medicine => {
-              let status = 'In Stock';
-              const stock = parseInt(medicine.stock);
-              if (stock === 0) {
-                status = 'Out of Stock';
-              } else if (stock > 0 && stock <= 15) {
-                status = 'Low Stock';
-              }
-              return { ...medicine, status };
-            });
-
-            res.json({
-              data: processedMedicines,
-              totalCount: total,
-              page: parseInt(page),
-              limit: parseInt(limit),
-              totalPages,
-            });
-          }
-        );
-      }
+    // Get total count with deleted filter
+    const [countRows] = await db.promise().query(
+      'SELECT COUNT(*) as total FROM medicines WHERE (name LIKE ? OR category LIKE ?) AND (deleted_at IS NULL OR ? = true)',
+      [`%${search}%`, `%${search}%`, includeDeleted]
     );
+
+    const total = countRows[0].total;
+    const totalPages = Math.ceil(total / limit);
+
+    // Get paginated data with deleted filter
+    const [medicines] = await db.promise().query(
+      `SELECT id, name, category, price, stock, status, 
+       DATE_FORMAT(manufactureDate, '%Y-%m-%d') as manufactureDate, 
+       DATE_FORMAT(expiryDate, '%Y-%m-%d') as expiryDate,
+       deleted_at 
+       FROM medicines 
+       WHERE (name LIKE ? OR category LIKE ?) 
+       AND (deleted_at IS NULL OR ? = true)
+       ORDER BY name ASC
+       LIMIT ? OFFSET ?`,
+      [`%${search}%`, `%${search}%`, includeDeleted, parseInt(limit), parseInt(offset)]
+    );
+
+    // Process medicines to include status based on stock
+    const processedMedicines = medicines.map(medicine => ({
+      ...medicine,
+      status: medicine.deleted_at ? 'Archived' : getStockStatus(medicine.stock),
+      isDeleted: medicine.deleted_at !== null
+    }));
+
+    res.json({
+      data: processedMedicines,
+      totalCount: total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch medicines' });
@@ -205,37 +202,44 @@ router.get('/api/medicines', (req, res) => {
 router.get('/api/medicines/:id', (req, res) => {
   const { id } = req.params;
 
-  db.query('SELECT * FROM medicines WHERE id = ?', [id], (err, rows) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: 'Failed to fetch medicine' });
-    }
-    
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'Medicine not found' });
-    }
+  db.query(
+    `SELECT id, name, category, price, stock, status,
+     DATE_FORMAT(manufactureDate, '%Y-%m-%d') as manufactureDate,
+     DATE_FORMAT(expiryDate, '%Y-%m-%d') as expiryDate
+     FROM medicines WHERE id = ?`, 
+    [id], 
+    (err, rows) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Failed to fetch medicine' });
+      }
+      
+      if (rows.length === 0) {
+        return res.status(404).json({ error: 'Medicine not found' });
+      }
 
-    // Process status based on stock
-    const medicine = rows[0];
-    let status = 'In Stock';
-    const stock = parseInt(medicine.stock);
-    if (stock === 0) {
-      status = 'Out of Stock';
-    } else if (stock > 0 && stock <= 15) {
-      status = 'Low Stock';
-    }
+      // Process status based on stock
+      const medicine = rows[0];
+      let status = 'In Stock';
+      const stock = parseInt(medicine.stock);
+      if (stock === 0) {
+        status = 'Out of Stock';
+      } else if (stock > 0 && stock <= 15) {
+        status = 'Low Stock';
+      }
 
-    res.json({ ...medicine, status });
-  });
+      res.json({ ...medicine, status });
+    }
+  );
 });
 
 // POST create new medicine with notification
 router.post('/api/medicines', async (req, res) => {
   try {
-    const { name, category, price, stock } = req.body;
+    const { name, category, price, stock, manufactureDate, expiryDate } = req.body;
     
     // Basic validation
-    if (!name || !category || price === undefined || stock === undefined) {
+    if (!name || !category || price === undefined || stock === undefined || !manufactureDate || !expiryDate) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -250,9 +254,9 @@ router.post('/api/medicines', async (req, res) => {
 
     // Using async/await instead of callback
     const [result] = await db.promise().query(
-      `INSERT INTO medicines (name, category, price, stock, status)
-       VALUES (?, ?, ?, ?, ?)`,
-      [name, category, parseFloat(price), stockNum, status]
+      `INSERT INTO medicines (name, category, price, stock, status, manufactureDate, expiryDate)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [name, category, parseFloat(price), stockNum, status, manufactureDate, expiryDate]
     );
 
     // Create notification about the new medicine
@@ -275,7 +279,7 @@ router.post('/api/medicines', async (req, res) => {
         [
           'Low Stock Alert',
           `Medicine "${name}" is running low (${stock} units remaining)`,
-          'medicine_updated', // or you could add 'low_stock' to your ENUM
+          'medicine_updated',
           result.insertId
         ]
       );
@@ -298,10 +302,10 @@ router.post('/api/medicines', async (req, res) => {
 router.put('/api/medicines/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, category, price, stock } = req.body;
+    const { name, category, price, stock, manufactureDate, expiryDate } = req.body;
     
     // Basic validation
-    if (!name || !category || price === undefined || stock === undefined) {
+    if (!name || !category || price === undefined || stock === undefined || !manufactureDate || !expiryDate) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -331,9 +335,9 @@ router.put('/api/medicines/:id', async (req, res) => {
     // Update the medicine
     const [result] = await db.promise().query(
       `UPDATE medicines 
-       SET name = ?, category = ?, price = ?, stock = ?, status = ?
+       SET name = ?, category = ?, price = ?, stock = ?, status = ?, manufactureDate = ?, expiryDate = ?
        WHERE id = ?`,
-      [name, category, parseFloat(price), stockNum, status, id]
+      [name, category, parseFloat(price), stockNum, status, manufactureDate, expiryDate, id]
     );
 
     if (result.affectedRows === 0) {
@@ -351,6 +355,20 @@ router.put('/api/medicines/:id', async (req, res) => {
         id
       ]
     );
+
+    // If stock has increased from the previous value, create a stock-in notification
+    if (stockNum > oldStock) {
+      await db.promise().query(
+        `INSERT INTO notifications (title, description, type, related_id)
+         VALUES (?, ?, ?, ?)`,
+        [
+          'Stock Added',
+          `${stockNum - oldStock} units added to "${name}". New total: ${stockNum} units`,
+          'stock_in',
+          id
+        ]
+      );
+    }
 
     // If stock status changed, create additional notifications
     if (oldStatus !== status) {
@@ -1136,9 +1154,346 @@ router.get('/api/detailed-sales', (req, res) => {
   );
 });
 
+// Soft delete medicine
+router.delete('/api/medicines/:id/soft', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // First check if medicine exists and is not already deleted
+    const [medicines] = await db.promise().query(
+      'SELECT * FROM medicines WHERE id = ? AND deleted_at IS NULL',
+      [id]
+    );
 
+    if (medicines.length === 0) {
+      return res.status(404).json({ error: 'Medicine not found or already deleted' });
+    }
 
+    const medicine = medicines[0];
 
+    // Perform soft delete
+    await db.promise().query(
+      'UPDATE medicines SET deleted_at = NOW(), status = "Archived" WHERE id = ? AND deleted_at IS NULL',
+      [id]
+    );
 
+    // Create notification
+    await db.promise().query(
+      'INSERT INTO notifications (title, description, type, related_id) VALUES (?, ?, ?, ?)',
+      [
+        'Medicine Archived',
+        `Medicine "${medicine.name}" (ID: ${id}) was archived`,
+        'medicine_archived',
+        id
+      ]
+    );
+
+    res.json({
+      success: true,
+      message: 'Medicine archived successfully',
+      medicine: {
+        ...medicine,
+        deleted_at: new Date(),
+        isDeleted: true,
+        status: 'Archived'
+      }
+    });
+
+  } catch (err) {
+    console.error('Error in soft delete:', err);
+    res.status(500).json({ error: 'Failed to archive medicine' });
+  }
+});
+
+// Restore soft deleted medicine
+router.post('/api/medicines/:id/restore', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // First check if medicine exists and is deleted
+    const [medicines] = await db.promise().query(
+      'SELECT * FROM medicines WHERE id = ? AND deleted_at IS NOT NULL',
+      [id]
+    );
+
+    if (medicines.length === 0) {
+      return res.status(404).json({ error: 'Medicine not found or not deleted' });
+    }
+
+    const medicine = medicines[0];
+    const newStatus = getStockStatus(medicine.stock);
+
+    // Perform restore
+    await db.promise().query(
+      'UPDATE medicines SET deleted_at = NULL, status = ? WHERE id = ? AND deleted_at IS NOT NULL',
+      [newStatus, id]
+    );
+
+    // Create notification
+    await db.promise().query(
+      'INSERT INTO notifications (title, description, type, related_id) VALUES (?, ?, ?, ?)',
+      [
+        'Medicine Restored',
+        `Medicine "${medicine.name}" (ID: ${id}) was restored`,
+        'medicine_restored',
+        id
+      ]
+    );
+
+    res.json({
+      success: true,
+      message: 'Medicine restored successfully',
+      medicine: {
+        ...medicine,
+        deleted_at: null,
+        isDeleted: false,
+        status: newStatus
+      }
+    });
+
+  } catch (err) {
+    console.error('Error in restore:', err);
+    res.status(500).json({ error: 'Failed to restore medicine' });
+  }
+});
+{/*---------------------------------BILL HANDLING--------------------------------------------*/}
+
+// Create a new bill with items
+router.post('/api/bills', async (req, res) => {
+  let connection;
+  try {
+    connection = await db.promise().getConnection();
+    await connection.beginTransaction();
+
+    const {
+      customerName,
+      customerPhone,
+      petDetails,
+      total,
+      discount,
+      amountPaid,
+      balance,
+      status,
+      items
+    } = req.body;
+
+    // First, insert the bill
+    const [billResult] = await connection.query(
+      `INSERT INTO bills (
+        customerName, 
+        customerPhone, 
+        petDetails, 
+        total, 
+        discount, 
+        amountPaid, 
+        balance, 
+        status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        customerName,
+        customerPhone,
+        petDetails,
+        total,
+        discount,
+        amountPaid,
+        balance,
+        status
+      ]
+    );
+
+    const billId = billResult.insertId;
+
+    // Then, insert all bill items and update medicine stock
+    for (const item of items) {
+      // Insert bill item
+      await connection.query(
+        `INSERT INTO bill_items (
+          bill_id, 
+          medicine_id, 
+          quantity, 
+          price
+        ) VALUES (?, ?, ?, ?)`,
+        [billId, item.medicineId, item.quantity, item.price]
+      );
+
+      // Update medicine stock
+      await connection.query(
+        `UPDATE medicines 
+         SET stock = stock - ? 
+         WHERE id = ?`,
+        [item.quantity, item.medicineId]
+      );
+
+      // Record the sale in sales table
+      await connection.query(
+        `INSERT INTO sales (
+          medicine_id, 
+          stock_change, 
+          change_type
+        ) VALUES (?, ?, ?)`,
+        [item.medicineId, -item.quantity, 'STOCK_OUT']
+      );
+
+      // Check if stock is low after update
+      const [stockResult] = await connection.query(
+        'SELECT stock FROM medicines WHERE id = ?',
+        [item.medicineId]
+      );
+
+      if (stockResult[0].stock <= 15) {
+        // Create low stock notification
+        await connection.query(
+          `INSERT INTO notifications (title, description, type, related_id)
+           VALUES (?, ?, ?, ?)`,
+          [
+            'Low Stock Alert',
+            `Medicine ID ${item.medicineId} is running low on stock (${stockResult[0].stock} remaining)`,
+            'LOW_STOCK',
+            item.medicineId
+          ]
+        );
+      }
+    }
+
+    // Fetch the created bill with items
+    const [bill] = await connection.query(
+      `SELECT b.*, 
+              DATE_FORMAT(b.createdAt, '%Y-%m-%d %H:%i:%s') as createdAt,
+              DATE_FORMAT(b.updatedAt, '%Y-%m-%d %H:%i:%s') as updatedAt
+       FROM bills b 
+       WHERE b.id = ?`,
+      [billId]
+    );
+
+    const [billItems] = await connection.query(
+      `SELECT bi.*, m.name as medicineName
+       FROM bill_items bi
+       JOIN medicines m ON bi.medicine_id = m.id
+       WHERE bi.bill_id = ?`,
+      [billId]
+    );
+
+    await connection.commit();
+
+    res.status(201).json({
+      message: 'Bill created successfully',
+      bill: { ...bill[0], items: billItems }
+    });
+
+  } catch (error) {
+    if (connection) {
+      await connection.rollback();
+    }
+    console.error('Error creating bill:', error);
+    res.status(500).json({
+      error: 'Failed to create bill',
+      details: error.message
+    });
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+});
+
+// GET bills with pagination and search
+router.get('/api/pharmacy/bills', async (req, res) => {
+  try {
+    const { search = '', page = 1, limit = 10 } = req.query;
+    const offset = (page - 1) * limit;
+
+    // Get total count
+    const [countRows] = await db.promise().query(
+      `SELECT COUNT(*) as total FROM bills 
+       WHERE customerName LIKE ? OR customerPhone LIKE ?`,
+      [`%${search}%`, `%${search}%`]
+    );
+
+    // Get paginated bills with their items
+    const [bills] = await db.promise().query(
+      `SELECT 
+         b.*,
+         DATE_FORMAT(b.createdAt, '%Y-%m-%d %H:%i:%s') as createdAt,
+         GROUP_CONCAT(
+           JSON_OBJECT(
+             'medicineId', bi.medicine_id,
+             'quantity', bi.quantity,
+             'price', bi.price,
+             'name', m.name,
+             'category', m.category
+           )
+         ) as items
+       FROM bills b
+       LEFT JOIN bill_items bi ON b.id = bi.bill_id
+       LEFT JOIN medicines m ON bi.medicine_id = m.id
+       WHERE b.customerName LIKE ? OR b.customerPhone LIKE ?
+       GROUP BY b.id
+       ORDER BY b.createdAt DESC
+       LIMIT ? OFFSET ?`,
+      [`%${search}%`, `%${search}%`, parseInt(limit), parseInt(offset)]
+    );
+
+    // Process the bills to parse the items JSON string
+    const processedBills = bills.map(bill => ({
+      ...bill,
+      items: bill.items ? JSON.parse(`[${bill.items}]`) : []
+    }));
+
+    res.json({
+      bills: processedBills,
+      total: countRows[0].total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(countRows[0].total / parseInt(limit))
+    });
+
+  } catch (err) {
+    console.error('Error fetching bills:', err);
+    res.status(500).json({ error: 'Failed to fetch bills' });
+  }
+});
+
+// GET single bill by ID
+router.get('/api/pharmacy/bills/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [bills] = await db.promise().query(
+      `SELECT 
+         b.*,
+         DATE_FORMAT(b.createdAt, '%Y-%m-%d %H:%i:%s') as createdAt,
+         GROUP_CONCAT(
+           JSON_OBJECT(
+             'medicineId', bi.medicine_id,
+             'quantity', bi.quantity,
+             'price', bi.price,
+             'name', m.name,
+             'category', m.category
+           )
+         ) as items
+       FROM bills b
+       LEFT JOIN bill_items bi ON b.id = bi.bill_id
+       LEFT JOIN medicines m ON bi.medicine_id = m.id
+       WHERE b.id = ?
+       GROUP BY b.id`,
+      [id]
+    );
+
+    if (bills.length === 0) {
+      return res.status(404).json({ error: 'Bill not found' });
+    }
+
+    const bill = {
+      ...bills[0],
+      items: bills[0].items ? JSON.parse(`[${bills[0].items}]`) : []
+    };
+
+    res.json(bill);
+
+  } catch (err) {
+    console.error('Error fetching bill:', err);
+    res.status(500).json({ error: 'Failed to fetch bill' });
+  }
+});
 
 module.exports = router;
