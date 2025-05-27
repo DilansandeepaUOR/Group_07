@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useRef } from "react"
 import { Plus, Trash2, FileText } from "lucide-react"
-import { Button } from "../../components/ui/button"
-import { Input } from "../../components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog"
-import { useToast } from "../../components/ui/use-toast"
+import { Button } from "../../Components/ui/button"
+import { Input } from "../../Components/ui/input"
+import { Card, CardContent, CardHeader, CardTitle } from "../../Components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../Components/ui/select"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../Components/ui/dialog"
+import { useToast } from "../../Components/ui/use-toast"
 
 const generatePDF = (bill) => {
   const printWindow = window.open('', '_blank');
