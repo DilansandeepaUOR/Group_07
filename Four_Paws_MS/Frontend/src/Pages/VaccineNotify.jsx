@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, InputNumber, Switch, message, Card, Typography } from 'antd';
+import { Table, Button, Modal, Form, Input, InputNumber, Switch, message, Card, Typography, Tag } from 'antd';
+import { InfoCircleOutlined } from '@ant-design/icons';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const NotificationTemplates = () => {
   const [templates, setTemplates] = useState([]);
@@ -17,7 +18,7 @@ const NotificationTemplates = () => {
   const fetchTemplates = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3001/api/notification-templates');
+      const response = await fetch('http://localhost:3001/api/notifications/notification-templates');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -45,7 +46,7 @@ const NotificationTemplates = () => {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      const response = await fetch(`http://localhost:3001/api/notification-templates/${currentTemplate.template_id}`, {
+      const response = await fetch(`http://localhost:3001/api/notifications/notification-templates/${currentTemplate.template_id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values)
@@ -72,28 +73,45 @@ const NotificationTemplates = () => {
       width: '20%'
     },
     {
-      title: 'Trigger Condition',
-      dataIndex: 'trigger_condition',
-      key: 'trigger_condition',
-      width: '25%'
+      title: 'Vaccine Name',
+      dataIndex: 'vaccine_name',
+      key: 'vaccine_name',
+      width: '15%',
+      render: (name) => <Tag color="blue">{name}</Tag>
+    },
+    {
+      title: 'Age Condition',
+      dataIndex: 'age_condition',
+      key: 'age_condition',
+      width: '15%',
+      render: (condition) => (
+        <Text>
+          {condition} weeks
+          <InfoCircleOutlined 
+            style={{ marginLeft: 4, color: '#1890ff' }} 
+            title={`Triggers when pet is ${condition} weeks old`}
+          />
+        </Text>
+      )
     },
     {
       title: 'Days Before',
       dataIndex: 'days_before',
       key: 'days_before',
-      width: '15%'
+      width: '10%',
+      render: (days) => `${days} days`
     },
     {
       title: 'Active',
       dataIndex: 'is_active',
       key: 'is_active',
-      width: '15%',
+      width: '10%',
       render: (active) => <Switch checked={active} disabled />
     },
     {
       title: 'Actions',
       key: 'actions',
-      width: '25%',
+      width: '30%',
       render: (_, record) => (
         <Button type="primary" onClick={() => handleEdit(record)}>
           Edit Template
@@ -103,9 +121,11 @@ const NotificationTemplates = () => {
   ];
 
   return (
-    
     <Card style={{ margin: '24px' }}>
       <Title level={2}>Vaccination Notification Templates</Title>
+      <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+        Templates are automatically triggered based on pet age and vaccine requirements.
+      </Text>
       
       {templates.length === 0 && !loading ? (
         <div style={{ padding: 16, textAlign: 'center' }}>
@@ -122,8 +142,9 @@ const NotificationTemplates = () => {
           scroll={{ x: true }}
         />
       )}
+      
       <Modal
-        title="Edit Notification Template"
+        title={`Edit Template: ${currentTemplate?.template_name || ''}`}
         visible={visible}
         onOk={handleSubmit}
         onCancel={() => setVisible(false)}
@@ -153,7 +174,7 @@ const NotificationTemplates = () => {
           
           <Form.Item 
             name="days_before" 
-            label="Days Before" 
+            label="Days Before Event" 
             rules={[{ required: true, message: 'Please enter the number of days' }]}
           >
             <InputNumber min={1} placeholder="Enter number of days" />

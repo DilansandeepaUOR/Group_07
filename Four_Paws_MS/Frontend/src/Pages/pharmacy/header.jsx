@@ -48,7 +48,7 @@ export default function Header() {
         display: "flex",
         flexDirection: isMobile ? "column" : "row",
         justifyContent: "space-between",
-        alignItems: isMobile ? "stretch" : "center",
+        alignItems: "center",
         marginBottom: "24px",
         gap: "16px",
         backgroundColor: "white",
@@ -58,31 +58,26 @@ export default function Header() {
         width: "100%",
       }}
     >
-      {/* Search Bar */}
-      *<div style={{ position: "relative", flex: "1" }}>
-        <div style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }}>
-          <Search size={20} color="#9ca3af" />
+      {/* Date and Time Container */}
+      <div 
+        style={{ 
+          display: "flex",
+          flexDirection: isMobile ? "column" : "row",
+          alignItems: isMobile ? "flex-start" : "center",
+          gap: isMobile ? "4px" : "24px",
+          flex: 1,
+          minWidth: isMobile ? "100%" : "auto",
+        }}
+      >
+        <div style={{ fontWeight: "600", color: "#111827", whiteSpace: "nowrap" }}>
+          {formattedDate}
         </div>
-        <input
-          type="text"
-          placeholder="Search..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "10px 12px 10px 40px",
-            borderRadius: "6px",
-            border: "1px solid #e5e7eb",
-            fontSize: "0.875rem",
-          }}
-        />
+        <div style={{ color: "#4b5563", whiteSpace: "nowrap" }}>
+          {formattedTime}
+        </div>
       </div>
 
-      {/* Date and Time */}
-      <div style={{ textAlign: isMobile ? "left" : "right", minWidth: isMobile ? "auto" : "200px" }}>
-        <div style={{ fontWeight: "600", color: "#111827" }}>{formattedDate}</div>
-        <div style={{ color: "#4b5563" }}>{formattedTime}</div>
-      </div>
+      {/* Search bar would go here */}
     </div>
   )
 }

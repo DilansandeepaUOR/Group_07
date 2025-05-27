@@ -128,84 +128,174 @@ const PetRecordPDF = () => {
       alert('No records available to generate PDF');
       return;
     }
-
+  
     try {
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
-
-      // Add logo
-      doc.addImage(logo, 'PNG', pageWidth - 40, 10, 30, 15);
-
-      // Title
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      const primaryColor = [2, 132, 120]; // Teal
+      const secondaryColor = [80, 80, 80]; // Dark gray
+      const lightColor = [240, 240, 240]; // Light gray for backgrounds
+  
+      // Set document metadata
+      doc.setProperties({
+        title: `Medical Record - ${selectedPet.Pet_name}`,
+        subject: 'Animal Medical Record',
+        author: 'Four Paws Animal Clinic',
+        keywords: 'medical, record, pet, animal',
+        creator: 'Four Paws Animal Clinic'
+      });
+  
+      // Add logo with better positioning
+      doc.addImage(logo, 'PNG', margin, margin, 30, 15);
+  
+      // Title section with improved typography
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(16);
-      doc.setTextColor(40, 40, 40);
-      doc.text('Four Paws Animal Clinic and Surgery Medical Report', 12, 20);
-
-      // Owner and Pet Info
-      doc.setFontSize(12);
-      doc.setTextColor(80, 80, 80);
-      doc.text(`Owner: ${selectedOwner.Owner_name}`, 14, 30);
-      doc.text(`Email: ${selectedOwner.E_mail}`, 14, 36);
-      doc.text(`Phone: ${selectedOwner.Phone_number || 'N/A'}`, 14, 42);
-      doc.text(`Pet: ${selectedPet.Pet_name} (${selectedPet.Pet_type})`, 14, 48);
-      doc.text(`Breed: ${selectedPet.Breed || 'Unknown'}`, 14, 54);
-
-      // Prepare table data
+      doc.setFontSize(18);
+      doc.setTextColor(...primaryColor);
+      doc.text('FOUR PAWS ANIMAL CLINIC', pageWidth / 2, margin + 10, { align: 'center' });
+      
+      doc.setFontSize(14);
+      doc.setTextColor(...secondaryColor);
+      doc.text('MEDICAL REPORT', pageWidth / 2, margin + 18, { align: 'center' });
+  
+      // Decorative line with better styling
+      doc.setDrawColor(...primaryColor);
+      doc.setLineWidth(0.8);
+      doc.line(margin, margin + 22, pageWidth - margin, margin + 22);
+  
+      // Information section with better organization
+      const infoSectionY = margin + 30;
+      
+      // Owner Info Box with subtle background
+      doc.setFillColor(...lightColor);
+      doc.roundedRect(margin, infoSectionY, pageWidth - margin * 2, 25, 3, 3, 'F');
+      doc.setTextColor(...secondaryColor);
+      doc.setFont('helvetica', 'bold');
+      doc.text('OWNER INFORMATION', margin + 5, infoSectionY + 8);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Name: ${selectedOwner.Owner_name}`, margin + 5, infoSectionY + 15);
+      doc.text(`Email: ${selectedOwner.E_mail}`, margin + 5, infoSectionY + 22);
+  
+      // Pet Info Box with consistent styling
+     // doc.roundedRect(margin, infoSectionY + 30, pageWidth - margin * 2, 20, 3, 3, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.text('PET INFORMATION', margin + 5, infoSectionY + 38);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Name: ${selectedPet.Pet_name} (${selectedPet.Pet_type})`, margin + 5, infoSectionY + 45);
+      doc.text(`Breed: ${selectedPet.Breed || 'Unknown'} | Age: ${selectedPet.Age || 'N/A'}`, margin + 5, infoSectionY + 52);
+  
+      // Generate current date for report
+      const reportDate = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Report generated: ${reportDate}`, pageWidth - margin, infoSectionY + 60, { align: 'right' });
+  
+      // Prepare table data with better formatting
       const tableData = records.map(record => {
         let vaccineInfo = '';
         if (record.hasVaccination) {
-          vaccineInfo = record.formattedVaccination;
+          vaccineInfo = record.formattedVaccination || '-';
         }
         
+        const formattedDate = record.date 
+          ? new Date(record.date).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            })
+          : 'N/A';
+        
         return [
-          record.date ? new Date(record.date).toLocaleDateString() : 'N/A',
+          formattedDate,
           record.surgery || '-',
-          vaccineInfo || '-',
+          vaccineInfo,
           record.other || '-'
         ];
       });
-
-      // Medical Records Table
+  
+      // Medical Records Table with professional styling
       autoTable(doc, {
-        startY: 65,
-        head: [['Date', 'Surgery', 'Vaccination', 'Notes']],
+        startY: infoSectionY + 70,
+        margin: { left: margin, right: margin },
+        head: [['Date', 'Procedure', 'Vaccination', 'Notes']],
         body: tableData,
         theme: 'grid',
         headStyles: {
-          fillColor: [2, 132, 120], // Teal color
+          fillColor: primaryColor,
           textColor: 255,
-          fontStyle: 'bold'
+          fontStyle: 'bold',
+          halign: 'center',
+          fontSize: 10
+        },
+        bodyStyles: {
+          textColor: secondaryColor,
+          fontSize: 9,
+          cellPadding: 4
+        },
+        alternateRowStyles: {
+          fillColor: [248, 248, 248]
         },
         styles: {
-          fontSize: 10,
-          cellPadding: 3,
-          overflow: 'linebreak',
-          textColor: [60, 60, 60]
+          lineColor: [220, 220, 220],
+          lineWidth: 0.5
         },
         columnStyles: {
-          0: { cellWidth: 20 },
-          1: { cellWidth: 40 },
-          2: { cellWidth: 50 },
+          0: { cellWidth: 22, halign: 'center' },
+          1: { cellWidth: 35 },
+          2: { cellWidth: 45 },
           3: { cellWidth: 'auto' }
         },
-        didDrawPage: function () {
-          // Footer
+        didDrawPage: function (data) {
+          // Add page number
           doc.setFontSize(8);
           doc.setTextColor(150);
-          doc.text('Confidential Medical Record - © Four Paws Animal Clinic', 
-            pageWidth / 2, 
-            doc.internal.pageSize.height - 10, 
-            { align: 'center' }
+          doc.text(
+            `Page ${data.pageNumber} of ${data.pageCount}`,
+            pageWidth - margin,
+            pageHeight - margin,
+            { align: 'right' }
           );
         }
       });
-
-      // Save PDF
-      const fileName = `Medical_Record_${selectedOwner.Owner_name.replace(/[^a-z0-9]/gi, '_')}_${selectedPet.Pet_name.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+  
+      // Footer with professional layout
+      const footerY = pageHeight - 30;
+      
+      // Clinic information
+      doc.setFontSize(9);
+      doc.setTextColor(...secondaryColor);
+      doc.setFont('helvetica', 'bold');
+      doc.text('FOUR PAWS ANIMAL CLINIC', margin, footerY);
+      doc.setFont('helvetica', 'normal');
+      doc.text('No. 03 New Town, Ratnapura', margin, footerY + 5);
+      doc.text('Tel: +94 76 123 4567 | Email: 4pawsbusiness4@gmail.com', margin, footerY + 10);
+      
+      // Signature area
+      doc.setFontSize(9);
+      doc.text('Authorized Signature:', pageWidth - margin - 60, footerY);
+      doc.setDrawColor(...secondaryColor);
+      doc.setLineWidth(0.5);
+      doc.line(pageWidth - margin - 60, footerY + 2, pageWidth - margin, footerY + 2);
+      doc.text('Dr. Veterinarian Name', pageWidth - margin - 40, footerY + 10, { align: 'right' });
+  
+      // Confidential notice
+      doc.setFontSize(7);
+      doc.setTextColor(150, 150, 150);
+      doc.text('CONFIDENTIAL - For authorized use only', pageWidth / 2, pageHeight - margin / 2, { align: 'center' });
+  
+      // Save PDF with better filename convention
+      const sanitizeName = (name) => name.replace(/[^a-z0-9]/gi, '_').substring(0, 30);
+      const fileName = `Medical_Record_${sanitizeName(selectedOwner.Owner_name)}_${sanitizeName(selectedPet.Pet_name)}_${new Date().toISOString().slice(0, 10)}.pdf`;
       doc.save(fileName);
     } catch (error) {
-      alert(`Failed to generate PDF: ${error.message}`);
+      console.error('PDF generation error:', error);
+      alert(`Failed to generate PDF. Please try again or contact support. Error: ${error.message}`);
     }
   };
 
