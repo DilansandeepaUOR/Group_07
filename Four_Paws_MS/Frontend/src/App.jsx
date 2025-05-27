@@ -17,7 +17,11 @@ import Appointment from "./Pages/Appointment";
 
 
 
+import Mobileservice from "./Pages/MobileServiceMain";
+
+
 import Mobileservice from "./Pages/MobileService";
+
 
 // Records Pages
 
@@ -52,8 +56,12 @@ import PsDashboard from "./Otherusers/Petshopper/psdashboard";
 // Miscellaneous
 import Unauth from "./Pages/Unauth";
 import ReportsSection from "./Components/Pharmacy/Reports";
+
+import MobileServiceMain from "./Pages/MobileServiceMain";
+
 import MedicineListSection from "./Components/Pharmacy/Inventory"
 import MedicineGroupSection from "./Components/Pharmacy/MedicineGroup"
+
 
 
 const App = () => {
@@ -77,7 +85,6 @@ const App = () => {
         {/* Records Routes */}
         <Route path="/appointment" element={<Appointment />} />
 
-        <Route path="/appointment" element={<Appointment/>}/>
         
         {/* Records  */}
 
@@ -221,6 +228,8 @@ const App = () => {
         <Route path="/mobileservice" element={<MobileService />} />
         
         <Route path="/unauth" element={<Unauth/>} />
+
+        <Route path="/mobile-service" element={<MobileServiceMain />} />
 
         <Route path="*" element={<h1>404 Not Found</h1>} />
       </Routes>
