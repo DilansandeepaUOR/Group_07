@@ -45,7 +45,7 @@ function Home() {
                 veterinary care from experienced pet care providers.
                 <br />
                 {/* Appointment Button */}
-                <Link to="/Appointment">
+                <Link to="/appointmentlanding">
                   <Buttons
                     label="Make an Appointment"
                     css="bg-[#028478] text-[#ffffff] px-6 py-3 rounded-lg mt-6 font-bold shadow-md transition duration-300 hover:bg-[#71C9CE] hover:text-[#000000] hover:shadow-lg Poppins cursor-pointer transform hover:scale-105"
