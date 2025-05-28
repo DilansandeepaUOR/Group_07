@@ -17,10 +17,7 @@ import Appointment from "./Pages/Appointment";
 
 
 
-import Mobileservice from "./Pages/MobileServiceMain";
-
-
-//import Mobileservice from "./Pages/MobileService";
+import Mobileservice from "./Pages/MobileService";
 
 
 // Records Pages
