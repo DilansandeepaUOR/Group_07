@@ -312,17 +312,18 @@ const AppointmentDetails = () => {
   };
 
   return (
+    <div className="min-h-screen bg-gradient-to-b from-[#22292F] via-[#028478] to-[#22292F]">
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-8xl mx-auto">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-[#008879] mb-2">Clinic Appointments</h1>
-          <p className="text-gray-600">Schedule a visit to our clinic for your pet's care</p>
+            <h1 className="text-4xl md:text-5xl font-bold text-[#A6E3E9] mb-4">Clinic Appointments</h1>
+            <p className="text-lg text-gray-200">Schedule a visit to our clinic for your pet's care</p>
         </div>
 
         {loading ? (
           <div className="text-center p-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#008879] mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#A6E3E9] mx-auto"></div>
+              <p className="mt-4 text-gray-200">Loading...</p>
           </div>
         ) : !isAuthenticated ? (
           <AuthRequiredCard onLogin={handleRedirectToLogin} />
@@ -333,12 +334,13 @@ const AppointmentDetails = () => {
                 <div className="flex justify-end">
                   <Button 
                     onClick={startBooking}
-                    className="bg-[#008879] hover:bg-[#07776b] text-white"
+                      className="bg-[#A6E3E9] hover:bg-[#71C9CE] text-[#22292F] font-bold transition duration-300"
                   >
                     Book New Appointment
                   </Button>
                 </div>
                 
+                  <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
                 <AppointmentList 
                   appointments={appointments}
                   statusFilter={statusFilter}
@@ -350,26 +352,45 @@ const AppointmentDetails = () => {
                   formatDate={formatDate}
                   getStatusColor={getStatusColor}
                 />
+                  </div>
               </div>
             )}
             
             {activeStep !== "appointments" && (
               <>
                 <div className="mb-4">
-                  <Button variant="ghost" className="text-gray-500" onClick={handleBack}>
-                    <ArrowLeft className="mr-1 h-4 w-4" />
+                  <button
+                    onClick={handleBack}
+                    className="flex items-center text-gray-200 hover:text-[#A6E3E9] transition-colors duration-300"
+                  >
+                    <svg 
+                      className="w-5 h-5 mr-2" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M15 19l-7-7 7-7" 
+                      />
+                    </svg>
                     Back
-                  </Button>
+                  </button>
                 </div>
                 
-                <StepIndicator 
-                  steps={steps}
-                  stepLabels={stepLabels}
-                  activeStep={activeStep}
-                />
+                  <div className="sticky top-4 z-50 bg-white/10 backdrop-blur-md rounded-xl p-6 mb-6 shadow-lg">
+                    <StepIndicator 
+                      steps={steps}
+                      stepLabels={stepLabels}
+                      activeStep={activeStep}
+                    />
+                  </div>
               </>
             )}
             
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
             {activeStep === "pet-selection" && (
               <BookingForm
                 pets={pets}
@@ -415,8 +436,10 @@ const AppointmentDetails = () => {
                 onBack={handleBack}
               />
             )}
+              </div>
           </>
         )}
+        </div>
       </div>
     </div>
   );
