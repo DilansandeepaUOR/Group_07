@@ -68,6 +68,10 @@ app.use('/pharmacy', pharmacy);
 const assistantdoctorRoutes =require('./routes/Assitdoctor/assistantdoctor');
 app.use('/api/assistantdoctor', assistantdoctorRoutes);
 
+//mobile assistant doctor
+const mobileAssistantDoctorRoutes = require('./routes/Assitdoctor/mobileAssistantDoctor');
+app.use('/api/mobile/assistantdoctor', mobileAssistantDoctorRoutes);
+
 //Contact info routes
 const contactInfoRoutes = require('./routes/Contactinfo/contact');
 app.use('/contact', contactInfoRoutes);

@@ -6,6 +6,7 @@ import {
   FaUser,
   FaSignOutAlt,
   FaSearch,
+  FaMobileAlt,
 } from "react-icons/fa";
 import axios from "axios";
 import dp from "../../../src/assets/paw_vector.png";
@@ -15,6 +16,7 @@ import Appointments from "./appointments";
 import Patients from "./patients";
 import Prescriptions from "./prescriptions";
 import Medications from "./medications";
+import MobileService from "./mobileService";
 
 const DoctorDashboard = () => {
   // Set the default active tab to "appointments"
@@ -109,6 +111,16 @@ const DoctorDashboard = () => {
               <FaPills /> Medications
             </button>
           </li>
+          <li>
+            <button
+              onClick={() => setActiveTab("mobile")}
+              className={`flex items-center gap-2 w-full text-left hover:text-gray-700 ${
+                activeTab === "mobile" ? "font-bold text-[#028478]" : ""
+              }`}
+            >
+              <FaMobileAlt /> Mobile Service
+            </button>
+          </li>
 
           <li className="hover:text-red-400 items-center gap-2 w-full text-left">
             <a href="/Adlogin" onClick={handleLogout} className="flex items-center gap-2">
@@ -137,6 +149,7 @@ const DoctorDashboard = () => {
         {activeTab === "patients" && <Patients />}
         {activeTab === "prescriptions" && <Prescriptions />}
         {activeTab === "medications" && <Medications />}
+        {activeTab === "mobile" && <MobileService />}
       </main>
     </div>
   );
