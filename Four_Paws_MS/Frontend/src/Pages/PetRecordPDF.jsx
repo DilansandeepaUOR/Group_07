@@ -179,7 +179,7 @@ const PetRecordPDF = () => {
       doc.text(`Email: ${selectedOwner.E_mail}`, margin + 5, infoSectionY + 22);
   
       // Pet Info Box with consistent styling
-     // doc.roundedRect(margin, infoSectionY + 30, pageWidth - margin * 2, 20, 3, 3, 'F');
+      // doc.roundedRect(margin, infoSectionY + 30, pageWidth - margin * 2, 20, 3, 3, 'F');
       doc.setFont('helvetica', 'bold');
       doc.text('PET INFORMATION', margin + 5, infoSectionY + 38);
       doc.setFont('helvetica', 'normal');
