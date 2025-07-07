@@ -27,12 +27,34 @@ router.get('/address', async (req, res) => {
   }
 });
 
+router.get('/user/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [results] = await db.promise().query(
+      'SELECT mobileService.*, pet.Pet_name FROM mobileService JOIN pet ON mobileService.pet_id = pet.Pet_id JOIN pet_owner ON mobileService.petOwnerID = pet_owner.Owner_id',
+      [id]
+    );
+    
+    // Add `type` field to each result
+    const updatedResults = results.map(row => ({
+      ...row,
+      type: row.address == null ? 'coordinates' : 'address'
+    }));
+
+    res.json(updatedResults);
+  } catch (err) {
+    console.error('Database error:', err);
+    res.status(500).json({ error: 'Error fetching mobile services' });
+  }
+  
+});
+
 
 router.post('/', async (req, res) => {
   try {
     const {
       user_id,
-      pet_details,       // assuming this is pet_id
+      pet_id,       // assuming this is pet_id
       location,
       status,
       special_notes = '' // optional field from frontend
@@ -57,7 +79,7 @@ router.post('/', async (req, res) => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    const pet_id=pet_details.pet_id;
+    //const pet_id=pet_details;
 
     // Insert appointment
     const [newAppointment] = await db.promise().query(`
