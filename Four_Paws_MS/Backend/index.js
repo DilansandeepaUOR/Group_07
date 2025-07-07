@@ -11,7 +11,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Fix the path to NotificationService
+// Path to NotificationService
 const { router: notificationRouter } = require('./routes/Records/NotificationService');
 app.use('/api/notifications', notificationRouter);
 const { dailyNotificationCheck } = require('./routes/Records/NotificationService');
@@ -21,9 +21,6 @@ dailyNotificationCheck();
 const appointmentRoutes = require('./routes/Appointment/appointment');
 app.use('/appointments', appointmentRoutes);
 
-//user authentications
-const recordEntryRoutes = require('./routes/RecordEntry/recordHandle');
-app.use('/record', recordEntryRoutes);
 
 const registerRoutes =require('./routes/Userinformations/petownerregister');
 app.use('/api/registerform', registerRoutes);
