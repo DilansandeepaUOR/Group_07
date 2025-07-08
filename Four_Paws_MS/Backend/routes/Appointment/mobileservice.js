@@ -31,7 +31,7 @@ router.get('/user/:id', async (req, res) => {
   const { id } = req.params;
   try {
     const [results] = await db.promise().query(
-      'SELECT mobileService.*, pet.Pet_name FROM mobileService JOIN pet ON mobileService.pet_id = pet.Pet_id JOIN pet_owner ON mobileService.petOwnerID = pet_owner.Owner_id',
+      'SELECT mobile_service.*, pet.Pet_name FROM mobile_service JOIN pet ON mobile_service.pet_id = pet.Pet_id JOIN pet_owner ON mobile_service.petOwnerID = pet_owner.Owner_id',
       [id]
     );
     
@@ -57,7 +57,7 @@ router.post('/', async (req, res) => {
       pet_id,       // assuming this is pet_id
       location,
       status,
-      special_notes = '' // optional field from frontend
+      reason = '' // optional field from frontend
     } = req.body;
 
     // Extract location details
@@ -67,23 +67,25 @@ router.post('/', async (req, res) => {
 
     // Create table if it does not exist
     await db.promise().query(`
-      CREATE TABLE IF NOT EXISTS mobileService (
+      CREATE TABLE IF NOT EXISTS mobile_service (
         id INT AUTO_INCREMENT PRIMARY KEY,
         petOwnerID INT NOT NULL,
         pet_id INT NOT NULL,
         latitude DECIMAL(10, 8),
         longitude DECIMAL(11, 8),
         address TEXT,
-        status VARCHAR(50),
+        status ENUM('pending', 'confirmed', 'cancelled', 'complete') NOT NULL DEFAULT 'pending',
         special_notes TEXT,
+        reason TEXT,
+        date DATE,
+        time TIME,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    //const pet_id=pet_details;
 
     // Insert appointment
     const [newAppointment] = await db.promise().query(`
-      INSERT INTO mobileService (petOwnerID, pet_id, latitude, longitude, address, status, special_notes)
+      INSERT INTO mobile_service (petOwnerID, pet_id, latitude, longitude, address, status, reason)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `, [
       user_id,
@@ -92,7 +94,7 @@ router.post('/', async (req, res) => {
       longitude,
       address,
       status,
-      special_notes
+      reason,
     ]);
 
     res.status(201).json({ message: 'Mobile appointment booked successfully.', appointment_id: newAppointment.insertId });
@@ -102,6 +104,22 @@ router.post('/', async (req, res) => {
   }
   
 });
+
+router.put('/cancel/:id', async (req, res) => {
+  console.log("cancel")
+  const { id } = req.params;
+  try {
+    const [results] = await db.promise().query(
+      'UPDATE mobile_service SET status = "Cancelled" WHERE id = ?',
+      [id]
+    );
+    res.json({ message: 'Mobile service cancelled successfully.' });
+  } catch (error) {
+    console.error('Error cancelling mobile service:', error);
+    res.status(500).json({ error: 'Failed to cancel mobile service.' });
+  }
+});
+
 
 // Error handling middleware
 router.use((err, req, res, next) => {

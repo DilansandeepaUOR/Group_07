@@ -1,6 +1,17 @@
 import React from "react";
 import { FaClinicMedical, FaAmbulance } from "react-icons/fa";
 import { formatDate, getStatusColor } from "./utils";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/Components/ui/alert-dialog";
 
 const ServiceListItem = ({
   item,
@@ -36,13 +47,30 @@ const ServiceListItem = ({
             {item.displayStatus}
           </span>
           {canCancel && (
-            <button
-              onClick={onCancel}
-              disabled={isCancellingThis}
-              className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition duration-300"
-            >
-              {isCancellingThis ? "Cancelling..." : "Cancel"}
-            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  disabled={isCancellingThis}
+                  className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition duration-300"
+                >
+                  {isCancellingThis ? "Cancelling..." : "Cancel"}
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Cancel {item.type === "clinic" ? "Appointment" : "Mobile Service"}?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to cancel this {item.type === "clinic" ? "appointment" : "mobile service"}? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Go Back</AlertDialogCancel>
+                  <AlertDialogAction onClick={onCancel} disabled={isCancellingThis} className="bg-red-600 hover:bg-red-700 focus-visible:ring-red-500" style={{}} variant="destructive">
+                    {isCancellingThis ? "Cancelling..." : "Yes, Cancel"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </div>
       </div>
