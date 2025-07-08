@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, InputNumber, Switch, message, Card, Typography, Tag } from 'antd';
+import { Table, Button, Modal, Form, Input, ConfigProvider, Switch, message, Card, Typography, Tag } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
@@ -10,6 +10,10 @@ const NotificationTemplates = () => {
   const [visible, setVisible] = useState(false);
   const [currentTemplate, setCurrentTemplate] = useState(null);
   const [form] = Form.useForm();
+
+  // --- State for Pagination ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
 
   useEffect(() => {
     fetchTemplates();
@@ -37,7 +41,6 @@ const NotificationTemplates = () => {
     form.setFieldsValue({
       subject: template.subject,
       message_body: template.message_body,
-      days_before: template.days_before,
       is_active: template.is_active
     });
     setVisible(true);
@@ -70,20 +73,17 @@ const NotificationTemplates = () => {
       title: 'Template Name',
       dataIndex: 'template_name',
       key: 'template_name',
-      width: '20%'
     },
     {
       title: 'Vaccine Name',
       dataIndex: 'vaccine_name',
       key: 'vaccine_name',
-      width: '15%',
       render: (name) => <Tag color="blue">{name}</Tag>
     },
     {
       title: 'Age Condition',
       dataIndex: 'age_condition',
       key: 'age_condition',
-      width: '15%',
       render: (condition) => (
         <Text>
           {condition} weeks
@@ -95,23 +95,14 @@ const NotificationTemplates = () => {
       )
     },
     {
-      title: 'Days Before',
-      dataIndex: 'days_before',
-      key: 'days_before',
-      width: '10%',
-      render: (days) => `${days} days`
-    },
-    {
       title: 'Active',
       dataIndex: 'is_active',
       key: 'is_active',
-      width: '10%',
       render: (active) => <Switch checked={active} disabled />
     },
     {
       title: 'Actions',
       key: 'actions',
-      width: '30%',
       render: (_, record) => (
         <Button type="primary" onClick={() => handleEdit(record)}>
           Edit Template
@@ -120,29 +111,68 @@ const NotificationTemplates = () => {
     }
   ];
 
+  // --- Pagination Logic ---
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentTemplates = templates.slice(indexOfFirstRow, indexOfLastRow);
+  const totalPages = Math.ceil(templates.length / rowsPerPage);
+
   return (
+    <ConfigProvider
+    theme={{
+        token: {
+          // 3. Set the base font size
+          fontSize: 16,
+        },
+      }}
+    >
     <Card style={{ margin: '24px' }}>
       <Title level={2}>Vaccination Notification Templates</Title>
       <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
         Templates are automatically triggered based on pet age and vaccine requirements.
       </Text>
-      
+
       {templates.length === 0 && !loading ? (
         <div style={{ padding: 16, textAlign: 'center' }}>
           No notification templates found.
           <Button type="link" onClick={fetchTemplates}>Refresh</Button>
         </div>
       ) : (
-        <Table 
-          columns={columns} 
-          dataSource={templates} 
-          loading={loading}
-          rowKey="template_id"
-          pagination={{ pageSize: 10 }}
-          scroll={{ x: true }}
-        />
+        <>
+          <Table
+            columns={columns}
+            dataSource={currentTemplates}
+            loading={loading}
+            rowKey="template_id"
+            pagination={false} // Disable default pagination
+            scroll={{ x: true }}
+          />
+
+          {/* --- Custom Pagination Controls --- */}
+          {totalPages > 1 && (
+            <div style={styles.pagination}>
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="cursor-pointer px-4 py-2 mx-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <span style={{ margin: '0 15px' }}>
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="cursor-pointer px-4 py-2 mx-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </>
       )}
-      
+
       <Modal
         title={`Edit Template: ${currentTemplate?.template_name || ''}`}
         visible={visible}
@@ -174,10 +204,8 @@ const NotificationTemplates = () => {
           
           <Form.Item 
             name="days_before" 
-            label="Days Before Event" 
-            rules={[{ required: true, message: 'Please enter the number of days' }]}
+            label="Notification will send before one week of next vaccination date!" 
           >
-            <InputNumber min={1} placeholder="Enter number of days" />
           </Form.Item>
           
           <Form.Item 
@@ -190,7 +218,16 @@ const NotificationTemplates = () => {
         </Form>
       </Modal>
     </Card>
+    </ConfigProvider>
   );
+};
+
+// --- Styles for Pagination ---
+const styles = {
+    pagination: {
+        marginTop: '20px',
+        textAlign: 'right',
+    }
 };
 
 export default NotificationTemplates;

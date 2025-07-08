@@ -181,6 +181,7 @@ router.get('/all-records', async (req, res) => {
       SELECT 
         r.id, 
         r.date, 
+        r.weight,
         r.surgery, 
         r.other,
         r.vaccination_id,
@@ -516,12 +517,13 @@ router.post('/records', async (req, res) => {
     // Create the record
     const recordResult = await query(
       `INSERT INTO record 
-       (Pet_id, Owner_id, date, surgery, other, vaccination_id)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+       (Pet_id, Owner_id, date, weight, surgery, other, vaccination_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         req.body.petId,
         req.body.ownerId,
         req.body.date,
+        req.body.weight || null,
         req.body.surgery || null,
         req.body.other || null,
         vaccinationId
@@ -593,8 +595,6 @@ router.get('/get-records-with-vaccination', async (req, res) => {
     });
   }
 });
-
-
 
 
 
