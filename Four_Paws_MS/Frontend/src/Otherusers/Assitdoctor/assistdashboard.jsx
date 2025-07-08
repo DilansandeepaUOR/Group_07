@@ -81,7 +81,7 @@ const DoctorDashboard = () => {
               <FaCalendarAlt /> Appointments
             </button>
           </li>
-          <li>
+          {/* <li>
             <button
               onClick={() => setActiveTab("patients")}
               className={`flex items-center gap-2 w-full text-left hover:text-gray-700 ${
@@ -90,8 +90,8 @@ const DoctorDashboard = () => {
             >
               <FaUser /> Patients
             </button>
-          </li>
-          <li>
+          </li> */}
+          {/* <li>
             <button
               onClick={() => setActiveTab("prescriptions")}
               className={`flex items-center gap-2 w-full text-left hover:text-gray-700 ${
@@ -101,8 +101,8 @@ const DoctorDashboard = () => {
               <FaNotesMedical /> Prescriptions
             </button>
           </li>
-          <li>
-            <button
+          <li> */}
+            {/* <button
               onClick={() => setActiveTab("medications")}
               className={`flex items-center gap-2 w-full text-left hover:text-gray-700 ${
                 activeTab === "medications" ? "font-bold text-[#028478]" : ""
@@ -110,7 +110,7 @@ const DoctorDashboard = () => {
             >
               <FaPills /> Medications
             </button>
-          </li>
+          </li> */}
           <li>
             <button
               onClick={() => setActiveTab("mobile")}
