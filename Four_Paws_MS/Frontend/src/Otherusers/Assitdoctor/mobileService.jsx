@@ -334,7 +334,7 @@ const MobileService = () => {
                           selected={appointmentDate}
                           onSelect={setAppointmentDate}
                           className="rounded-md border"
-                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0)) || initialStatus === 'complete' || initialStatus === 'confirmed'}
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0)) || initialStatus === 'complete' || initialStatus === 'confirmed' || initialStatus === 'cancelled'}
                         />
 
                         {/* Time Picker */}
@@ -345,14 +345,14 @@ const MobileService = () => {
                             value={appointmentTime}
                             onChange={(e) => setAppointmentTime(e.target.value)}
                             className="border rounded-md px-2 py-1 text-[#008478]"
-                            disabled={initialStatus === 'complete' || initialStatus === 'confirmed'}
+                            disabled={initialStatus === 'complete' || initialStatus === 'confirmed' || initialStatus === 'cancelled'}
                           />
                         </div>
                       </div>
                     </div>
 
                  
-                  {initialStatus !== 'complete' && (
+                  {initialStatus !== 'complete' && initialStatus !== 'cancelled' && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                       <select
@@ -360,7 +360,7 @@ const MobileService = () => {
                         value={status}
                         onChange={(e) => setStatus(e.target.value)}
                         className="w-full rounded-md border border-gray-300 px-3 py-2 text-[#008478] focus:border-[#008478] focus:ring-[#008478] focus:outline-none shadow-sm"
-                        disabled={initialStatus === 'confirmed'}
+                        
                       >
                         {initialStatus === 'confirmed' ? (
                           <>
