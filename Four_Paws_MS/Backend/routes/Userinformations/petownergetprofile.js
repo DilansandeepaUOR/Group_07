@@ -164,53 +164,6 @@ router.get("/confirmpassword", async (req, res) => {
 });
 
 
-// router.put("/updatepassword", async (req, res) => {
-//   const { id } = req.query;
-//   if (!id) {
-//     return res.status(400).json({ error: "ID query parameter is required" });
-//   }
-
-//   try {
-//     const { newPassword, currentPassword } = req.body;
-
-//     const currentPasswordQuery =
-//       "SELECT Password FROM pet_owner WHERE Owner_id = ?";
-//     const [currentPasswordResult] = await db
-//       .promise()
-//       .query(currentPasswordQuery, [id]);
-
-//     if (currentPasswordResult.length === 0) {
-//       return res.status(404).json({ error: "User not found" });
-//     }
-
-//     const isMatch = await bcrypt.compare(
-//       currentPassword,
-//       currentPasswordResult[0].Password
-//     );
-
-//     if (!isMatch) {
-//       return res.status(401).json({ error: "Current password is incorrect" });
-//     }
-
-//     const hashedPassword = await bcrypt.hash(newPassword, 10);
-//     const updatesql = "UPDATE pet_owner SET Password = ? WHERE Owner_id = ?";
-
-//     db.query(updatesql, [hashedPassword, id], (err, results) => {
-//       if (err) {
-//         return res.status(500).json({ error: "Error updating password" });
-//       }
-//       if (results.affectedRows === 0) {
-//         return res.status(404).json({ error: "User not found" });
-//       }
-
-//       res.status(200).json({ message: "Password updated successfully" });
-//     });
-//   } catch (error) {
-//     console.error("Database error:", error);
-//     res.status(500).json({ error: "Error updating password" });
-//   }
-// });
-
 // Deactivate account and delete account
 // Send deactivation email
 router.post("/account/deactivate", (req, res) => {
