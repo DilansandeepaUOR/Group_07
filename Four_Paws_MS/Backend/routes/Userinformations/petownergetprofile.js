@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require("../../db");
 const uploadpropic = require("../../validations/propicvalidator");
+const bcrypt = require("bcrypt");
 
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
@@ -39,7 +40,7 @@ router.get("/profile", async (req, res) => {
   }
 });
 
-router.put("/update", uploadpropic.single("image") ,async (req, res) => {
+router.put("/update", uploadpropic.single("image"), async (req, res) => {
   const { id } = req.query;
 
   //console.log("ID:", id); // Log the ID to check if it's being received correctly
@@ -50,8 +51,8 @@ router.put("/update", uploadpropic.single("image") ,async (req, res) => {
   }
 
   try {
-     
-    const { Owner_name, E_mail, Phone_number, Owner_address, oldImage } = req.body;
+    const { Owner_name, E_mail, Phone_number, Owner_address, oldImage } =
+      req.body;
 
     const imagePath = req.file
       ? `/uploads/propics/${req.file.filename}`
@@ -79,6 +80,56 @@ router.put("/update", uploadpropic.single("image") ,async (req, res) => {
     res.status(500).json({ error: "Error updating user" });
   }
 });
+
+// Update password
+
+router.put("/updatepassword", async (req, res) => {
+  const { id } = req.query;
+  if (!id) {
+    return res.status(400).json({ error: "ID query parameter is required" });
+  }
+
+  try {
+    const { newPassword, currentPassword } = req.body;
+
+    const currentPasswordQuery =
+      "SELECT Password FROM pet_owner WHERE Owner_id = ?";
+    const [currentPasswordResult] = await db
+      .promise()
+      .query(currentPasswordQuery, [id]);
+
+    if (currentPasswordResult.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(
+      currentPassword,
+      currentPasswordResult[0].Password
+    );
+
+    if (!isMatch) {
+      return res.status(401).json({ error: "Current password is incorrect" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const updatesql = "UPDATE pet_owner SET Password = ? WHERE Owner_id = ?";
+
+    db.query(updatesql, [hashedPassword, id], (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: "Error updating password" });
+      }
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      res.status(200).json({ message: "Password updated successfully" });
+    });
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).json({ error: "Error updating password" });
+  }
+});
+
 
 router.post("/addpet", async (req, res) => {
   const { id } = req.query;

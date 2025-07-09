@@ -80,34 +80,35 @@ function Profile() {
 
   //get data to edit owner profile
   useEffect(() => {
-  if (user?.id) {
-    axios
-      .get(`http://localhost:3001/api/profile/?id=${user.id}`)
-      .then((response) => {
-        if (response.data) {
-          setProfile(response.data);
-          setEditForm({
-            Owner_name: response.data.Owner_name || "",
-            E_mail: response.data.E_mail || "",
-            Phone_number: response.data.Phone_number || "",
-            Owner_address: response.data.Owner_address || "",
-            image: null,
-            oldImage: response.data.Pro_pic || "" // Changed from profileImage to Pro_pic
-          });
+    if (user?.id) {
+      axios
+        .get(`http://localhost:3001/api/profile/?id=${user.id}`)
+        .then((response) => {
+          if (response.data) {
+            setProfile(response.data);
+            setEditForm({
+              Owner_name: response.data.Owner_name || "",
+              E_mail: response.data.E_mail || "",
+              Phone_number: response.data.Phone_number || "",
+              Owner_address: response.data.Owner_address || "",
+              image: null,
+              oldImage: response.data.Pro_pic || "", // Changed from profileImage to Pro_pic
+            });
 
-          if (response.data.Pro_pic) { // Changed from profileImage to Pro_pic
-            setImagePreview(
-              `http://localhost:3001${response.data.Pro_pic}` // Added proper path construction
-            );
+            if (response.data.Pro_pic) {
+              // Changed from profileImage to Pro_pic
+              setImagePreview(
+                `http://localhost:3001${response.data.Pro_pic}` // Added proper path construction
+              );
+            }
+            fetchPets();
           }
-          fetchPets();
-        }
-      })
-      .catch((err) => {
-        console.error("Error fetching profile:", err);
-      });
-  }
-}, [user?.id]);
+        })
+        .catch((err) => {
+          console.error("Error fetching profile:", err);
+        });
+    }
+  }, [user?.id]);
 
   //get data to show and edit pet profile
   const fetchPets = async () => {
@@ -182,60 +183,62 @@ function Profile() {
   };
 
   const handleProfileSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const formData = new FormData();
-    
-    // Append all form fields
-    formData.append("Owner_name", editForm.Owner_name);
-    formData.append("E_mail", editForm.E_mail);
-    formData.append("Phone_number", editForm.Phone_number);
-    formData.append("Owner_address", editForm.Owner_address);
-    
-    // Include old image path if available
-    if (editForm.oldImage) {
-      formData.append("oldImage", editForm.oldImage);
-    }
-    
-    // Append image with correct field name ('image' to match backend)
-    if (editForm.image) {
-      formData.append("image", editForm.image);
-    }
+    e.preventDefault();
+    try {
+      const formData = new FormData();
 
-    const response = await axios.put(
-      `http://localhost:3001/api/update/?id=${user.id}`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        withCredentials: true,
-      }
-    );
+      // Append all form fields
+      formData.append("Owner_name", editForm.Owner_name);
+      formData.append("E_mail", editForm.E_mail);
+      formData.append("Phone_number", editForm.Phone_number);
+      formData.append("Owner_address", editForm.Owner_address);
 
-    // Handle successful update
-    if (response.data.message) {
-      alert(response.data.message);
-      
-      // Update image preview if a new image was uploaded
-      if (response.data.profileImage) {
-        setImagePreview(`http://localhost:3001${response.data.profileImage}`);
-        setEditForm(prev => ({
-          ...prev,
-          oldImage: response.data.profileImage,
-          image: null
-        }));
+      // Include old image path if available
+      if (editForm.oldImage) {
+        formData.append("oldImage", editForm.oldImage);
       }
-      
-      // Refresh profile data
-      const profileRes = await axios.get(`http://localhost:3001/api/profile/?id=${user.id}`);
-      setProfile(profileRes.data);
+
+      // Append image with correct field name ('image' to match backend)
+      if (editForm.image) {
+        formData.append("image", editForm.image);
+      }
+
+      const response = await axios.put(
+        `http://localhost:3001/api/update/?id=${user.id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+        }
+      );
+
+      // Handle successful update
+      if (response.data.message) {
+        alert(response.data.message);
+
+        // Update image preview if a new image was uploaded
+        if (response.data.profileImage) {
+          setImagePreview(`http://localhost:3001${response.data.profileImage}`);
+          setEditForm((prev) => ({
+            ...prev,
+            oldImage: response.data.profileImage,
+            image: null,
+          }));
+        }
+
+        // Refresh profile data
+        const profileRes = await axios.get(
+          `http://localhost:3001/api/profile/?id=${user.id}`
+        );
+        setProfile(profileRes.data);
+      }
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      alert(err.response?.data?.error || "Failed to update profile");
     }
-  } catch (err) {
-    console.error("Error updating profile:", err);
-    alert(err.response?.data?.error || "Failed to update profile");
-  }
-};
+  };
 
   //pet profile update
   const handlePetProfileSubmit = async (e) => {
@@ -342,23 +345,23 @@ function Profile() {
     }
 
     try {
-      await axios.post(
-        "http://localhost:3001/api/auth/change-password",
+      const response = await axios.put(
+        `http://localhost:3001/api/updatepassword/?id=${user.id}`,
         {
           currentPassword: passwordForm.currentPassword,
           newPassword: passwordForm.newPassword,
         },
         { withCredentials: true }
       );
-      alert("Password changed successfully!");
+
+      alert(response.data.message || "Password changed successfully!");
       setPasswordForm({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
       });
     } catch (err) {
-      console.error("Error changing password:", err);
-      alert(err.response?.data?.message || "Failed to change password");
+      alert(err.response?.data?.error || "Failed to change password");
     }
   };
 
@@ -373,7 +376,7 @@ function Profile() {
           <FaArrowLeft className="w-5 h-5 mr-2" /> Back
         </button>
         <h2 className="text-2xl font-bold mb-6 border-b border-white/30 pb-2">
-          Profile Settings
+          Profile
         </h2>
         <ul className="space-y-5">
           <li
@@ -384,14 +387,7 @@ function Profile() {
           >
             <FaUser className="mr-2" /> Your Profile
           </li>
-          <li
-            onClick={() => setActiveTab("edit")}
-            className={`flex items-center cursor-pointer hover:text-gray-300 ${
-              activeTab === "edit" ? "font-bold underline" : ""
-            }`}
-          >
-            <FaUserEdit className="mr-2" /> Edit Your Profile
-          </li>
+
           <li
             onClick={() => setActiveTab("addpet")}
             className={`flex items-center cursor-pointer hover:text-gray-300 ${
@@ -400,14 +396,7 @@ function Profile() {
           >
             <FaPaw className="mr-2" /> Add Your Pet
           </li>
-          <li
-            onClick={() => setActiveTab("password")}
-            className={`flex items-center cursor-pointer hover:text-gray-300 ${
-              activeTab === "password" ? "font-bold underline" : ""
-            }`}
-          >
-            <FaLock className="mr-2" /> Change Password
-          </li>
+
           <li
             onClick={() => setActiveTab("medical")}
             className={`flex items-center cursor-pointer hover:text-gray-300 ${
@@ -416,6 +405,46 @@ function Profile() {
           >
             <FaFileMedical className="mr-2" /> Medical Records
           </li>
+
+          <h2 className="text-2xl font-bold mb-6 mt-10 border-b border-white/30 pb-2">
+          Profile Settings
+        </h2>
+          <li
+            onClick={() => setActiveTab("edit")}
+            className={`flex items-center cursor-pointer hover:text-gray-300 ${
+              activeTab === "edit" ? "font-bold underline" : ""
+            }`}
+          >
+            <FaUserEdit className="mr-2" /> Edit Your Profile
+          </li>
+          
+          <li
+            onClick={() => setActiveTab("password")}
+            className={`flex items-center cursor-pointer hover:text-gray-300 ${
+              activeTab === "password" ? "font-bold underline" : ""
+            }`}
+          >
+            <FaLock className="mr-2" /> Change Password
+          </li>
+
+          <li
+            onClick={() => setActiveTab("deactivate")}
+            className={`hover:text-yellow-400 flex items-center cursor-pointer ${
+              activeTab === "password" ? "font-bold underline" : ""
+            }`}
+          >
+            <FaLock className="mr-2" /> Deactivate Account
+          </li>
+
+          <li
+            onClick={() => setActiveTab("delete")}
+            className={`hover:text-red-400 flex items-center cursor-pointer ${
+              activeTab === "password" ? "font-bold underline" : ""
+            }`}
+          >
+            <FaLock className="mr-2" /> Delete Account
+          </li>
+          
           <li className="hover:text-red-400 flex items-center cursor-pointer">
             <button onClick={handleLogout} className="flex items-center">
               <FaSignOutAlt className="mr-2" /> Logout
@@ -879,6 +908,34 @@ function Profile() {
           {activeTab === "medical" && (
             <div>
               <h2 className="text-2xl font-bold mb-6">Medical Records</h2>
+              <div className="bg-[#374151] p-4 rounded-lg">
+                {profile?.medicals ? (
+                  <p className="whitespace-pre-line">{profile.medicals}</p>
+                ) : (
+                  <p className="text-gray-400">No medical records available</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Deactivate account Tab */}
+          {activeTab === "deactivate" && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6">Deactivate Your Account</h2>
+              <div className="bg-[#374151] p-4 rounded-lg">
+                {profile?.medicals ? (
+                  <p className="whitespace-pre-line">{profile.medicals}</p>
+                ) : (
+                  <p className="text-gray-400">No medical records available</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Delete account Tab */}
+          {activeTab === "delete" && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6">Delete Your Account</h2>
               <div className="bg-[#374151] p-4 rounded-lg">
                 {profile?.medicals ? (
                   <p className="whitespace-pre-line">{profile.medicals}</p>
