@@ -339,6 +339,8 @@ function Profile() {
     }
   };
 
+  //password change
+
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
@@ -366,6 +368,33 @@ function Profile() {
       alert(err.response?.data?.error || "Failed to change password");
     }
   };
+
+  //deactivate and delete account requests
+  //Deactivate account request
+  const handleDeactivateRequest = async () => {
+  try {
+    await axios.post(`http://localhost:3001/api/account/deactivate`, {
+      email: user.email,
+      id: user.id,
+    });
+    alert("Confirmation email sent for deactivation.");
+  } catch (err) {
+    alert("Failed to send confirmation email.");
+  }
+};
+
+//Delete account request
+const handleDeleteRequest = async () => {
+  try {
+    await axios.post(`http://localhost:3001/api/account/delete`, {
+      email: user.email,
+      id: user.id,
+    });
+    alert("Confirmation email sent for deletion.");
+  } catch (err) {
+    alert("Failed to send confirmation email.");
+  }
+};
 
   return (
     <div className="flex min-h-screen bg-gradient-to-b from-[#22292F] via-[#028478] to-[#46dfd0] text-white">
@@ -409,8 +438,8 @@ function Profile() {
           </li>
 
           <h2 className="text-2xl font-bold mb-6 mt-10 border-b border-white/30 pb-2">
-          Profile Settings
-        </h2>
+            Profile Settings
+          </h2>
           <li
             onClick={() => setActiveTab("edit")}
             className={`flex items-center cursor-pointer hover:text-gray-300 ${
@@ -419,7 +448,7 @@ function Profile() {
           >
             <FaUserEdit className="mr-2" /> Edit Your Profile
           </li>
-          
+
           <li
             onClick={() => setActiveTab("password")}
             className={`flex items-center cursor-pointer hover:text-gray-300 ${
@@ -432,7 +461,9 @@ function Profile() {
           <li
             onClick={() => setActiveTab("deactivate")}
             className={`hover:text-yellow-400 flex items-center cursor-pointer ${
-              activeTab === "deactivate" ? "font-bold underline text-yellow-400" : ""
+              activeTab === "deactivate"
+                ? "font-bold underline text-yellow-400"
+                : ""
             }`}
           >
             <FaBan className="mr-2" /> Deactivate Account
@@ -446,7 +477,7 @@ function Profile() {
           >
             <FaTrash className="mr-2" /> Delete Account
           </li>
-          
+
           <li className="hover:text-red-400 flex items-center cursor-pointer">
             <button onClick={handleLogout} className="flex items-center">
               <FaSignOutAlt className="mr-2" /> Logout
@@ -923,13 +954,17 @@ function Profile() {
           {/* Deactivate account Tab */}
           {activeTab === "deactivate" && (
             <div>
-              <h2 className="text-2xl font-bold mb-6">Deactivate Your Account</h2>
-              <div className="bg-[#374151] p-4 rounded-lg">
-                {profile?.medicals ? (
-                  <p className="whitespace-pre-line">{profile.medicals}</p>
-                ) : (
-                  <p className="text-gray-400">No medical records available</p>
-                )}
+              <h2 className="text-2xl font-bold mb-6">
+                Deactivate Your Account
+              </h2>
+              <div className="flex justify-center items-center bg-[#374151] p-4 rounded-lg">
+                <button
+                  className="mt-4 bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded cursor-pointer"
+                  onClick={handleDeactivateRequest}
+                >
+                  Request Deactivation via Email
+                </button>
+                
               </div>
             </div>
           )}
@@ -938,12 +973,13 @@ function Profile() {
           {activeTab === "delete" && (
             <div>
               <h2 className="text-2xl font-bold mb-6">Delete Your Account</h2>
-              <div className="bg-[#374151] p-4 rounded-lg">
-                {profile?.medicals ? (
-                  <p className="whitespace-pre-line">{profile.medicals}</p>
-                ) : (
-                  <p className="text-gray-400">No medical records available</p>
-                )}
+              <div className="flex items-center justify-center bg-[#374151] p-4 rounded-lg">
+                <button
+                  className="mt-4 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded cursor-pointer"
+                  onClick={handleDeleteRequest}
+                >
+                  Request Deletion via Email
+                </button>
               </div>
             </div>
           )}

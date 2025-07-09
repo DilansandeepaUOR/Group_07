@@ -3,6 +3,9 @@ const router = express.Router();
 const db = require("../../db");
 const uploadpropic = require("../../validations/propicvalidator");
 const bcrypt = require("bcrypt");
+const tokens = new Map(); // Temporary storage (use DB in production)
+const { v4: uuidv4 } = require("uuid");
+const nodemailer = require("nodemailer");
 
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
@@ -130,6 +133,120 @@ router.put("/updatepassword", async (req, res) => {
   }
 });
 
+// Deactivate account and delete account
+// Send deactivation email
+router.post("/account/deactivate", (req, res) => {
+  const { email, id } = req.body;
+  const token = uuidv4();
+  tokens.set(token, { id, type: "deactivate" });
+
+  const link = `http://localhost:3001/api/confirm-action?token=${token}`;
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "Confirm Account Deactivation",
+    html: `<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <h2 style="color: red;">Confirm Your 4Paws Account Deactivation </h2>
+             
+             <p style="background-color: #f9f9f9; padding: 10px; border-left: 4px solid #028478;">
+    Click below to confirm deactivation</p>
+    <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+           <a href="${link}" style="padding:10px 20px; background:#f59e0b; color:white; text-decoration:none;">Confirm Account Deactivation</a>`,
+  };
+
+  sendMail(mailOptions, res);
+});
+
+router.post("/account/delete", (req, res) => {
+  const { email, id } = req.body;
+  const token = uuidv4();
+  tokens.set(token, { id, type: "delete" });
+
+  const link = `http://localhost:3001/api/confirm-action?token=${token}`;
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "Confirm Account Deletion",
+    html: `<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <h2 style="color: red;">Confirm Your 4Paws Account Deletion </h2>
+             
+             <p style="background-color: #f9f9f9; padding: 10px; border-left: 4px solid #028478;">
+    Click below to confirm deletion</p>
+    <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+           <a href="${link}" style="padding:10px 20px; background:#dc2626; color:white; text-decoration:none;">Confirm Account Deletion</a>`,
+  };
+
+  sendMail(mailOptions, res);
+});
+
+function sendMail(options, res) {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  transporter.sendMail(options, (error, info) => {
+    if (error) return res.status(500).json({ error: "Email sending failed" });
+    res.status(200).json({ message: "Confirmation email sent" });
+  });
+}
+
+router.get("/confirm-action", async (req, res) => {
+  const { token } = req.query;
+  const data = tokens.get(token);
+
+  if (!data) {
+    return res.status(400).send("Invalid or expired confirmation link.");
+  }
+
+  if (data.type === "deactivate") {
+    await db
+      .promise()
+      .query(
+        "UPDATE pet_owner SET Account_status = 'Inactive' WHERE Owner_id = ?",
+        [data.id]
+      );
+      tokens.delete(token);
+      res.redirect("http://localhost:5173/Deactivate"); 
+  } else if (data.type === "delete") {
+    try {
+      // Delete pet first
+      const deletePetSql = "DELETE FROM pet WHERE Owner_id = ?";
+      db.query(deletePetSql, [data.id], (err, petResult) => {
+        if (err) {
+          return res.status(500).json({ error: "Error deleting pet records" });
+        }
+
+        //delete pet owner
+        const deleteOwnerSql = "DELETE FROM pet_owner WHERE Owner_id = ?";
+        db.query(deleteOwnerSql, [data.id], (err, ownerResult) => {
+          if (err) {
+            return res.status(500).json({ error: "Error deleting pet owner" });
+          }
+
+          if (ownerResult.affectedRows === 0) {
+            return res.status(404).json({ error: "Pet owner not found" });
+          }
+        });
+      });
+
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+    tokens.delete(token);
+    res.redirect("http://localhost:5173/Delete"); 
+  }
+
+  
+});
+
+// Add a pet to the owner
 
 router.post("/addpet", async (req, res) => {
   const { id } = req.query;
