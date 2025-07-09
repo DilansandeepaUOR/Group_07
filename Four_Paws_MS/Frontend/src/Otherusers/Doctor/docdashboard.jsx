@@ -1,4 +1,4 @@
-import React, { useState, useEffect,lazy,Suspense } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import {
   FaCalendarAlt,
   FaUser,
@@ -13,16 +13,17 @@ const NewRecord = lazy(() => import("../../Pages/RecordNew"));
 const ViewRecords = lazy(() => import("../../Pages/AllRecords"));
 const Notify = lazy(() => import("../../Pages/VaccineNotify"));
 const SentNotify = lazy(() => import("../../Pages/VaccineSent"));
+const EditRecord = lazy(() => import("../../Pages/RecordEdit"));
 
 const DoctorDashboard = () => {
-  const [activeTab, setActiveTab] = useState("home");
+  const [activeTab, setActiveTab] = useState("medications"); // Default to medications for clarity
   const [doctor, setDoctor] = useState(null);
+  const [editingRecordId, setEditingRecordId] = useState(null);
 
   useEffect(() => {
     axios
       .get("http://localhost:3001/api/auth/admins", { withCredentials: true })
       .then((response) => {
-        console.log(response.data);
         setDoctor(response.data);
       })
       .catch(() => {
@@ -42,14 +43,31 @@ const DoctorDashboard = () => {
     }
   };
 
+  const handleEditRecord = (recordId) => {
+    setEditingRecordId(recordId);
+    setActiveTab("medications");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingRecordId(null);
+  };
+
   const renderContent = () => {
+    // REMOVED: The `if (editingRecordId)` block has been removed from here.
     switch (activeTab) {
       case "appointments":
         return <AppointmentsSection />;
       case "patients":
         return <PatientsSection />;
       case "medications":
-        return <MedicationsSection />;
+        // MODIFIED: Pass the editing ID and the cancel handler down to MedicationsSection.
+        return (
+          <MedicationsSection
+            onEditRecord={handleEditRecord}
+            editingRecordId={editingRecordId}
+            onCancelEdit={handleCancelEdit}
+          />
+        );
       default:
         return (
           <div>
@@ -89,7 +107,10 @@ const DoctorDashboard = () => {
         <ul className="space-y-4">
           <li>
             <button
-              onClick={() => setActiveTab("appointments")}
+              onClick={() => {
+                setActiveTab("appointments");
+                setEditingRecordId(null); // Clear editing state when changing tabs
+              }}
               className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
             >
               <FaCalendarAlt /> Appointments
@@ -97,7 +118,10 @@ const DoctorDashboard = () => {
           </li>
           <li>
             <button
-              onClick={() => setActiveTab("patients")}
+              onClick={() => {
+                setActiveTab("patients");
+                setEditingRecordId(null); // Clear editing state when changing tabs
+              }}
               className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
             >
               <FaUser /> Patients
@@ -142,53 +166,49 @@ const PatientsSection = () => (
 );
 
 // Medications with sub-slider
-const MedicationsSection = () => {
-  const [activeSubTab, setActiveSubTab] = useState("entry");
+// MODIFIED: Accept the new props.
+const MedicationsSection = ({ onEditRecord, editingRecordId, onCancelEdit }) => {
+  const [activeSubTab, setActiveSubTab] = useState("view");
 
   const renderSubContent = () => {
     switch (activeSubTab) {
       case "pdf":
         return (
           <div className="bg-white p-4 rounded shadow mt-4">
-            <h3 className="text-lg font-semibold mb-2"></h3>
             <Suspense fallback={<div>Loading PDF Generator...</div>}>
-            <PetRecordPDF />
+              <PetRecordPDF />
             </Suspense>
           </div>
         );
       case "view":
         return (
           <div className="bg-white p-4 rounded shadow mt-4">
-            <h3 className="text-lg font-semibold mb-2"></h3>
             <Suspense fallback={<div>Loading All Records...</div>}>
-            <ViewRecords />
+              <ViewRecords onEdit={onEditRecord} />
             </Suspense>
           </div>
         );
       case "new":
         return (
           <div className="bg-white p-4 rounded shadow mt-4">
-            <h3 className="text-lg font-semibold mb-2"></h3>
             <Suspense fallback={<div>Loading Form...</div>}>
-            <NewRecord />
+              <NewRecord />
             </Suspense>
           </div>
         );
-        case "notify":
+      case "notify":
         return (
           <div className="bg-white p-4 rounded shadow mt-4">
-            <h3 className="text-lg font-semibold mb-2"></h3>
             <Suspense fallback={<div>Loading Notifications...</div>}>
-            <Notify />
+              <Notify />
             </Suspense>
           </div>
         );
-        case "sentnotify":
+      case "sentnotify":
         return (
           <div className="bg-white p-4 rounded shadow mt-4">
-            <h3 className="text-lg font-semibold mb-2"></h3>
             <Suspense fallback={<div>Loading Notifications...</div>}>
-            <SentNotify />
+              <SentNotify />
             </Suspense>
           </div>
         );
@@ -217,7 +237,10 @@ const MedicationsSection = () => {
                 ? "bg-[#028478] text-white"
                 : "bg-white border border-[#028478] text-[#028478]"
             }`}
-            onClick={() => setActiveSubTab(tab.key)}
+            onClick={() => {
+              setActiveSubTab(tab.key);
+              onCancelEdit(); // Clear editing state if user clicks a sub-tab
+            }}
           >
             {tab.label}
           </button>
@@ -225,7 +248,16 @@ const MedicationsSection = () => {
       </div>
 
       {/* Dynamic Subcategory Content */}
-      <div className="mt-6">{renderSubContent()}</div>
+      {/* MODIFIED: Add logic here to show EditRecord or the sub-content */}
+      <div className="mt-6">
+        {editingRecordId ? (
+          <Suspense fallback={<div>Loading Editor...</div>}>
+            <EditRecord id={editingRecordId} onCancel={onCancelEdit} />
+          </Suspense>
+        ) : (
+          renderSubContent()
+        )}
+      </div>
     </div>
   );
 };

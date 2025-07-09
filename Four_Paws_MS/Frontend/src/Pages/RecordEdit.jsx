@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate} from 'react-router-dom';
 import { FaUser, FaPaw, FaCalendarAlt, FaSave, FaTimes, FaCheck } from 'react-icons/fa';
 
-const RecordEdit = () => {
-  const { id } = useParams();
+const RecordEdit = ({ id, onCancel }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -183,7 +182,10 @@ const RecordEdit = () => {
       
       if (response.data.success) {
         setSuccessMessage('Medical record updated successfully!');
-        setTimeout(() => navigate('/docdashboard'), 1500);
+        setTimeout(() => {
+          if (onCancel) onCancel();
+          else navigate('/docdashboard');
+        }, 1500);
       }
     } catch (error) {
       console.error('Error:', error.response?.data);
@@ -209,7 +211,7 @@ const RecordEdit = () => {
       <div className="p-6 max-w-md mx-auto bg-white rounded-lg shadow-md">
         <div className="text-red-500 mb-4">{errors.fetch}</div>
         <button
-          onClick={() => navigate('/docdashboard')}
+          onClick={onCancel || (() => navigate('/docdashboard'))}
           className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
         >
           Back to Dashboard
@@ -224,7 +226,7 @@ const RecordEdit = () => {
         <div className="bg-blue-600 px-6 py-4 flex justify-between items-center">
           <h1 className="text-xl font-bold text-white">Edit Medical Record</h1>
           <button
-            onClick={() => navigate('/docdashboard')}
+            onClick={onCancel || (() => navigate('/docdashboard'))}
             className="text-white hover:text-blue-200"
           >
             <FaTimes size={20} />

@@ -22,6 +22,8 @@ router.post("/addproduct", upload.single("image"), async (req, res) => {
     quantity_in_stock,
     unit_price,
     supplier_id,
+    mnf_date,
+    exp_date,
   } = req.body;
 
   const imagePath = req.file
@@ -43,7 +45,7 @@ router.post("/addproduct", upload.single("image"), async (req, res) => {
           return res.status(409).json({ error: "Product already exists" });
         }
         const productsql =
-          "INSERT INTO pet_products (name, category_id, brand, description, quantity_in_stock, unit_price, supplier_id, product_image) VALUES (?, ?, ?, ?, ?,?,?,?)";
+          "INSERT INTO pet_products (name, category_id, brand, description, mnf_date, exp_date, quantity_in_stock, unit_price, supplier_id, product_image) VALUES (?, ?, ?, ?, ?, ?, ?,?,?,?)";
 
         db.query(
           productsql,
@@ -52,6 +54,8 @@ router.post("/addproduct", upload.single("image"), async (req, res) => {
             category_id,
             brand,
             description,
+            mnf_date,
+            exp_date,
             quantity_in_stock,
             unit_price,
             supplier_id,
