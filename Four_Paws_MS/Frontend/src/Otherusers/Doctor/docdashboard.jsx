@@ -15,11 +15,14 @@ const Notify = lazy(() => import("../../Pages/VaccineNotify"));
 const SentNotify = lazy(() => import("../../Pages/VaccineSent"));
 const EditRecord = lazy(() => import("../../Pages/RecordEdit"));
 const DewormNew = lazy(() => import("../../Pages/DeWormNew"));
+const DewormRecords = lazy(() => import("../../Pages/DewormRecords"));
+const DewormEdit = lazy(() => import("../../Pages/DewormEdit"));
+const DewormNotify = lazy(() => import("../../Pages/DewormNotify"));
 
 // --- Icon for Success Popup ---
 const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-16 w-16 text-green-500 mx-auto"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>;
 
-// --- Success Popup Component with Backdrop Blur ---
+// --- Success Popup Component ---
 const SuccessPopup = ({ onClose }) => (
     <div 
         className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50"
@@ -46,6 +49,8 @@ const DoctorDashboard = () => {
   const [editingRecordId, setEditingRecordId] = useState(null);
   // ADDED: State to control the deworming success popup
   const [showDewormSuccess, setShowDewormSuccess] = useState(false);
+  
+
 
   useEffect(() => {
     axios
@@ -190,18 +195,32 @@ const AppointmentsSection = () => (
 );
 
 // Deworming
-// MODIFIED: Accept `onRecordSaved` prop and correct the buggy useState hook
-const DewormingSection = ({ onRecordSaved }) => {
+const DewormingSection = ({ onRecordSaved}) => {
   const [activeSubTab, setActiveSubTab] = useState("new");
-  
-  const renderSubContent = () => {
+
+const renderSubContent = () => {
     switch (activeSubTab) {
       case "new":
         return (
           <div className="bg-white p-4 rounded shadow mt-4">
             <Suspense fallback={<div>Loading New Deworming Form...</div>}>
-              {/* MODIFIED: Pass the callback to the DewormNew component */}
               <DewormNew onSuccess={onRecordSaved} />
+            </Suspense>
+          </div>
+        );
+      case "view":
+        return (
+          <div className="bg-white p-4 rounded shadow mt-4">
+            <Suspense fallback={<div>Loading Records...</div>}> 
+                <DewormRecords />
+            </Suspense>
+          </div>
+        );
+        case "templates":
+        return (
+          <div className="bg-white p-4 rounded shadow mt-4">
+            <Suspense fallback={<div>Loading Deworming Templates...</div>}>
+              <DewormNotify />
             </Suspense>
           </div>
         );
@@ -217,6 +236,7 @@ const DewormingSection = ({ onRecordSaved }) => {
         {[
           { key: "new", label: "Add new Deworming Record" },
           { key: "view", label: "View Deworming Records" },
+          { key: "templates", label: "Deworming Templates" },
         ].map((tab) => (
           <button
             key={tab.key}
@@ -225,15 +245,12 @@ const DewormingSection = ({ onRecordSaved }) => {
                 ? "bg-[#028478] text-white"
                 : "bg-white border border-[#028478] text-[#028478]"
             }`}
-            onClick={() => {
-              setActiveSubTab(tab.key);
-            }}
+            onClick={() => {setActiveSubTab(tab.key);}}
           >
             {tab.label}
           </button>
         ))}
       </div>
-      {/* MODIFIED: Removed incorrect logic and simplified the rendering */}
       <div className="mt-6">
         {renderSubContent()}
       </div>

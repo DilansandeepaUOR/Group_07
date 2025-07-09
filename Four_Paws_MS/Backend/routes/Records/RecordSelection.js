@@ -702,4 +702,170 @@ router.post('/deworm', async (req, res) => {
   }
 });
 
+
+// GET all deworming records with pet and owner names
+router.get('/deworm-records', async (req, res) => {
+  try {
+    const queryStr = `
+      SELECT 
+        d.deworm_id,
+        d.date,
+        d.weight,
+        d.wormer,
+        p.Pet_name,
+        o.Owner_name
+      FROM deworm d
+      JOIN pet p ON d.pet_id = p.Pet_id
+      JOIN pet_owner o ON d.owner_id = o.Owner_id
+      ORDER BY d.date DESC
+    `;
+    const records = await query(queryStr);
+    res.json(records);
+  } catch (error) {
+    console.error('Error fetching deworming records:', error);
+    res.status(500).json({ error: 'Failed to fetch records' });
+  }
+});
+
+// GET a single deworming record by ID
+router.get('/deworm-records/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const queryStr = `
+            SELECT 
+                d.deworm_id,
+                d.date,
+                d.weight,
+                d.wormer,
+                p.Pet_name,
+                o.Owner_name
+            FROM deworm d
+            JOIN pet p ON d.pet_id = p.Pet_id
+            JOIN pet_owner o ON d.owner_id = o.Owner_id
+            WHERE d.deworm_id = ?
+        `;
+        const results = await query(queryStr, [id]);
+        if (results.length > 0) {
+            // Format date to YYYY-MM-DD for the input[type="date"]
+            const record = results[0];
+            record.date = new Date(record.date).toISOString().split('T')[0];
+            res.json(record);
+        } else {
+            res.status(404).json({ message: 'Record not found' });
+        }
+    } catch (error) {
+        console.error('Error fetching deworming record:', error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+
+// UPDATE a deworming record
+router.put('/deworm-records/:id', async (req, res) => {
+  const { id } = req.params;
+  const { date, weight, wormer } = req.body;
+
+  if (!date || !weight || !wormer) {
+    return res.status(400).json({ message: 'All fields are required.' });
+  }
+
+  try {
+    const queryStr = `
+      UPDATE deworm 
+      SET date = ?, weight = ?, wormer = ?
+      WHERE deworm_id = ?
+    `;
+    await query(queryStr, [date, weight, wormer, id]);
+    res.json({ message: 'Record updated successfully' });
+  } catch (error) {
+    console.error('Error updating deworming record:', error);
+    res.status(500).json({ error: 'Failed to update record' });
+  }
+});
+
+// DELETE a deworming record
+router.delete('/deworm-records/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const queryStr = 'DELETE FROM deworm WHERE deworm_id = ?';
+    await query(queryStr, [id]);
+    res.json({ message: 'Record deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting deworming record:', error);
+    res.status(500).json({ error: 'Failed to delete record' });
+  }
+});
+
+
+// GET Dog Deworming Templates (Static Route)
+router.get("/dog-templates", (req, res) => {
+  const q = `SELECT * FROM dog_deworm_templates ORDER BY id ASC`;
+  db.query(q, (err, data) => {
+    if (err) {
+      console.error("Error fetching from dog_deworm_templates:", err);
+      return res.status(500).json({ error: "Database query failed." });
+    }
+    res.json(data);
+  });
+});
+
+// GET Cat Deworming Templates (Static Route)
+router.get("/cat-templates", (req, res) => {
+  const q = `SELECT * FROM cat_deworm_templates ORDER BY id ASC`;
+  db.query(q, (err, data) => {
+    if (err) {
+      console.error("Error fetching from cat_deworm_templates:", err);
+      return res.status(500).json({ error: "Database query failed." });
+    }
+    res.json(data);
+  });
+});
+
+// --- PUT ROUTES ---
+
+// UPDATE Dog Deworming Template (Static Route)
+router.put("/dog-templates/:id", (req, res) => {
+  const { id } = req.params;
+  const { deworm_name, age_condition } = req.body;
+
+  if (!deworm_name || !age_condition) {
+    return res.status(400).json({ error: "Both fields are required." });
+  }
+
+  const q = `UPDATE dog_deworm_templates SET deworm_name = ?, age_condition = ? WHERE id = ?`;
+  db.query(q, [deworm_name, age_condition, id], (err, result) => {
+    if (err) {
+      console.error("Error updating dog_deworm_templates:", err);
+      return res.status(500).json({ error: "Failed to update the template." });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Template not found" });
+    }
+    res.json({ message: "Template updated successfully" });
+  });
+});
+
+// UPDATE Cat Deworming Template (Static Route)
+router.put("/cat-templates/:id", (req, res) => {
+  const { id } = req.params;
+  const { deworm_name, age_condition } = req.body;
+
+  if (!deworm_name || !age_condition) {
+    return res.status(400).json({ error: "Both fields are required." });
+  }
+
+  const q = `UPDATE cat_deworm_templates SET deworm_name = ?, age_condition = ? WHERE id = ?`;
+  db.query(q, [deworm_name, age_condition, id], (err, result) => {
+    if (err) {
+      console.error("Error updating cat_deworm_templates:", err);
+      return res.status(500).json({ error: "Failed to update the template." });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Template not found" });
+    }
+    res.json({ message: "Template updated successfully" });
+  });
+});
+
+
 module.exports = router;
