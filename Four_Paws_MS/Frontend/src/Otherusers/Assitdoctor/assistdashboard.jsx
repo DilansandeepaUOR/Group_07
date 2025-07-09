@@ -12,11 +12,11 @@ import axios from "axios";
 import dp from "../../../src/assets/paw_vector.png";
 
 // Import the components
-import Appointments from "./appointments";
+import Appointments from "../Services/appointments";
 import Patients from "./patients";
 import Prescriptions from "./prescriptions";
 import Medications from "./medications";
-import MobileService from "./mobileService";
+import MobileService from "../Services/mobileService";
 
 const DoctorDashboard = () => {
   // Set the default active tab to "appointments"
@@ -132,18 +132,6 @@ const DoctorDashboard = () => {
 
       {/* Main Content */}
       <main className="flex-1 p-8">
-        {/* Search Bar */}
-        <div className="mb-6 relative">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#028478]"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <FaSearch className="absolute left-3 top-4 text-gray-400" />
-        </div>
-
         {/* Tab Content - Default is Appointments */}
         {activeTab === "appointments" && <Appointments />}
         {activeTab === "patients" && <Patients />}

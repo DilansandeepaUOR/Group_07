@@ -1,7 +1,7 @@
 import React, { useState, useEffect,lazy,Suspense } from "react";
 import {
   FaCalendarAlt,
-  FaUser,
+  FaMobileAlt,
   FaPills,
   FaSignOutAlt,
 } from "react-icons/fa";
@@ -13,7 +13,8 @@ const NewRecord = lazy(() => import("../../Pages/RecordNew"));
 const ViewRecords = lazy(() => import("../../Pages/AllRecords"));
 const Notify = lazy(() => import("../../Pages/VaccineNotify"));
 const SentNotify = lazy(() => import("../../Pages/VaccineSent"));
-
+import Appointment from '../Services/appointments'
+import MobileService from '../Services/mobileService'
 const DoctorDashboard = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [doctor, setDoctor] = useState(null);
@@ -45,21 +46,14 @@ const DoctorDashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "appointments":
-        return <AppointmentsSection />;
-      case "patients":
-        return <PatientsSection />;
+        return <Appointment />;
+      case "mobile":
+        return <MobileService />;
       case "medications":
         return <MedicationsSection />;
       default:
         return (
-          <div>
-            <h2 className="text-2xl font-semibold text-[#028478]">
-              Welcome to the Doctor Dashboard
-            </h2>
-            <p className="mt-4">
-              Please select a section from the sidebar to get started.
-            </p>
-          </div>
+          <Appointment />
         );
     }
   };
@@ -97,10 +91,10 @@ const DoctorDashboard = () => {
           </li>
           <li>
             <button
-              onClick={() => setActiveTab("patients")}
+              onClick={() => setActiveTab("mobile")}
               className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
             >
-              <FaUser /> Patients
+              <FaMobileAlt /> Mobile Service
             </button>
           </li>
           <li>
@@ -126,20 +120,20 @@ const DoctorDashboard = () => {
 };
 
 // Appointments
-const AppointmentsSection = () => (
-  <div>
-    <h2 className="text-2xl font-semibold text-[#028478]">Appointments</h2>
-    <p className="mt-4">Appointments area.</p>
-  </div>
-);
+// const AppointmentsSection = () => (
+//   <div>
+//     <h2 className="text-2xl font-semibold text-[#028478]">Appointments</h2>
+//     <p className="mt-4">Appointments area.</p>
+//   </div>
+// );
 
 // Patients
-const PatientsSection = () => (
-  <div>
-    <h2 className="text-2xl font-semibold text-[#028478]">Patients</h2>
-    <p className="mt-4">Patient area</p>
-  </div>
-);
+// const PatientsSection = () => (
+//   <div>
+//     <h2 className="text-2xl font-semibold text-[#028478]">Patients</h2>
+//     <p className="mt-4">Patient area</p>
+//   </div>
+// );
 
 // Medications with sub-slider
 const MedicationsSection = () => {

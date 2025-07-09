@@ -7,6 +7,8 @@ import L from 'leaflet';
 import AssDoctorAppointmentTable from '../../Components/assdoctor/AppointmentTable';
 import Loading from '../../app/loading';
 import { Calendar as DatePicker } from '../../Components/ui/calendar';
+import ConfirmDialog from '../../Components/ui/ConfirmDialog';
+import RefreshButton from '../../Components/ui/RefreshButton';
 
 // Fix for default marker icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -34,6 +36,8 @@ const MobileService = () => {
   const [formError, setFormError] = useState('');
   const [showConfirm, setShowConfirm] = useState(false);
   const [initialStatus, setInitialStatus] = useState('');
+  const [updateMessage, setUpdateMessage] = useState(null); // { type: 'success'|'error', text: string }
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchAppointments();
@@ -128,12 +132,16 @@ const MobileService = () => {
         date: appointmentDate ? appointmentDate.toISOString().split('T')[0] : undefined,
         time: appointmentTime
       });
+      setUpdateMessage({ type: 'success', text: 'Appointment updated. Confirmation sent via email.' });
       handleBack();
       fetchAppointments();
     } catch (err) {
+      setUpdateMessage({ type: 'error', text: err?.message || 'Failed to update appointment' });
       setError(err?.message || 'Failed to update appointment');
     } finally {
       setShowConfirm(false);
+      // Hide message after 5 seconds
+      setTimeout(() => setUpdateMessage(null), 5000);
     }
   };
 
@@ -155,7 +163,7 @@ const MobileService = () => {
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
-      case 'complete':
+      case 'completed':
         return 'bg-green-100 text-green-800';
       case 'confirmed':
         return 'bg-blue-100 text-blue-800';
@@ -175,12 +183,28 @@ const MobileService = () => {
   };
 
   const getLocationDisplay = (appointment) => {
-    if (!appointment) return 'Location not specified';
-    if (appointment.latitude && appointment.longitude) {
-      return `${appointment.latitude}, ${appointment.longitude}`;
-    }
-    return appointment.address || 'Location not specified';
-  };
+  if (!appointment) return 'Location not specified';
+
+  if (appointment.latitude && appointment.longitude) {
+    const lat = parseFloat(appointment.latitude);
+    const lng = parseFloat(appointment.longitude);
+
+    return (
+      <a
+        href={`https://www.google.com/maps?q=${lat},${lng}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-400 underline"
+        style={{ color: '#0668e0', textDecoration: 'underline' }}
+      >
+        View on Map
+      </a>
+    );
+  }
+
+  return appointment.address || 'Location not specified';
+};
+
 
   const openGoogleMaps = (latitude, longitude) => {
     const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
@@ -190,7 +214,25 @@ const MobileService = () => {
   // Filter for upcoming appointments: only show pending and confirmed (scheduled) appointments
   const filteredUpcomingAppointments = upcomingAppointments.filter(appt => {
     const status = (appt.status || '').toLowerCase();
-    return status === 'pending' || status === 'confirmed';
+    return (status === 'pending' || status === 'confirmed');
+  }).filter(appt => {
+    const term = searchTerm.toLowerCase();
+    return (
+      (appt.Pet_name && appt.Pet_name.toLowerCase().includes(term)) ||
+      (appt.Owner_name && appt.Owner_name.toLowerCase().includes(term)) ||
+      (appt.address && appt.address.toLowerCase().includes(term)) ||
+      (appt.id && appt.id.toString().toLowerCase().includes(term))
+    );
+  });
+
+  const filteredTodayAppointments = todayAppointments.filter(appt => {
+    const term = searchTerm.toLowerCase();
+    return (
+      (appt.Pet_name && appt.Pet_name.toLowerCase().includes(term)) ||
+      (appt.Owner_name && appt.Owner_name.toLowerCase().includes(term)) ||
+      (appt.address && appt.address.toLowerCase().includes(term)) ||
+      (appt.id && appt.id.toString().toLowerCase().includes(term))
+    );
   });
 
   if (loading) {
@@ -259,8 +301,6 @@ const MobileService = () => {
                   <dd className="text-sm text-gray-900">{selectedAppointment.Phone_number || 'Not specified'}</dd>
                   <dt className="text-sm font-medium text-gray-500">Email</dt>
                   <dd className="text-sm text-gray-900">{selectedAppointment.E_mail || 'Not specified'}</dd>
-                  <dt className="text-sm font-medium text-gray-500">Address</dt>
-                  <dd className="text-sm text-gray-900">{selectedAppointment.Owner_address || 'Not specified'}</dd>
                 </dl>
               </div>
 
@@ -273,7 +313,7 @@ const MobileService = () => {
                 <p className="text-sm text-gray-900 mb-4">{getLocationDisplay(selectedAppointment)}</p>
                 {showMap && selectedAppointment?.latitude && selectedAppointment?.longitude && (
                   <>
-                    <div className="h-[200px] w-full rounded-lg overflow-hidden border border-gray-200 mb-4">
+                    <div className="h-[250px] w-full rounded-lg overflow-hidden border border-gray-200 mb-4">
                       <MapContainer
                         center={mapCenter}
                         zoom={13}
@@ -297,7 +337,7 @@ const MobileService = () => {
                       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 0C7.802 0 4 3.403 4 7.602C4 11.8 7.469 16.812 12 24C16.531 16.812 20 11.8 20 7.602C20 3.403 16.199 0 12 0ZM12 11C10.343 11 9 9.657 9 8C9 6.343 10.343 5 12 5C13.657 5 15 6.343 15 8C15 9.657 13.657 11 12 11Z"/>
                       </svg>
-                      Open in Google Maps
+                      Open in Maps
                     </button>
                   </>
                 )}
@@ -334,7 +374,7 @@ const MobileService = () => {
                           selected={appointmentDate}
                           onSelect={setAppointmentDate}
                           className="rounded-md border"
-                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0)) || initialStatus === 'complete' || initialStatus === 'confirmed' || initialStatus === 'cancelled'}
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0)) || initialStatus === 'completed' || initialStatus === 'confirmed' || initialStatus === 'cancelled'}
                         />
 
                         {/* Time Picker */}
@@ -345,14 +385,14 @@ const MobileService = () => {
                             value={appointmentTime}
                             onChange={(e) => setAppointmentTime(e.target.value)}
                             className="border rounded-md px-2 py-1 text-[#008478]"
-                            disabled={initialStatus === 'complete' || initialStatus === 'confirmed' || initialStatus === 'cancelled'}
+                            disabled={initialStatus === 'completed' || initialStatus === 'confirmed' || initialStatus === 'cancelled'}
                           />
                         </div>
                       </div>
                     </div>
 
                  
-                  {initialStatus !== 'complete' && initialStatus !== 'cancelled' && (
+                  {initialStatus !== 'completed' && initialStatus !== 'cancelled' && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                       <select
@@ -364,13 +404,15 @@ const MobileService = () => {
                       >
                         {initialStatus === 'confirmed' ? (
                           <>
-                            <option value="complete">Complete</option>
+                            <option >Select Status</option>
+                            <option value="completed">complete</option>
                             <option value="cancelled">Cancel</option>
                           </>
                         ) : (
                           <>
+                            <option >Select Status</option>
                             <option value="confirmed">Confirm</option>
-                            <option value="complete">Complete</option>
+                            <option value="completed">complete</option>
                             <option value="cancelled">Cancel</option>
                           </>
                         )}
@@ -379,7 +421,7 @@ const MobileService = () => {
                   )}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                    {initialStatus === 'complete' ? (
+                    {initialStatus === 'completed' ? (
                       <div className="w-full rounded-md border-gray-300 shadow-sm bg-gray-100 p-2 min-h-[80px]">{notes || 'No notes provided.'}</div>
                     ) : (
                       <textarea
@@ -387,7 +429,7 @@ const MobileService = () => {
                         onChange={(e) => setNotes(e.target.value)}
                         placeholder="Add notes about the appointment..."
                         rows={4}
-                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-[#028478] focus:ring-[#028478]"
+                        className="w-full p-3 rounded-md border-gray-300 shadow-sm focus:border-[#028478] focus:ring-[#028478]"
                         disabled={initialStatus === 'confirmed'}
                       />
                     )}
@@ -411,14 +453,14 @@ const MobileService = () => {
           <div className="mt-6 flex justify-end space-x-3">
             <button
               onClick={handleBack}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+              className="px-4 py-2 text-gray-100 bg-gray-400 rounded hover:bg-gray-500 transition-colors"
             >
               Cancel
             </button>
-            {initialStatus !== 'complete' && (
+            {initialStatus !== 'completed' && (
               <button
                 onClick={handleUpdateAppointment}
-                className="px-4 py-2 bg-[#028478] text-white rounded-md hover:bg-[#026e64] transition-colors"
+                className="bg-[#028478] text-white px-4 py-2 rounded hover:bg-[#046a5b]"
               >
                 Update Appointment
               </button>
@@ -426,51 +468,48 @@ const MobileService = () => {
           </div>
         </div>
         {/* Confirmation Dialog */}
-        {showConfirm && (
-          <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-black/30" style={{ zIndex: 10000 }}>
-    <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full" style={{ zIndex: 10001 }}>
-      <h2 className="text-lg font-semibold mb-4">Confirm Update</h2>
-      <p className="mb-6">Are you sure you want to update this appointment?</p>
-      <div className="flex justify-end gap-2">
-        <button
-          onClick={() => setShowConfirm(false)}
-          className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={confirmUpdate}
-          className="px-4 py-2 bg-[#028478] text-white rounded hover:bg-[#026e64]"
-        >
-          Yes, Update
-        </button>
-      </div>
-    </div>
-  </div>
-        )}
+        <ConfirmDialog
+          open={showConfirm}
+          title="Confirm Update"
+          description="Are you sure you want to update this appointment?"
+          confirmLabel="Yes, Update"
+          cancelLabel="Cancel"
+          onConfirm={confirmUpdate}
+          onCancel={() => setShowConfirm(false)}
+        />
       </div>
     );
   }
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-end mb-4 gap-2">
-        {!showAll && (
-          <button
-            onClick={handleShowAll}
-            className="px-4 py-2 bg-[#028478] text-white rounded-md hover:bg-[#026e64] transition-colors"
-          >
-            Show All Mobile Services
-          </button>
-        )}
-        {showAll && (
-          <button
-            onClick={handleBackToFiltered}
-            className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors"
-          >
-            Back
-          </button>
-        )}
+      <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-2">
+        <input
+          type="text"
+          placeholder="Search by pet, owner, address, or ID..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          className="w-full sm:w-80 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#028478] mb-2 sm:mb-0"
+        />
+        <div className="flex gap-2 w-full sm:w-auto justify-end">
+          {!showAll && (
+            <button
+              onClick={handleShowAll}
+              className="bg-[#028478] text-white px-4 py-2 rounded hover:bg-[#046a5b]"
+            >
+              Show All Mobile Services
+            </button>
+          )}
+          {showAll && (
+            <button
+              onClick={handleBackToFiltered}
+              className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition-colors"
+            >
+              Back
+            </button>
+          )}
+          <RefreshButton onClick={fetchAppointments} />
+        </div>
       </div>
       {showAll ? (
         <AssDoctorAppointmentTable
@@ -480,24 +519,27 @@ const MobileService = () => {
           getLocationDisplay={getLocationDisplay}
           getStatusColor={getStatusColor}
           isToday={false}
+          updateMessage={updateMessage}
         />
       ) : (
         <>
           <AssDoctorAppointmentTable
-            title="Today's Appointments"
-            appointments={todayAppointments}
+            title="Today's Mobile Appointments"
+            appointments={filteredTodayAppointments}
             onViewDetails={handleAppointmentClick}
             getLocationDisplay={getLocationDisplay}
             getStatusColor={getStatusColor}
             isToday={true}
+            updateMessage={updateMessage}
           />
           <AssDoctorAppointmentTable
-            title="Upcoming Appointments"
+            title="Upcoming Mobile Appointments"
             appointments={filteredUpcomingAppointments}
             onViewDetails={handleAppointmentClick}
             getLocationDisplay={getLocationDisplay}
             getStatusColor={getStatusColor}
             isToday={false}
+            updateMessage={updateMessage}
           />
         </>
       )}

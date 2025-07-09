@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Eye, Pencil, XCircle } from 'lucide-react';
+import { Eye, Pencil, XCircle, Check } from 'lucide-react';
+import ConfirmDialog from '../../Components/ui/ConfirmDialog';
+import RefreshButton from '../../Components/ui/RefreshButton';
 
 
 const Appointments = () => {
@@ -14,34 +16,40 @@ const Appointments = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, appointmentId: null });
+  const [cancelDialog, setCancelDialog] = useState({ open: false, appointmentId: null });
   const pageLimit = 20;
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Move fetchAppointments out of useEffect for refresh
+  const fetchAppointments = async () => {
+    try {
+      const endpoint = showAll
+        ? `http://localhost:3001/api/assistantdoctor/all?page=${currentPage}&limit=${pageLimit}`
+        : 'http://localhost:3001/api/assistantdoctor';
+
+      const res = await axios.get(endpoint);
+      const data = res.data;
+
+      setAppointments(data.appointments || []);
+      setTotal(data.total || 0);
+      setCompleted(parseInt(data.completed) || 0);
+      setScheduled(parseInt(data.scheduled) || 0);
+      setCancelled(parseInt(data.cancelled) || 0);
+
+      if (showAll) {
+        setTotalPages(Math.ceil(data.total / pageLimit));
+      } else {
+        setTotalPages(1);
+      }
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+    }
+  };
 
   useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        const endpoint = showAll
-          ? `http://localhost:3001/api/assistantdoctor/all?page=${currentPage}&limit=${pageLimit}`
-          : 'http://localhost:3001/api/assistantdoctor';
-
-        const res = await axios.get(endpoint);
-        const data = res.data;
-
-        setAppointments(data.appointments || []);
-        setTotal(data.total || 0);
-        setCompleted(parseInt(data.completed) || 0);
-        setScheduled(parseInt(data.scheduled) || 0);
-        setCancelled(parseInt(data.cancelled) || 0);
-
-        if (showAll) {
-          setTotalPages(Math.ceil(data.total / pageLimit));
-        } else {
-          setTotalPages(1);
-        }
-      } catch (error) {
-        console.error('Error fetching appointments:', error);
-      }
-    };
-
     fetchAppointments();
   }, [showAll, currentPage]);
 
@@ -74,15 +82,17 @@ const Appointments = () => {
     setShowModal(true);
   };
 
-  const handleCancel = async (appointmentId) => {
-    const confirmCancel = window.confirm("Are you sure you want to cancel this appointment?");
-    if (!confirmCancel) return;
-  
+  const handleCancel = (appointmentId) => {
+    setCancelDialog({ open: true, appointmentId });
+  };
+
+  const handleConfirmCancel = async () => {
+    const appointmentId = cancelDialog.appointmentId;
+    setCancelDialog({ open: false, appointmentId: null });
     try {
       await axios.put(`http://localhost:3001/api/assistantdoctor/${appointmentId}`, {
         status: 'Cancelled'
       });
-  
       const updatedAppointments = appointments.map((a) =>
         a.appointment_id === appointmentId ? { ...a, status: 'Cancelled' } : a
       );
@@ -93,15 +103,17 @@ const Appointments = () => {
   };
 
 
-  const handleEdit = async (appointmentId) => {
-    const confirmCancel = window.confirm("Are you sure you want to Complete this appointment?");
-    if (!confirmCancel) return;
-  
+  const handleEdit = (appointmentId) => {
+    setConfirmDialog({ open: true, appointmentId });
+  };
+
+  const handleConfirmEdit = async () => {
+    const appointmentId = confirmDialog.appointmentId;
+    setConfirmDialog({ open: false, appointmentId: null });
     try {
       await axios.put(`http://localhost:3001/api/assistantdoctor/${appointmentId}`, {
         status: 'Completed'
       });
-  
       const updatedAppointments = appointments.map((a) =>
         a.appointment_id === appointmentId ? { ...a, status: 'Completed' } : a
       );
@@ -124,19 +136,103 @@ const Appointments = () => {
   );
   
 
+  // Helper to format date and time as 'YYYY-MM-DD at hh:mm AM/PM'
+  function formatDateTime(dateStr, timeStr) {
+    if (!dateStr || !timeStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    // Check if date is today
+    const isToday =
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate();
+    // Format time as hh:mm AM/PM
+    let [hour, minute] = timeStr.split(':');
+    let ampm = 'AM';
+    hour = parseInt(hour, 10);
+    if (hour >= 12) {
+      ampm = 'PM';
+      if (hour > 12) hour -= 12;
+    } else if (hour === 0) {
+      hour = 12;
+    }
+    const timeFormatted = `${String(hour).padStart(2, '0')}:${minute} ${ampm}`;
+    if (isToday) {
+      return `Today at ${timeFormatted}`;
+    }
+    // Format date as YYYY-MM-DD
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd} at ${timeFormatted}`;
+  }
+
+  // Helper to robustly parse date and time for sorting
+  function getDateTimeForSort(dateStr, timeStr) {
+    if (!dateStr) return new Date(0); // fallback to epoch if missing
+    // If time is missing, use 00:00
+    const time = timeStr ? timeStr : '00:00';
+    // Try to parse as ISO, fallback to Date constructor
+    const isoString = `${dateStr}T${time.length === 5 ? time : time.slice(0,5)}`;
+    const d = new Date(isoString);
+    if (!isNaN(d)) return d;
+    // fallback: try Date(dateStr + ' ' + time)
+    return new Date(`${dateStr} ${time}`);
+  }
+
+  // Filter and sort appointments before rendering
+  const filteredAppointments = appointments
+    .filter((appointment) => {
+      const term = searchTerm.toLowerCase();
+      const matches =
+        (appointment.Pet_name && appointment.Pet_name.toLowerCase().includes(term)) ||
+        (appointment.Owner_name && appointment.Owner_name.toLowerCase().includes(term)) ||
+        (appointment.Owner_address && appointment.Owner_address.toLowerCase().includes(term)) ||
+        (appointment.appointment_id && appointment.appointment_id.toString().toLowerCase().includes(term));
+      if (!matches) return false;
+      if (filterStatus === 'all') return true;
+      return appointment.status && appointment.status.toLowerCase() === filterStatus;
+    })
+    .sort((a, b) => {
+      const dateA = getDateTimeForSort(a.appointment_date, a.appointment_time);
+      const dateB = getDateTimeForSort(b.appointment_date, b.appointment_time);
+      return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+    });
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-semibold text-[#028478]">
-          {showAll ? "All Appointments" : "Today's Appointments"}
-        </h2>
-        <button
-          onClick={toggleView}
-          className="bg-[#028478] text-white px-4 py-2 rounded hover:bg-[#046a5b]"
-        >
-          {showAll ? "View Today's Appointments" : 'View All Appointments'}
-        </button>
+      <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-2">
+        <input
+          type="text"
+          placeholder="Search by pet, owner, address, or ID..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          className="w-full md:w-80 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#028478] mb-2 md:mb-0"
+        />
+        <div className="flex flex-wrap gap-2 items-center w-full md:w-auto justify-end">
+          <button
+            onClick={toggleView}
+            className="bg-[#028478] text-white px-4 py-2 rounded hover:bg-[#046a5b]"
+          >
+            {showAll ? "View Today's Appointments" : 'View All Appointments'}
+          </button>
+          {/* Filter by Status */}
+          <select
+            value={filterStatus}
+            onChange={e => setFilterStatus(e.target.value)}
+            className="border rounded px-2 py-1 text-[#028478]"
+          >
+            <option value="all">All Statuses</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          {/* Refresh Button */}
+          <RefreshButton onClick={fetchAppointments} />
+        </div>
       </div>
+
+      <h2 className='text-xl font-semibold text-[#028478] pb-5'>{showAll ? "All Appointments" : "Today's Appointments"}</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <StatCard title="Total Appointments" value={total} />
@@ -146,23 +242,23 @@ const Appointments = () => {
       </div>
 
       <div className="bg-white rounded-lg shadow-md overflow-hidden mb-4">
-        <table className="min-w-full">
-          <thead className="bg-[#71C9CE]">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
             <tr>
               {['Appointment  ID', 'Owner Name', 'Date & Time', 'Reason', 'Status', 'Actions'].map((h) => (
-                <th key={h} className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                <th key={h} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {h}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
-            {appointments.map((appointment) => (
-              <tr key={appointment.appointment_id}>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {filteredAppointments.map((appointment) => (
+              <tr key={appointment.appointment_id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm text-gray-900">{appointment.appointment_id}</td>
                 <td className="px-6 py-4 text-sm text-gray-900">{appointment.Owner_name}</td>
                 <td className="px-6 py-4 text-sm text-gray-900">
-                  {new Date(appointment.appointment_date).toLocaleDateString()} at {appointment.appointment_time}
+                  {formatDateTime(appointment.appointment_date, appointment.appointment_time)}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900">{appointment.reason}</td>
                 <td className="px-6 py-4">
@@ -184,7 +280,7 @@ const Appointments = () => {
                           onClick={() => handleEdit(appointment.appointment_id)} 
                           className="flex items-center text-[#028478] hover:text-[#71C9CE]"
                         >
-                          <Pencil className="w-4 h-4 mr-1" />
+                          <Check className="w-4 h-4 mr-1" />
                           
                         </button>
                         <button 
@@ -202,7 +298,7 @@ const Appointments = () => {
             ))}
           </tbody>
         </table>
-        {appointments.length === 0 && (
+        {filteredAppointments.length === 0 && (
           <p className="text-center py-4 text-gray-500">No appointments found.</p>
         )}
       </div>
@@ -249,7 +345,7 @@ const Appointments = () => {
       <DetailRow label="Email" value={selectedAppointment.E_mail} />
       <DetailRow
         label="Date & Time"
-        value={`${new Date(selectedAppointment.appointment_date).toLocaleDateString()} at ${selectedAppointment.appointment_time}`}
+        value={formatDateTime(selectedAppointment.appointment_date, selectedAppointment.appointment_time)}
       />
       <DetailRow label="Reason" value={selectedAppointment.reason} />
       <DetailRow
@@ -285,6 +381,29 @@ const Appointments = () => {
 </div>
 
 )}
+
+{/* Confirmation Dialog for Completing Appointment */}
+<ConfirmDialog
+  open={confirmDialog.open}
+  title="Complete Appointment"
+  description="Are you sure you want to mark this appointment as completed?"
+  confirmLabel="Yes, Complete"
+  cancelLabel="Cancel"
+  onConfirm={handleConfirmEdit}
+  onCancel={() => setConfirmDialog({ open: false, appointmentId: null })}
+/>
+
+{/* Confirmation Dialog for Cancelling Appointment */}
+<ConfirmDialog
+  open={cancelDialog.open}
+  title="Cancel Appointment"
+  description="Are you sure you want to cancel this appointment?"
+  confirmLabel="Yes, Cancel"
+  cancelLabel="No "
+  onConfirm={handleConfirmCancel}
+  type="cancel"
+  onCancel={() => setCancelDialog({ open: false, appointmentId: null })}
+/>
 
     </div>
   );

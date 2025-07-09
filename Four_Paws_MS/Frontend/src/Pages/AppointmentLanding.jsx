@@ -131,12 +131,20 @@ function AppointmentLanding() {
   };
 
   const handleCancelMobileService = async (serviceId) => {
+    // Find the service to check its status
+    const service = mobileServices.find(s => s.id === serviceId);
+    if (!service) {
+      toast.error("Mobile service not found.");
+      return;
+    }
+    if (service.status.toLowerCase() !== "pending") {
+      toast.error("Only pending mobile services can be cancelled.");
+      return;
+    }
     try {
       setIsCancelling(true);
       setCancellingAppointmentId(serviceId);
-      
       await axios.put(`http://localhost:3001/api/mobileservice/cancel/${serviceId}`);
-      
       setMobileServices(prev => 
         prev.map(service => 
           service.id === serviceId 
@@ -144,7 +152,6 @@ function AppointmentLanding() {
             : service
         )
       );
-      
       toast.success("Mobile service cancelled successfully");
     } catch (error) {
       console.error("Error cancelling mobile service:", error);

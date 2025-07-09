@@ -545,8 +545,8 @@ const AppointmentDetails = () => {
                 <h3 className="font-medium text-[#A6E3E9] mb-4">Appointment Details</h3>
                 <div className="space-y-2 text-sm">
                   <p><span className="font-medium text-[#A6E3E9]">Appointment ID:</span> <span className="text-gray-200">#{completedAppointment.appointment_id}</span></p>
-                  <p><span className="font-medium text-[#A6E3E9]">Date:</span> <span className="text-gray-200">{formatDate(completedAppointment.appointment_date)}</span></p>
-                  <p><span className="font-medium text-[#A6E3E9]">Time:</span> <span className="text-gray-200">{convertTimeFormat(completedAppointment.appointment_time)}</span></p>
+                  <p><span className="font-medium text-[#A6E3E9]">Date:</span> <span className="text-gray-200">{formatDate(completedAppointment.date)}</span></p>
+                  <p><span className="font-medium text-[#A6E3E9]">Time:</span> <span className="text-gray-200">{convertTimeFormat(completedAppointment.time)}</span></p>
                   <p><span className="font-medium text-[#A6E3E9]">Service:</span> <span className="text-gray-200">{completedAppointment.reason}</span></p>
                 </div>
               </div>

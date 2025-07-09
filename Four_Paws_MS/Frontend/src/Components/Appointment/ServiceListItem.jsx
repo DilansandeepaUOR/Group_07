@@ -20,7 +20,10 @@ const ServiceListItem = ({
   onCancel
 }) => {
   const isCancellingThis = isCancelling && cancellingAppointmentId === item.displayId;
-  const canCancel = item.displayStatus !== "Cancelled" && item.displayStatus !== "Completed";
+  // Only allow cancel for mobile if status is 'pending', for clinic use previous logic
+  const canCancel = item.type === "mobile"
+    ? item.displayStatus && item.displayStatus.toLowerCase() === "pending"
+    : item.displayStatus !== "Cancelled" && item.displayStatus !== "Completed";
 
   return (
     <div className="bg-white/5 backdrop-blur-md rounded-lg p-6 border border-white/10 hover:bg-white/10 transition-all duration-300">

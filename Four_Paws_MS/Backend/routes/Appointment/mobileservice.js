@@ -74,7 +74,7 @@ router.post('/', async (req, res) => {
         latitude DECIMAL(10, 8),
         longitude DECIMAL(11, 8),
         address TEXT,
-        status ENUM('pending', 'confirmed', 'cancelled', 'complete') NOT NULL DEFAULT 'pending',
+        status ENUM('pending', 'confirmed', 'cancelled', 'completed') NOT NULL DEFAULT 'pending',
         special_notes TEXT,
         reason TEXT,
         date DATE,
