@@ -383,10 +383,28 @@ export default function ReportsSection() {
                       <td className="px-4 py-2 text-sm font-semibold text-gray-800">Total</td>
                       <td className="px-4 py-2 text-sm text-right text-gray-800"></td>
                       <td className="px-4 py-2 text-sm text-right font-semibold text-gray-800">
-                        {detailedSales.reduce((sum, item) => sum + item.quantity_sold, 0)}
+                        {
+                          (() => {
+                            let totalQty = 0;
+                            detailedSales.forEach(item => {
+                              const qty = Number(item.quantity_sold);
+                              if (!isNaN(qty)) totalQty += qty;
+                            });
+                            return totalQty;
+                          })()
+                        }
                       </td>
                       <td className="px-4 py-2 text-sm text-right font-semibold text-gray-800">
-                        {formatCurrency(detailedSales.reduce((sum, item) => sum + item.total_revenue, 0))}
+                        {
+                          (() => {
+                            let totalRev = 0;
+                            detailedSales.forEach(item => {
+                              const rev = Number(item.total_revenue);
+                              if (!isNaN(rev)) totalRev += rev;
+                            });
+                            return isNaN(totalRev) ? 'LKR 0.00' : formatCurrency(totalRev);
+                          })()
+                        }
                       </td>
                     </tr>
                   </tfoot>

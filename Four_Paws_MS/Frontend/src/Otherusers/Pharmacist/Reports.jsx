@@ -97,7 +97,17 @@ export default function ReportsSection() {
         throw new Error('Failed to fetch detailed sales');
       }
       const data = await res.json();
-      setDetailedSales(data);
+      // Coerce numeric fields to numbers with fallback to 0
+      const cleanedData = Array.isArray(data)
+        ? data.map(item => ({
+            ...item,
+            quantity_sold: Number(item.quantity_sold) || 0,
+            total_revenue: Number(item.total_revenue) || 0,
+            price: Number(item.price) || 0,
+          }))
+        : [];
+      console.log('Cleaned detailedSales:', cleanedData); // Debug log
+      setDetailedSales(cleanedData);
       setErrorDetailed(null);
     } catch (err) {
       setErrorDetailed(err.message);
@@ -108,7 +118,8 @@ export default function ReportsSection() {
   };
 
   const formatCurrency = (value) => {
-    const numValue = Number(value) || 0;
+    const numValue = Number(value);
+    if (isNaN(numValue)) return 'LKR 0.00';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'LKR',
@@ -162,6 +173,9 @@ export default function ReportsSection() {
     const revenue = Number(item.total_revenue) || 0;
     return sum + revenue;
   }, 0);
+
+  // Add a debug log before rendering the table
+  console.log('Rendering detailedSales:', detailedSales);
 
   return (
     <div className="bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6 min-h-screen">
@@ -305,10 +319,28 @@ export default function ReportsSection() {
                       <td className="px-4 py-2 text-sm font-semibold text-gray-800">Total</td>
                       <td className="px-4 py-2 text-sm text-right text-gray-800"></td>
                       <td className="px-4 py-2 text-sm text-right font-semibold text-gray-800">
-                        {detailedSales.reduce((sum, item) => sum + (Number(item.quantity_sold) || 0), 0).toLocaleString()}
+                        {
+                          (() => {
+                            let totalQty = 0;
+                            detailedSales.forEach(item => {
+                              const qty = Number(item.quantity_sold);
+                              if (!isNaN(qty)) totalQty += qty;
+                            });
+                            return totalQty;
+                          })()
+                        }
                       </td>
                       <td className="px-4 py-2 text-sm text-right font-semibold text-gray-800">
-                        {formatCurrency(detailedSales.reduce((sum, item) => sum + (Number(item.total_revenue) || 0), 0))}
+                        {
+                          (() => {
+                            let totalRev = 0;
+                            detailedSales.forEach(item => {
+                              const rev = Number(item.total_revenue);
+                              if (!isNaN(rev)) totalRev += rev;
+                            });
+                            return isNaN(totalRev) ? 'LKR 0.00' : formatCurrency(totalRev);
+                          })()
+                        }
                       </td>
                     </tr>
                   </tfoot>
