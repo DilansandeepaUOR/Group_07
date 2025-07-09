@@ -105,7 +105,7 @@ const DewormNotify = () => {
   return (
     <ConfigProvider theme={{ token: { fontSize: 16 } }}>
       <Card style={{ margin: '24px' }}>
-        <Title level={2}>Deworming Notification Templates</Title>
+        <Title level={3}>Deworming Notification Templates</Title>
         <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
           These templates determine the deworming schedule for pets.
         </Text>

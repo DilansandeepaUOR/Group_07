@@ -18,6 +18,7 @@ const DewormNew = lazy(() => import("../../Pages/DeWormNew"));
 const DewormRecords = lazy(() => import("../../Pages/DewormRecords"));
 const DewormEdit = lazy(() => import("../../Pages/DewormEdit"));
 const DewormNotify = lazy(() => import("../../Pages/DewormNotify"));
+const DewormNotifications = lazy(() => import("../../Pages/DewormingSent"));
 
 // --- Icon for Success Popup ---
 const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-16 w-16 text-green-500 mx-auto"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>;
@@ -224,6 +225,14 @@ const renderSubContent = () => {
             </Suspense>
           </div>
         );
+      case "notify":
+        return (
+          <div className="bg-white p-4 rounded shadow mt-4">
+            <Suspense fallback={<div>Loading Notifications...</div>}>
+              <DewormNotifications />
+            </Suspense>
+          </div>
+        );
       default:
         return null;
     }
@@ -237,6 +246,7 @@ const renderSubContent = () => {
           { key: "new", label: "Add new Deworming Record" },
           { key: "view", label: "View Deworming Records" },
           { key: "templates", label: "Deworming Templates" },
+          { key: "notify", label: "Deworming Notifications" },
         ].map((tab) => (
           <button
             key={tab.key}

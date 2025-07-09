@@ -73,6 +73,9 @@ app.use('/contact', contactInfoRoutes);
 const recordRoutes = require('./routes/Records/RecordSelection');
 app.use('/api', recordRoutes);
 
+const dogdewormingNotificationService = require('./routes/Records/DogsDewormingNotificationService');
+app.use('/api/deworming-notifications', dogdewormingNotificationService.router);
+
 app.get('/api/test-route', (req, res) => {
   res.json({ message: "Test route works!" });
 });
