@@ -11,6 +11,8 @@ import {
   FaEyeSlash,
   FaCamera,
   FaPaw,
+  FaTrash,
+  FaBan,
 } from "react-icons/fa";
 import axios from "axios";
 import dp from "../assets/paw_vector.png";
@@ -430,19 +432,19 @@ function Profile() {
           <li
             onClick={() => setActiveTab("deactivate")}
             className={`hover:text-yellow-400 flex items-center cursor-pointer ${
-              activeTab === "password" ? "font-bold underline" : ""
+              activeTab === "deactivate" ? "font-bold underline text-yellow-400" : ""
             }`}
           >
-            <FaLock className="mr-2" /> Deactivate Account
+            <FaBan className="mr-2" /> Deactivate Account
           </li>
 
           <li
             onClick={() => setActiveTab("delete")}
             className={`hover:text-red-400 flex items-center cursor-pointer ${
-              activeTab === "password" ? "font-bold underline" : ""
+              activeTab === "delete" ? "font-bold underline text-red-400" : ""
             }`}
           >
-            <FaLock className="mr-2" /> Delete Account
+            <FaTrash className="mr-2" /> Delete Account
           </li>
           
           <li className="hover:text-red-400 flex items-center cursor-pointer">
