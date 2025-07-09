@@ -660,4 +660,46 @@ router.get('/vaccination/:id', async (req, res) => {
   }
 });
 
+
+// POST /api/deworm - Create a new deworming record
+router.post('/deworm', async (req, res) => {
+  // Destructure the expected fields from the request body
+  const { pet_id, owner_id, date, weight, wormer } = req.body;
+
+  // --- Basic Validation ---
+  // Check if all required fields are provided
+  if (!pet_id || !owner_id || !date || !weight || !wormer) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing required fields. Please provide pet_id, owner_id, date, weight, and wormer.'
+    });
+  }
+
+  try {
+    // The SQL query to insert data into the deworm table
+    const sqlQuery = `
+      INSERT INTO deworm (pet_id, owner_id, date, weight, wormer)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+
+    // Execute the query with the provided data
+    const result = await query(sqlQuery, [pet_id, owner_id, date, weight, wormer]);
+
+    // Send a success response
+    res.status(201).json({
+      success: true,
+      message: 'Deworming record created successfully.',
+      dewormId: result.insertId // The ID of the new row
+    });
+
+  } catch (error) {
+    console.error('Error creating deworming record:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create deworming record.',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router;
