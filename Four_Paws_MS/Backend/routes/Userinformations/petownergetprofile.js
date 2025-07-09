@@ -22,7 +22,7 @@ router.get("/profile", async (req, res) => {
     const [results] = await db
       .promise()
       .query(
-        "SELECT po.Owner_name, po.E_mail, po.Phone_number, po.Owner_address, p.Pet_id, p.Pet_name, p.Pet_type, p.Pet_dob, p.Pet_gender FROM pet_owner po JOIN pet p ON po.Owner_id = p.Owner_id WHERE po.Owner_id = ?;",
+        "SELECT po.Owner_name, po.E_mail, po.Phone_number, po.Owner_address, po.Pro_pic, p.Pet_id, p.Pet_name, p.Pet_type, p.Pet_dob, p.Pet_gender FROM pet_owner po JOIN pet p ON po.Owner_id = p.Owner_id WHERE po.Owner_id = ?;",
         [id]
       );
 
