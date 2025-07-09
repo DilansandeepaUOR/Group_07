@@ -172,7 +172,6 @@ const NotificationTemplates = () => {
           )}
         </>
       )}
-
       <Modal
         title={`Edit Template: ${currentTemplate?.template_name || ''}`}
         visible={visible}
