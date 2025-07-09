@@ -181,6 +181,7 @@ router.get('/all-records', async (req, res) => {
       SELECT 
         r.id, 
         r.date, 
+        r.weight,
         r.surgery, 
         r.other,
         r.vaccination_id,
@@ -516,12 +517,13 @@ router.post('/records', async (req, res) => {
     // Create the record
     const recordResult = await query(
       `INSERT INTO record 
-       (Pet_id, Owner_id, date, surgery, other, vaccination_id)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+       (Pet_id, Owner_id, date, weight, surgery, other, vaccination_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         req.body.petId,
         req.body.ownerId,
         req.body.date,
+        req.body.weight || null,
         req.body.surgery || null,
         req.body.other || null,
         vaccinationId
@@ -596,8 +598,6 @@ router.get('/get-records-with-vaccination', async (req, res) => {
 
 
 
-
-
 router.get('/sent-notifications', async (req, res) => {
   const { pet_id, owner_id, status } = req.query;
   let queryStr = 'SELECT n.*, p.Pet_name, o.Owner_name FROM sent_notifications n ' +
@@ -656,6 +656,48 @@ router.get('/vaccination/:id', async (req, res) => {
     res.status(500).json({ 
       error: 'Error fetching vaccination',
       details: error.message 
+    });
+  }
+});
+
+
+// POST /api/deworm - Create a new deworming record
+router.post('/deworm', async (req, res) => {
+  // Destructure the expected fields from the request body
+  const { pet_id, owner_id, date, weight, wormer } = req.body;
+
+  // --- Basic Validation ---
+  // Check if all required fields are provided
+  if (!pet_id || !owner_id || !date || !weight || !wormer) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing required fields. Please provide pet_id, owner_id, date, weight, and wormer.'
+    });
+  }
+
+  try {
+    // The SQL query to insert data into the deworm table
+    const sqlQuery = `
+      INSERT INTO deworm (pet_id, owner_id, date, weight, wormer)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+
+    // Execute the query with the provided data
+    const result = await query(sqlQuery, [pet_id, owner_id, date, weight, wormer]);
+
+    // Send a success response
+    res.status(201).json({
+      success: true,
+      message: 'Deworming record created successfully.',
+      dewormId: result.insertId // The ID of the new row
+    });
+
+  } catch (error) {
+    console.error('Error creating deworming record:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create deworming record.',
+      details: error.message
     });
   }
 });

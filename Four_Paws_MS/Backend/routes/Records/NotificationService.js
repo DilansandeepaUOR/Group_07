@@ -36,7 +36,7 @@ const query = (sql, params) => {
 // --- Core Helper Functions ---
 
 const calculatePetAgeInWeeks = (dob) => {
-    return moment().diff(moment(dob), 'weeks');
+    return moment().diff(moment(dob), 'weeks') + 1; // Adding 1 to include the current week
 };
 
 const parseAgeCondition = (condition) => {
