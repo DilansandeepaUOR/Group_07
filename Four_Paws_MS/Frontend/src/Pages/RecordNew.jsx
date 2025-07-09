@@ -274,9 +274,9 @@ const handleSubmit = async (e) => {
   }
 };
 
+//Form reset and cancel handler
 const handleCancel = () => {
   setFormData([formData, setFormData]);
-  // You might want to also reset other states like search terms, errors, etc.
   setOwnerSearchTerm("");
   setPetSearchTerm("");
   setErrors({});
