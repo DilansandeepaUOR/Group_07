@@ -6,6 +6,7 @@ const bcrypt = require("bcrypt");
 const tokens = new Map(); // Temporary storage (use DB in production)
 const { v4: uuidv4 } = require("uuid");
 const nodemailer = require("nodemailer");
+const jwt = require("jsonwebtoken");
 
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
@@ -86,20 +87,16 @@ router.put("/update", uploadpropic.single("image"), async (req, res) => {
 
 // Update password
 
-router.put("/updatepassword", async (req, res) => {
-  const { id } = req.query;
-  if (!id) {
-    return res.status(400).json({ error: "ID query parameter is required" });
-  }
+router.post("/passwordreset", async (req, res) => {
+  const { id1, email, newPassword, currentPassword } = req.body;
 
   try {
-    const { newPassword, currentPassword } = req.body;
 
     const currentPasswordQuery =
       "SELECT Password FROM pet_owner WHERE Owner_id = ?";
     const [currentPasswordResult] = await db
       .promise()
-      .query(currentPasswordQuery, [id]);
+      .query(currentPasswordQuery, [id1]);
 
     if (currentPasswordResult.length === 0) {
       return res.status(404).json({ error: "User not found" });
@@ -114,24 +111,105 @@ router.put("/updatepassword", async (req, res) => {
       return res.status(401).json({ error: "Current password is incorrect" });
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    const updatesql = "UPDATE pet_owner SET Password = ? WHERE Owner_id = ?";
+    const [user] = await db.promise().query(
+      "SELECT Owner_id FROM pet_owner WHERE E_mail = ?",
+      [email]
+    );
 
-    db.query(updatesql, [hashedPassword, id], (err, results) => {
-      if (err) {
-        return res.status(500).json({ error: "Error updating password" });
-      }
-      if (results.affectedRows === 0) {
-        return res.status(404).json({ error: "User not found" });
-      }
+    if (user.length === 0) {
+      return res.status(404).json({ error: "Email not found" });
+    }
 
-      res.status(200).json({ message: "Password updated successfully" });
-    });
+    const token = jwt.sign(
+      { id: user[0].Owner_id, newPassword },
+      process.env.SECRET_KEY,
+      { expiresIn: "15m" }
+    );
+
+    const resetLink = `http://localhost:3001/api/confirmpassword?token=${token}`;
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Confirm Password Reset",
+      html: `<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <h2 style="color: red;">Confirm Your 4Paws Account Password Resetting </h2>
+    <p style="background-color: #f9f9f9; padding: 10px; border-left: 4px solid #028478;">
+    Click below to confirm password resetting</p>
+    <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+             <a href="${resetLink}" style="padding:10px 20px; background-color:#4CAF50; color:white; text-decoration:none;">Confirm Password Reset</a>`,
+    };
+
+    sendMail(mailOptions, res);
   } catch (error) {
-    console.error("Database error:", error);
-    res.status(500).json({ error: "Error updating password" });
+    console.error("Reset request error:", error);
+    res.status(500).json({ error: "Server error" });
   }
 });
+router.get("/confirmpassword", async (req, res) => {
+  const { token } = req.query;
+
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    const hashedPassword = await bcrypt.hash(decoded.newPassword, 10);
+
+    const updatesql = "UPDATE pet_owner SET Password = ? WHERE Owner_id = ?";
+    await db.promise().query(updatesql, [hashedPassword, decoded.id]);
+
+    res.redirect("http://localhost:5173/Passwordchange");
+
+  } catch (err) {
+    return res.status(400).send("Invalid or expired link.");
+  }
+});
+
+
+// router.put("/updatepassword", async (req, res) => {
+//   const { id } = req.query;
+//   if (!id) {
+//     return res.status(400).json({ error: "ID query parameter is required" });
+//   }
+
+//   try {
+//     const { newPassword, currentPassword } = req.body;
+
+//     const currentPasswordQuery =
+//       "SELECT Password FROM pet_owner WHERE Owner_id = ?";
+//     const [currentPasswordResult] = await db
+//       .promise()
+//       .query(currentPasswordQuery, [id]);
+
+//     if (currentPasswordResult.length === 0) {
+//       return res.status(404).json({ error: "User not found" });
+//     }
+
+//     const isMatch = await bcrypt.compare(
+//       currentPassword,
+//       currentPasswordResult[0].Password
+//     );
+
+//     if (!isMatch) {
+//       return res.status(401).json({ error: "Current password is incorrect" });
+//     }
+
+//     const hashedPassword = await bcrypt.hash(newPassword, 10);
+//     const updatesql = "UPDATE pet_owner SET Password = ? WHERE Owner_id = ?";
+
+//     db.query(updatesql, [hashedPassword, id], (err, results) => {
+//       if (err) {
+//         return res.status(500).json({ error: "Error updating password" });
+//       }
+//       if (results.affectedRows === 0) {
+//         return res.status(404).json({ error: "User not found" });
+//       }
+
+//       res.status(200).json({ message: "Password updated successfully" });
+//     });
+//   } catch (error) {
+//     console.error("Database error:", error);
+//     res.status(500).json({ error: "Error updating password" });
+//   }
+// });
 
 // Deactivate account and delete account
 // Send deactivation email

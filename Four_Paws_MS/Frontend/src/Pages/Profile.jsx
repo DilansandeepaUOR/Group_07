@@ -349,9 +349,11 @@ function Profile() {
     }
 
     try {
-      const response = await axios.put(
-        `http://localhost:3001/api/updatepassword/?id=${user.id}`,
+      const response = await axios.post(
+        `http://localhost:3001/api/passwordreset`,
         {
+          id1: user.id,
+          email: user.email,
           currentPassword: passwordForm.currentPassword,
           newPassword: passwordForm.newPassword,
         },
