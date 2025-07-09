@@ -1,11 +1,12 @@
 require('dotenv').config();
 
+
 const mysql = require('mysql2');
 
 // Create a connection pool instead of a single connection
 const db = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'fourpaws',
+  user: process.env.DB_USER || 'fourpaws_user',
   password: process.env.DB_PASSWORD || '1234',
   database: process.env.DB_NAME || 'fourpaws_db',
   waitForConnections: true,
