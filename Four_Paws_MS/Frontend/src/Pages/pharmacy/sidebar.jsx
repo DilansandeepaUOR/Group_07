@@ -1,32 +1,31 @@
 "use client"
 
-import { useContext, createContext, useState, useEffect } from "react"
+import React, { useContext, createContext, useState, useEffect } from "react"
 import { MoreVertical, ChevronLast, ChevronFirst, Menu, X, ChevronDown } from "lucide-react"
 import axios from "axios";
 
-
-
-const SidebarContext = createContext({ 
-  expanded: true, 
+const SidebarContext = createContext({
+  expanded: true,
   isMobile: false,
   activeSection: "",
-  setActiveSection: () => {}
+  setActiveSection: () => { }
 })
 
 export default function Sidebar({ children }) {
   const [expanded, setExpanded] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [pharmuser, setpharmUser] = useState(null);
+  const [activeSection, setActiveSection] = useState("")
+  const [pharmacist, setPharmacist] = useState(null);
 
   useEffect(() => {
     axios
       .get("http://localhost:3001/api/auth/admins", { withCredentials: true })
       .then((response) => {
-        setpharmUser(response.data);
+        setPharmacist(response.data);
       })
       .catch(() => {
-        setpharmUser(null);
+        setPharmacist(null);
       });
   }, []);
 
@@ -36,10 +35,20 @@ export default function Sidebar({ children }) {
         withCredentials: true,
       });
       alert("Logged out!");
-      setUser(null);
+      setPharmacist(null);
+      window.location.href = "/Adlogin";
     } catch (err) {
       console.error("Logout failed:", err);
     }
+  };
+
+
+  const colors = {
+    darkBackground: '#22292f',
+    tealAccent: '#3bcdbf',
+    yellowAccent: '#FFD700',
+    lightText: '#f3f4f6',
+    cardBackground: '#2c3339'
   };
 
   useEffect(() => {
@@ -63,11 +72,14 @@ export default function Sidebar({ children }) {
       setMobileOpen((prev) => !prev)
     } else {
       setExpanded((prev) => !prev)
+      if (expanded) {
+        setActiveSection("")
+      }
     }
   }
 
   return (
-    <>
+    <React.Fragment>
       {isMobile && mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
@@ -77,7 +89,7 @@ export default function Sidebar({ children }) {
             right: 0,
             bottom: 0,
             left: 0,
-            backgroundColor: "rgba(0,0,0,0.5)",
+            backgroundColor: "rgba(0,0,0,0.7)",
             zIndex: 40,
           }}
         />
@@ -93,11 +105,13 @@ export default function Sidebar({ children }) {
             zIndex: 50,
             padding: "8px",
             borderRadius: "8px",
-            backgroundColor: "white",
+            backgroundColor: colors.cardBackground,
+            color: colors.lightText,
+            border: `1px solid ${colors.tealAccent}`,
             boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)",
           }}
         >
-          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          {mobileOpen ? <X size={20} color={colors.tealAccent} /> : <Menu size={20} color={colors.tealAccent} />}
         </button>
       )}
 
@@ -109,8 +123,9 @@ export default function Sidebar({ children }) {
           position: isMobile ? "fixed" : "relative",
           top: isMobile ? "0" : "auto",
           left: isMobile ? "0" : "auto",
-          zIndex: isMobile ? "50" : "auto",
+          zIndex: isMobile ? 50 : "auto",
           width: "auto",
+          background: "linear-gradient(to bottom, #E0F7FA, #B2EBF2)",
         }}
       >
         <nav
@@ -118,9 +133,9 @@ export default function Sidebar({ children }) {
             height: "100%",
             display: "flex",
             flexDirection: "column",
-            backgroundColor: "white",
-            borderRight: "1px solid #e5e7eb",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+            backgroundColor: colors.darkBackground,
+            borderRight: `1px solid ${colors.tealAccent}`,
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
             width: isMobile ? "280px" : expanded ? "240px" : "72px",
             transition: "width 300ms",
           }}
@@ -130,42 +145,45 @@ export default function Sidebar({ children }) {
               padding: "16px",
               paddingBottom: "8px",
               display: "flex",
-              justifyContent: "space-between",
+              justifyContent: "flex-end",
               alignItems: "center",
             }}
           >
-            <img
-              src="https://img.logoipsum.com/338.svg"
-              style={{
-                overflow: "hidden",
-                transition: "all 300ms",
-                width: expanded || isMobile ? "128px" : "0",
-              }}
-              alt="Logo"
-            />
             {!isMobile && (
               <button
-                onClick={() => setExpanded((curr) => !curr)}
+                onClick={toggleSidebar}
                 style={{
-                  padding: "6px",
-                  borderRadius: "8px",
-                  backgroundColor: "#f9fafb",
+                  padding: "4px",
+                  borderRadius: "6px",
+                  backgroundColor: colors.cardBackground,
+                  border: `1px solid ${colors.tealAccent}`,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
-                {expanded ? <ChevronFirst /> : <ChevronLast />}
+                {expanded ? (
+                  <ChevronFirst size={18} color={colors.tealAccent} />
+                ) : (
+                  <ChevronLast size={18} color={colors.tealAccent} />
+                )}
               </button>
             )}
           </div>
 
-          <SidebarContext.Provider value={{ 
-            expanded: isMobile ? true : expanded, 
-            isMobile 
+          <SidebarContext.Provider value={{
+            expanded: isMobile ? true : expanded,
+            isMobile,
+            activeSection,
+            setActiveSection
           }}>
-            <ul style={{ 
-              flexGrow: 1, 
+            <ul style={{
+              flex: 1,
               padding: "0 12px",
               overflowY: "auto",
-              overflowX: "hidden"
+              overflowX: "hidden",
+              margin: 0,
             }}>
               {children}
             </ul>
@@ -173,16 +191,12 @@ export default function Sidebar({ children }) {
 
           <div
             style={{
-              borderTop: "1px solid #e5e7eb",
+              borderTop: `1px solid ${colors.tealAccent}`,
               display: "flex",
               padding: "12px",
             }}
           >
-            <img
-              src="https://ui-avatars.com/api/?background=c7d2fe&color=3730a3&bold=true"
-              alt="User avatar"
-              style={{ width: "40px", height: "40px", borderRadius: "6px" }}
-            />
+            
             <div
               style={{
                 display: "flex",
@@ -192,79 +206,115 @@ export default function Sidebar({ children }) {
                 transition: "all 300ms",
                 width: expanded || isMobile ? "calc(100% - 52px)" : "0",
                 marginLeft: expanded || isMobile ? "12px" : "0",
+                color: colors.lightText
               }}
             >
-              <div style={{ lineHeight: "1rem" }}>
-                <h4 style={{ fontWeight: "600", color: "#4b5563" }}>{pharmuser?.fname} {pharmuser?.lname}</h4>
-                <span style={{ fontSize: "0.75rem", color: "#4b5563" }}>{pharmuser?.email}</span>
-                <button
-                  onClick={handleLogout}
-                  style={{
-                    marginTop: "8px",
-                    padding: "8px 12px",
-                    borderRadius: "6px",
-                    backgroundColor: "#ef4444",
-                    color: "white",
-                    fontWeight: "500",
-                    border: "none",
-                    cursor: "pointer",
-                    transition: "background-color 150ms",
-                  }}
-                >
-                  <a href="/Adlogin">Logout</a>
-                </button>
+              <div style={{ lineHeight: "1rem", alignItems:"center"}}>
+                <h4 style={{ fontWeight: "600", color: colors.yellowAccent, margin: 0 }}>{pharmacist?.fname} {pharmacist?.lname}</h4>
+                <span style={{ fontSize: "0.75rem", color: colors.tealAccent }}>{pharmacist?.email}</span>
+                <button className="m-5 cursor-pointer" onClick={handleLogout}>Logout</button>
               </div>
-              <MoreVertical size={20} />
+              
             </div>
           </div>
         </nav>
       </aside>
-    </>
+    </React.Fragment>
   )
 }
 
-export function SidebarItem({ 
-  icon, 
-  text, 
-  active, 
-  alert, 
-  children,
-  section,
-  onSectionChange 
-}) {
-  const { expanded, isMobile } = useContext(SidebarContext)
+export function SidebarItem({ icon, text, active, children, section, onSectionChange, alert, badge }) {
+  const { expanded, isMobile, activeSection, setActiveSection } = useContext(SidebarContext)
   const [isHovered, setIsHovered] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+
+  const colors = {
+    darkBackground: '#22292f',
+    tealAccent: '#3bcdbf',
+    yellowAccent: '#FFD700',
+    lightText: '#f3f4f6',
+    cardBackground: '#2c3339'
+  };
+
+  useEffect(() => {
+    if (!expanded && !isMobile) {
+      setIsOpen(false)
+    }
+  }, [expanded, isMobile])
 
   const handleClick = () => {
     if (children) {
       setIsOpen(!isOpen)
-    } else if (section && onSectionChange) {
-      onSectionChange(section)
+      setActiveSection(isOpen ? "" : section)
+    } else if (section) {
+      setActiveSection(section)
+      if (onSectionChange) {
+        onSectionChange(section)
+      }
     }
   }
 
   return (
-    <li style={{ listStyle: "none" }}>
+    <li style={{ listStyle: "none", margin: 0, padding: 0 }}>
       <div
         style={{
           position: "relative",
           display: "flex",
           alignItems: "center",
-          padding: "8px 12px",
+          padding: "12px",
           margin: "4px 0",
           fontWeight: "500",
           borderRadius: "6px",
           cursor: "pointer",
-          transition: "background-color 150ms",
-          backgroundColor: active ? "#e0e7ff" : "transparent",
-          color: active ? "#3730a3" : "#4b5563",
+          transition: "all 150ms",
+          backgroundColor: active ? colors.cardBackground : "transparent",
+          color: active ? colors.yellowAccent : colors.lightText,
+          border: active ? `1px solid ${colors.tealAccent}` : "none",
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={handleClick}
       >
-        {icon}
+        <div style={{ position: 'relative' }}>
+          {icon && React.cloneElement(icon, {
+            color: active ? colors.yellowAccent : colors.tealAccent,
+            size: 20
+          })}
+          {alert && (
+            <span
+              style={{
+                position: 'absolute',
+                top: -2,
+                right: -2,
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                backgroundColor: '#ff4444',
+              }}
+            />
+          )}
+          {badge && (
+            <span
+              style={{
+                position: 'absolute',
+                top: -6,
+                right: -6,
+                minWidth: 16,
+                height: 16,
+                borderRadius: 8,
+                backgroundColor: '#ff4444',
+                color: '#ffffff',
+                fontSize: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 4px',
+              }}
+            >
+              {badge}
+            </span>
+          )}
+        </div>
         <span
           style={{
             overflow: "hidden",
@@ -276,22 +326,10 @@ export function SidebarItem({
         >
           {text}
         </span>
-        {alert && (
-          <div
-            style={{
-              position: "absolute",
-              right: "8px",
-              top: expanded ? "auto" : "8px",
-              width: "8px",
-              height: "8px",
-              borderRadius: "50%",
-              backgroundColor: "#818cf8",
-            }}
-          />
-        )}
         {children && (
           <ChevronDown
             size={16}
+            color={active ? colors.yellowAccent : colors.tealAccent}
             style={{
               marginLeft: "auto",
               transition: "transform 200ms",
@@ -306,15 +344,31 @@ export function SidebarItem({
               position: "absolute",
               left: "100%",
               borderRadius: "6px",
-              padding: "4px 8px",
-              marginLeft: "24px",
-              backgroundColor: "#e0e7ff",
-              color: "#3730a3",
+              padding: "8px 12px",
+              marginLeft: "12px",
+              backgroundColor: colors.cardBackground,
+              color: colors.yellowAccent,
               fontSize: "0.875rem",
               zIndex: 10,
+              border: `1px solid ${colors.tealAccent}`,
+              boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
             }}
           >
             {text}
+            {badge && (
+              <span
+                style={{
+                  marginLeft: 8,
+                  backgroundColor: '#ff4444',
+                  color: '#ffffff',
+                  borderRadius: 8,
+                  padding: '2px 6px',
+                  fontSize: '10px',
+                }}
+              >
+                {badge}
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -335,24 +389,40 @@ export function SidebarItem({
 }
 
 export function SidebarSubItem({ text, active, section, onSectionChange }) {
-  const { expanded, isMobile } = useContext(SidebarContext)
+  const { expanded, isMobile, setActiveSection } = useContext(SidebarContext)
+
+  const colors = {
+    darkBackground: '#22292f',
+    tealAccent: '#3bcdbf',
+    yellowAccent: '#FFD700',
+    lightText: '#f3f4f6',
+    cardBackground: '#2c3339'
+  };
+
+  const handleClick = () => {
+    setActiveSection(section)
+    if (onSectionChange) {
+      onSectionChange(section)
+    }
+  }
 
   return (
     <div
       style={{
         display: "flex",
         alignItems: "center",
-        padding: "8px 12px",
+        padding: "10px 12px",
         margin: "4px 0",
         fontWeight: "500",
         borderRadius: "6px",
         cursor: "pointer",
-        transition: "background-color 150ms",
-        backgroundColor: active ? "#e0e7ff" : "transparent",
-        color: active ? "#3730a3" : "#4b5563",
+        transition: "all 150ms",
+        backgroundColor: active ? colors.cardBackground : "transparent",
+        color: active ? colors.yellowAccent : colors.lightText,
+        border: active ? `1px solid ${colors.tealAccent}` : "none",
         fontSize: "0.875rem",
       }}
-      onClick={() => onSectionChange && onSectionChange(section)}
+      onClick={handleClick}
     >
       {text}
     </div>

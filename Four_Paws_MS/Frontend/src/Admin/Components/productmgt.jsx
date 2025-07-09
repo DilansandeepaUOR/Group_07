@@ -176,7 +176,7 @@ const ProductManagement = () => {
           </table>
         </div>
 
-        {/* Services Grid */}
+        {/* Product Cards */}
         <div className="container mx-auto px-4 py-20">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProducts.length > 0 ? (
@@ -192,10 +192,16 @@ const ProductManagement = () => {
                   <div className="flex items-center justify-center">
                     <img
                       src={
-                        paw || `http://localhost:3001${product.product_image}`
+                        product.product_image
+                          ? `http://localhost:3001${product.product_image}`
+                          : paw
                       }
                       alt={product.name}
                       className="w-20 h-20 object-cover rounded-lg shadow-md"
+                      onError={(e) => {
+                        e.target.onerror = null; // Prevent infinite loop if paw image fails
+                        e.target.src = paw;
+                      }}
                     />
                   </div>
                   <p className="text-gray-600 mb-4">
@@ -258,7 +264,12 @@ const ProductManagement = () => {
   );
 };
 
-const ProductForm = ({ closeForm, editingProduct, refreshProducts,categories }) => {
+const ProductForm = ({
+  closeForm,
+  editingProduct,
+  refreshProducts,
+  categories,
+}) => {
   const [formData, setFormData] = useState({
     name: "",
     category_id: "",
@@ -267,6 +278,8 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts,categories }) 
     quantity_in_stock: "",
     unit_price: "",
     supplier_id: "",
+    mnf_date: null,
+    exp_date: null,
     status: "Active",
     image: null,
     oldImage: "",
@@ -308,6 +321,12 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts,categories }) 
     submitData.append("unit_price", formData.unit_price);
     submitData.append("supplier_id", formData.supplier_id);
     submitData.append("status", formData.status);
+    submitData.append("mnf_date", formData.mnf_date
+          ? new Date(formData.mnf_date).toISOString().split("T")[0]
+          : "");
+    submitData.append("exp_date", formData.exp_date
+          ? new Date(formData.exp_date).toISOString().split("T")[0]
+          : "");
 
     // Handle image logic
     if (formData.image instanceof File) {
@@ -433,6 +452,38 @@ const ProductForm = ({ closeForm, editingProduct, refreshProducts,categories }) 
               onChange={handleChange}
               value={formData.unit_price}
               required
+            />
+          </div>
+
+          <div>
+            
+              <label className="flex font-bold" htmlFor="Manufacture Date">
+              Manufacture Date
+            </label>
+            
+            
+            <input
+              type="date"
+              name="mnf_date"
+              value={formData.mnf_date}
+              onChange={handleChange}
+              className="p-2 border rounded-md"
+            />
+          </div>
+
+          <div>
+            
+              <label className="flex font-bold" htmlFor="Expire Date">
+              Expire Date
+            </label>
+          
+            
+            <input
+              type="date"
+              name="exp_date"
+              value={formData.exp_date}
+              onChange={handleChange}
+              className="p-2 border rounded-md"
             />
           </div>
 

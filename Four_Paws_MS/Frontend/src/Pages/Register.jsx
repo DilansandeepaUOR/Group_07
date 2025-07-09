@@ -22,7 +22,7 @@ function Register() {
     petName: "",
     petDob: null,
     petType: "dog",
-    petGender:"male",
+    petGender: "male",
     password: "",
     confirmPassword: "",
   });
@@ -65,9 +65,18 @@ function Register() {
         formData
       );
       alert(res.data.message);
-      if (res.data.message === "pet and pet owner added successfully") {
-        navigate("/login");
-      }
+      setFormData({
+        name: "",
+        address: "",
+        phone: "",
+        email: "",
+        petName: "",
+        petDob: null,
+        petType: "dog",
+        petGender: "male",
+        password: "",
+        confirmPassword: "",
+      });
     } catch (error) {
       if (error.response && error.response.data) {
         console.error("Backend error response:", error.response.data);
@@ -215,28 +224,26 @@ function Register() {
                   </option>
                 </select>
               </div>
-              
             </div>
             {/* Add more pet fields here if needed */}
             <div>
-                <label className="block text-sm text-gray-300 mb-1">
-                  Pet Gender
-                </label>
-                <select
-                  name="petGender"
-                  value={formData.petGender}
-                  onChange={handleChange}
-                  className="w-full p-3 border border-[#46dfd0] rounded-lg text-white bg-[#182020] focus:ring-2 focus:ring-[#028478]"
-                >
-                  <option value="male" className="bg-[#182020]">
-                    Male
-                  </option>
-                  <option value="female" className="bg-[#182020]">
-                    Female
-                  </option>
-                  
-                </select>
-              </div>
+              <label className="block text-sm text-gray-300 mb-1">
+                Pet Gender
+              </label>
+              <select
+                name="petGender"
+                value={formData.petGender}
+                onChange={handleChange}
+                className="w-full p-3 border border-[#46dfd0] rounded-lg text-white bg-[#182020] focus:ring-2 focus:ring-[#028478]"
+              >
+                <option value="male" className="bg-[#182020]">
+                  Male
+                </option>
+                <option value="female" className="bg-[#182020]">
+                  Female
+                </option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -309,17 +316,15 @@ function Register() {
 
           {/* Login button */}
           <div>
-              <p className="text-sm text-white text-center justify-center items-center">
-                Already have an account?{" "}
-                <Link to="/Login">
-              <button className="px-4 py-2 rounded-lg transition flex items-center justify-center gap-2 w-[300px] border-1 hover:bg-[#5ba29c] text-white font-bold cursor-pointer">
-                Login
-              </button>
-            </Link>
-              </p>
-            </div>
-
-            
+            <p className="text-sm text-white text-center justify-center items-center">
+              Already have an account?{" "}
+              <Link to="/Login">
+                <button className="px-4 py-2 rounded-lg transition flex items-center justify-center gap-2 w-[300px] border-1 hover:bg-[#5ba29c] text-white font-bold cursor-pointer">
+                  Login
+                </button>
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

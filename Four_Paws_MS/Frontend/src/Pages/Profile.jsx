@@ -11,6 +11,8 @@ import {
   FaEyeSlash,
   FaCamera,
   FaPaw,
+  FaTrash,
+  FaBan,
 } from "react-icons/fa";
 import axios from "axios";
 import dp from "../assets/paw_vector.png";
@@ -337,6 +339,8 @@ function Profile() {
     }
   };
 
+  //password change
+
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
@@ -345,25 +349,54 @@ function Profile() {
     }
 
     try {
-      await axios.post(
-        "http://localhost:3001/api/auth/change-password",
+      const response = await axios.post(
+        `http://localhost:3001/api/passwordreset`,
         {
+          id1: user.id,
+          email: user.email,
           currentPassword: passwordForm.currentPassword,
           newPassword: passwordForm.newPassword,
         },
         { withCredentials: true }
       );
-      alert("Password changed successfully!");
+
+      alert(response.data.message || "Password changed successfully!");
       setPasswordForm({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
       });
     } catch (err) {
-      console.error("Error changing password:", err);
-      alert(err.response?.data?.message || "Failed to change password");
+      alert(err.response?.data?.error || "Failed to change password");
     }
   };
+
+  //deactivate and delete account requests
+  //Deactivate account request
+  const handleDeactivateRequest = async () => {
+  try {
+    await axios.post(`http://localhost:3001/api/account/deactivate`, {
+      email: user.email,
+      id: user.id,
+    });
+    alert("Confirmation email sent for deactivation.");
+  } catch (err) {
+    alert("Failed to send confirmation email.");
+  }
+};
+
+//Delete account request
+const handleDeleteRequest = async () => {
+  try {
+    await axios.post(`http://localhost:3001/api/account/delete`, {
+      email: user.email,
+      id: user.id,
+    });
+    alert("Confirmation email sent for deletion.");
+  } catch (err) {
+    alert("Failed to send confirmation email.");
+  }
+};
 
   return (
     <div className="flex min-h-screen bg-gradient-to-b from-[#22292F] via-[#028478] to-[#46dfd0] text-white">
@@ -376,7 +409,7 @@ function Profile() {
           <FaArrowLeft className="w-5 h-5 mr-2" /> Back
         </button>
         <h2 className="text-2xl font-bold mb-6 border-b border-white/30 pb-2">
-          Profile Settings
+          Profile
         </h2>
         <ul className="space-y-5">
           <li
@@ -387,14 +420,7 @@ function Profile() {
           >
             <FaUser className="mr-2" /> Your Profile
           </li>
-          <li
-            onClick={() => setActiveTab("edit")}
-            className={`flex items-center cursor-pointer hover:text-gray-300 ${
-              activeTab === "edit" ? "font-bold underline" : ""
-            }`}
-          >
-            <FaUserEdit className="mr-2" /> Edit Your Profile
-          </li>
+
           <li
             onClick={() => setActiveTab("addpet")}
             className={`flex items-center cursor-pointer hover:text-gray-300 ${
@@ -403,14 +429,7 @@ function Profile() {
           >
             <FaPaw className="mr-2" /> Add Your Pet
           </li>
-          <li
-            onClick={() => setActiveTab("password")}
-            className={`flex items-center cursor-pointer hover:text-gray-300 ${
-              activeTab === "password" ? "font-bold underline" : ""
-            }`}
-          >
-            <FaLock className="mr-2" /> Change Password
-          </li>
+
           <li
             onClick={() => setActiveTab("medical")}
             className={`flex items-center cursor-pointer hover:text-gray-300 ${
@@ -419,6 +438,48 @@ function Profile() {
           >
             <FaFileMedical className="mr-2" /> Medical Records
           </li>
+
+          <h2 className="text-2xl font-bold mb-6 mt-10 border-b border-white/30 pb-2">
+            Profile Settings
+          </h2>
+          <li
+            onClick={() => setActiveTab("edit")}
+            className={`flex items-center cursor-pointer hover:text-gray-300 ${
+              activeTab === "edit" ? "font-bold underline" : ""
+            }`}
+          >
+            <FaUserEdit className="mr-2" /> Edit Your Profile
+          </li>
+
+          <li
+            onClick={() => setActiveTab("password")}
+            className={`flex items-center cursor-pointer hover:text-gray-300 ${
+              activeTab === "password" ? "font-bold underline" : ""
+            }`}
+          >
+            <FaLock className="mr-2" /> Change Password
+          </li>
+
+          <li
+            onClick={() => setActiveTab("deactivate")}
+            className={`hover:text-yellow-400 flex items-center cursor-pointer ${
+              activeTab === "deactivate"
+                ? "font-bold underline text-yellow-400"
+                : ""
+            }`}
+          >
+            <FaBan className="mr-2" /> Deactivate Account
+          </li>
+
+          <li
+            onClick={() => setActiveTab("delete")}
+            className={`hover:text-red-400 flex items-center cursor-pointer ${
+              activeTab === "delete" ? "font-bold underline text-red-400" : ""
+            }`}
+          >
+            <FaTrash className="mr-2" /> Delete Account
+          </li>
+
           <li className="hover:text-red-400 flex items-center cursor-pointer">
             <button onClick={handleLogout} className="flex items-center">
               <FaSignOutAlt className="mr-2" /> Logout
@@ -888,6 +949,39 @@ function Profile() {
                 ) : (
                   <p className="text-gray-400">No medical records available</p>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Deactivate account Tab */}
+          {activeTab === "deactivate" && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6">
+                Deactivate Your Account
+              </h2>
+              <div className="flex justify-center items-center bg-[#374151] p-4 rounded-lg">
+                <button
+                  className="mt-4 bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded cursor-pointer"
+                  onClick={handleDeactivateRequest}
+                >
+                  Request Deactivation via Email
+                </button>
+                
+              </div>
+            </div>
+          )}
+
+          {/* Delete account Tab */}
+          {activeTab === "delete" && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6">Delete Your Account</h2>
+              <div className="flex items-center justify-center bg-[#374151] p-4 rounded-lg">
+                <button
+                  className="mt-4 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded cursor-pointer"
+                  onClick={handleDeleteRequest}
+                >
+                  Request Deletion via Email
+                </button>
               </div>
             </div>
           )}
