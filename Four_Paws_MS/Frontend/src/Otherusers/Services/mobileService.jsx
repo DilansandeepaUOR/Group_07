@@ -38,6 +38,7 @@ const MobileService = () => {
   const [initialStatus, setInitialStatus] = useState('');
   const [updateMessage, setUpdateMessage] = useState(null); // { type: 'success'|'error', text: string }
   const [searchTerm, setSearchTerm] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false); // Loading state for confirmation
 
   useEffect(() => {
     fetchAppointments();
@@ -126,19 +127,29 @@ const MobileService = () => {
 
   const confirmUpdate = async () => {
     try {
+      setIsUpdating(true); // Start loading
       await axios.put(`${API_URL}/appointment/${selectedAppointment.id}`, {
         status,
         special_notes: notes,
         date: appointmentDate ? appointmentDate.toISOString().split('T')[0] : undefined,
         time: appointmentTime
       });
-      setUpdateMessage({ type: 'success', text: 'Appointment updated. Confirmation sent via email.' });
+      
+      const emailInfo = selectedAppointment?.E_mail 
+        ? `Confirmation email sent to ${selectedAppointment.E_mail}`
+        : 'No email sent (no email address available)';
+        
+      setUpdateMessage({ 
+        type: 'success', 
+        text: `Appointment updated successfully. ${emailInfo}.` 
+      });
       handleBack();
       fetchAppointments();
     } catch (err) {
       setUpdateMessage({ type: 'error', text: err?.message || 'Failed to update appointment' });
       setError(err?.message || 'Failed to update appointment');
     } finally {
+      setIsUpdating(false); // Stop loading
       setShowConfirm(false);
       // Hide message after 5 seconds
       setTimeout(() => setUpdateMessage(null), 5000);
@@ -267,6 +278,8 @@ const MobileService = () => {
             </span>
           </div>
           
+         
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Column */}
             <div className="space-y-6">
@@ -280,11 +293,11 @@ const MobileService = () => {
                   <dt className="text-sm font-medium text-gray-500">Name</dt>
                   <dd className="text-sm text-gray-900">{selectedAppointment.Pet_name || 'Not specified'}</dd>
                   <dt className="text-sm font-medium text-gray-500">Breed</dt>
-                  <dd className="text-sm text-gray-900">{selectedAppointment.Breed || 'Not specified'}</dd>
+                  <dd className="text-sm text-gray-900">{selectedAppointment.Pet_Breed || 'Not specified'}</dd>
                   <dt className="text-sm font-medium text-gray-500">Age</dt>
                   <dd className="text-sm text-gray-900">{selectedAppointment.Age || 'Not specified'}</dd>
                   <dt className="text-sm font-medium text-gray-500">Gender</dt>
-                  <dd className="text-sm text-gray-900">{selectedAppointment.Gender || 'Not specified'}</dd>
+                  <dd className="text-sm text-gray-900">{selectedAppointment.Pet_gender || 'Not specified'}</dd>
                 </dl>
               </div>
 
@@ -300,7 +313,9 @@ const MobileService = () => {
                   <dt className="text-sm font-medium text-gray-500">Phone</dt>
                   <dd className="text-sm text-gray-900">{selectedAppointment.Phone_number || 'Not specified'}</dd>
                   <dt className="text-sm font-medium text-gray-500">Email</dt>
-                  <dd className="text-sm text-gray-900">{selectedAppointment.E_mail || 'Not specified'}</dd>
+                  <dd className="text-sm text-gray-900 flex items-center">
+                    {selectedAppointment.E_mail || 'Not specified'}
+                  </dd>
                 </dl>
               </div>
 
@@ -405,18 +420,23 @@ const MobileService = () => {
                         {initialStatus === 'confirmed' ? (
                           <>
                             <option >Select Status</option>
-                            <option value="completed">complete</option>
-                            <option value="cancelled">Cancel</option>
+                            <option value="completed">✓ Complete (sends email)</option>
+                            <option value="cancelled">✗ Cancel (sends email)</option>
                           </>
                         ) : (
                           <>
                             <option >Select Status</option>
-                            <option value="confirmed">Confirm</option>
-                            <option value="completed">complete</option>
-                            <option value="cancelled">Cancel</option>
+                            <option value="confirmed">✓ Confirm (sends email)</option>
+                            <option value="completed">✓ Complete (sends email)</option>
+                            <option value="cancelled">✗ Cancel (sends email)</option>
                           </>
                         )}
                       </select>
+                      {selectedAppointment?.E_mail && (
+                        <p className="mt-1 text-xs text-gray-500">
+                          All status changes will send a confirmation email to {selectedAppointment.E_mail}
+                        </p>
+                      )}
                     </div>
                   )}
                   <div>
@@ -432,6 +452,15 @@ const MobileService = () => {
                         className="w-full p-3 rounded-md border-gray-300 shadow-sm focus:border-[#028478] focus:ring-[#028478]"
                         disabled={initialStatus === 'confirmed'}
                       />
+                    )}
+                    {selectedAppointment?.E_mail && (
+                      <p className="mt-2 text-sm text-gray-600 flex items-center">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                        </svg>
+                        Notes will be included in the confirmation email sent to {selectedAppointment.E_mail}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -470,12 +499,21 @@ const MobileService = () => {
         {/* Confirmation Dialog */}
         <ConfirmDialog
           open={showConfirm}
-          title="Confirm Update"
-          description="Are you sure you want to update this appointment?"
-          confirmLabel="Yes, Update"
+          title="Confirm Appointment Update"
+          description={`Are you sure you want to update this appointment? A confirmation email will be sent to ${selectedAppointment?.E_mail || 'the pet owner'} with the updated details.`}
+          confirmLabel={isUpdating ? (
+            <span className="flex items-center">
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Updating...
+            </span>
+          ) : "Yes, Update & Send Email"}
           cancelLabel="Cancel"
           onConfirm={confirmUpdate}
           onCancel={() => setShowConfirm(false)}
+          loading={isUpdating}
         />
       </div>
     );

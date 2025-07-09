@@ -51,14 +51,7 @@ const AssDoctorAppointmentTable = ({
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
             </select>
-            {statusFilter !== 'all' && (
-              <button
-                onClick={handleShowAll}
-                className="bg-[#028478] text-white px-4 py-2 rounded hover:bg-[#046a5b]"
-              >
-                Show All Appointments
-              </button>
-            )}
+           
           </div>
         </div>
         <div ref={tableRef} className="bg-white rounded-lg shadow-md overflow-hidden">
