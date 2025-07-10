@@ -352,7 +352,7 @@ router.get('/get-record/:id', async (req, res) => {
 
 // Update record
 router.put('/update-record/:id', async (req, res) => {
-  const { date, surgery, other, vaccineType, coreVaccine, lifestyleVaccine, otherVaccine, petId } = req.body;
+  const { date, weight, surgery, other, vaccineType, coreVaccine, lifestyleVaccine, otherVaccine, petId } = req.body;
   
   try {
     // Get existing record
@@ -406,9 +406,9 @@ router.put('/update-record/:id', async (req, res) => {
     // Update the main record
     await query(
       `UPDATE record 
-       SET date = ?, surgery = ?, other = ?, vaccination_id = ?
+       SET date = ?, weight = ?, surgery = ?, other = ?, vaccination_id = ?
        WHERE id = ?`,
-      [date, surgery || null, other || null, vaccinationId, req.params.id]
+      [date, weight || null, surgery || null, other || null, vaccinationId, req.params.id]
     );
     
     res.json({ 
@@ -431,7 +431,7 @@ router.get('/full-record/:id', async (req, res) => {
   try {
     // Get the basic record information
     const recordRows = await query(
-      `SELECT r.id, r.date, r.surgery, r.other, r.vaccination_id,
+      `SELECT r.id, r.date, r.weight, r.surgery, r.other, r.vaccination_id,
               p.Pet_id, p.Pet_name, p.Pet_type, p.Pet_dob,
               o.Owner_id, o.Owner_name, o.E_mail, o.Phone_number
        FROM record r
@@ -449,6 +449,19 @@ router.get('/full-record/:id', async (req, res) => {
     }
     
     const record = recordRows[0];
+    // Convert dates to local timezone format (YYYY-MM-DD)
+    const adjustDate = (dateField) => {
+      if (dateField instanceof Date) {
+        const offset = dateField.getTimezoneOffset() * 60000;
+        const localDate = new Date(dateField.getTime() - offset);
+        return localDate.toISOString().split('T')[0];
+      }
+      return dateField;
+    };
+
+    // Adjust all date fields
+    record.date = adjustDate(record.date);
+    record.Pet_dob = adjustDate(record.Pet_dob);
     
     // Get vaccination data if exists
     if (record.vaccination_id) {
@@ -746,9 +759,13 @@ router.get('/deworm-records/:id', async (req, res) => {
         `;
         const results = await query(queryStr, [id]);
         if (results.length > 0) {
-            // Format date to YYYY-MM-DD for the input[type="date"]
             const record = results[0];
-            record.date = new Date(record.date).toISOString().split('T')[0];
+            if (record.date instanceof Date) {
+                // Convert to local date string instead of UTC
+                const offset = record.date.getTimezoneOffset() * 60000; // offset in milliseconds
+                const localDate = new Date(record.date.getTime() - offset);
+                record.date = localDate.toISOString().split('T')[0];
+            }
             res.json(record);
         } else {
             res.status(404).json({ message: 'Record not found' });
