@@ -475,6 +475,16 @@ export default function PetShopBills() {
         return
       }
 
+      // Phone number validation: must be 10 digits if provided
+      if (newBill.customerPhone.trim() && !/^\d{10}$/.test(newBill.customerPhone.trim())) {
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: "Enter a valid phone number.",
+        })
+        return
+      }
+
       if (newBill.items.length === 0) {
         toast({
           variant: "destructive",
