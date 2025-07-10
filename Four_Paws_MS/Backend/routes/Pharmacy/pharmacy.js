@@ -30,6 +30,7 @@ const createNotification = async (title, description, type, related_id = null) =
 
 /*DashBoard */
 
+
 // Get total count of medicines
 router.get('/api/medicines/count', (req, res) => {
   const sql = 'SELECT COUNT(*) AS count FROM medicines';
@@ -83,6 +84,29 @@ router.get('/api/medicines/out-of-stock', (req, res) => {
     res.json({ outOfStock: results[0].outOfStock });
   });
 });
+
+
+//Get total number of bills generated
+router.get('/api/bills/count', (req, res) => {
+  const sql = 'SELECT COUNT(*) AS count FROM bills';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json({ count: results[0].count });
+  });
+});
+
+
+
+
+
+
+
+
+
+
 
 // Get number of low-stock medicines (stock ≤ 5)
 router.get('/api/medicines/low-stock', (req, res) => {

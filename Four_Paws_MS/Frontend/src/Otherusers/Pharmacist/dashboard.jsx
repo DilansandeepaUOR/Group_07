@@ -14,27 +14,30 @@ export default function DashboardSection() {
   const [customerCount, setCustomerCount] = useState(0);
   const [employeeCount, setEmployeeCount] = useState(0);
   const [medicinesSold, setMedicinesSold] = useState(0);
-
+  const [billCount, setBillCount] = useState(0);
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [medicineRes, groupRes, outOfStockResponse, lowStockResponse, custRes, empRes] = await Promise.all([
+        const [medicineRes, groupRes, outOfStockResponse, lowStockResponse, custRes, empRes, medicinesSoldRes, billCountRes] = await Promise.all([
           fetch('http://localhost:3001/pharmacy/api/medicines/count'),
           fetch('http://localhost:3001/pharmacy/api/medicine-groups/count'),
           fetch('http://localhost:3001/pharmacy/api/medicines/out-of-stock'),
           fetch('http://localhost:3001/pharmacy/api/medicines/low-stock'),
           fetch('http://localhost:3001/pharmacy/api/pet-owner/count'),
           fetch('http://localhost:3001/pharmacy/api/employees/count'),
-          fetch('http://localhost:3001/pharmacy/api/sales/total-sold')
+          fetch('http://localhost:3001/pharmacy/api/sales/total-sold'),
+          fetch('http://localhost:3001/pharmacy/api/bills/count'),
         ]);
 
-        const [medicineData, groupData, outOfStockData, lowStockData, custData, empData] = await Promise.all([
+        const [medicineData, groupData, outOfStockData, lowStockData, custData, empData, medicinesSoldData, billCountData] = await Promise.all([
           medicineRes.json(),
           groupRes.json(),
           outOfStockResponse.json(),
           lowStockResponse.json(),
           custRes.json(),
-          empRes.json()
+          empRes.json(),
+          medicinesSoldRes.json(),
+          billCountRes.json()
         ]);
 
         setMedicineCount(medicineData.count);
@@ -43,6 +46,8 @@ export default function DashboardSection() {
         setLowStockCount(lowStockData.lowStock);
         setCustomerCount(custData.count);
         setEmployeeCount(empData.count);
+        setMedicinesSold(medicinesSoldData.totalSold || 0);
+        setBillCount(billCountData.count || 0);
         setLoading(false);
       } catch (err) {
         console.error("Dashboard fetch error:", err);
@@ -100,7 +105,10 @@ export default function DashboardSection() {
     },
     {
       title: "Quick Reports",
-      items: [`Qty of Medicines Sold: ${loading ? 'Loading...' : medicinesSold}`, "Invoices Generated: 189"],
+      items: [
+        `Qty of Medicines Sold: ${loading ? 'Loading...' : medicinesSold}`,
+        `Invoices Generated: ${loading ? 'Loading...' : billCount}`
+      ],
       status: "revenue"
     },
     {
@@ -145,6 +153,9 @@ export default function DashboardSection() {
       icon: "text-yellow-500"
     }
   };
+
+  // Add this before the return statement to debug the value used
+  console.log("billCount state:", billCount);
 
   return (
     <div className="bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6">
