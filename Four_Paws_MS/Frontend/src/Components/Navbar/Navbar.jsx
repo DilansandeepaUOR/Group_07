@@ -16,12 +16,15 @@ import Regandsignbtn from "./regandsignbtn";
 import Profilearea from "../Profilearea/Profilearea";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { Bell } from "lucide-react";
+import { useNotification } from "@/context/NotificationContext";
 
 function Navbar() {
   const [showMenu, setShowMenu] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading]= useState(null);
   const navigate = useNavigate();
+  const { unreadCount } = useNotification();
 
   useEffect(() => {
     axios
@@ -199,6 +202,17 @@ function Navbar() {
             </div>
           </div>
         )}
+      </div>
+      <div className="flex items-center justify-between px-6 py-3 bg-white shadow">
+        <div className="text-xl font-bold text-[#71C9CE]">Four Paws</div>
+        <button className="relative">
+          <Bell className="w-8 h-8 text-[#71C9CE]" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">
+              {unreadCount}
+            </span>
+          )}
+        </button>
       </div>
     </nav>
   );

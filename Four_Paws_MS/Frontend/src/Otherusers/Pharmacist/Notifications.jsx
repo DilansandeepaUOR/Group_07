@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Bell, BellOff, CheckCircle, X } from "lucide-react";
+import { useNotification } from "@/context/NotificationContext";
 
 export default function NotificationsSection({ 
   notifications, 
@@ -12,6 +13,8 @@ export default function NotificationsSection({
 }) {
   const [displayCount, setDisplayCount] = useState(5);
   const [selectedNotification, setSelectedNotification] = useState(null);
+  const [showNotifications, setShowNotifications] = useState(true); // toggle for notification list
+  const { unreadCount } = useNotification();
 
   // Add polling for notifications
   useEffect(() => {
@@ -54,106 +57,125 @@ export default function NotificationsSection({
   }
 
   const displayedNotifications = notifications.slice(0, displayCount);
-  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <Bell className="w-6 h-6" />
-            Notifications
+        {/* Notification Bell with Count */}
+        <div className="flex justify-end mb-4">
+          <button
+            className="relative focus:outline-none"
+            onClick={() => setShowNotifications(v => !v)}
+            aria-label="Show notifications"
+          >
+            <Bell className="w-8 h-8 text-[#71C9CE]" />
             {unreadCount > 0 && (
-              <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">
                 {unreadCount}
               </span>
             )}
-          </h1>
-          <div className="flex gap-2">
-            <Button
-              className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
-              onClick={onMarkAllAsRead}
-              disabled={unreadCount === 0}
-            >
-              <CheckCircle className="mr-2 w-4 h-4" />
-              Mark all as read
-            </Button>
-          </div>
+          </button>
         </div>
 
-        <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg p-6 border border-[#71C9CE]">
-          {displayedNotifications.length === 0 ? (
-            <div className="p-6 text-center text-gray-700 flex flex-col items-center">
-              <BellOff className="w-8 h-8 mb-2 text-gray-500" />
-              No notifications available
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {displayedNotifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={`p-4 rounded-lg transition-all ${
-                    !notification.is_read 
-                      ? 'bg-yellow-50/70 border-l-4 border-yellow-500 shadow-sm' 
-                      : 'bg-white/50 border-l-4 border-transparent'
-                  }`}
+        {/* Notification List */}
+        {showNotifications && (
+          <>
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <Bell className="w-6 h-6" />
+                Notifications
+                {unreadCount > 0 && (
+                  <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    {unreadCount}
+                  </span>
+                )}
+              </h1>
+              <div className="flex gap-2">
+                <Button
+                  className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
+                  onClick={onMarkAllAsRead}
+                  disabled={unreadCount === 0}
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className={`font-semibold ${
-                      !notification.is_read ? 'text-yellow-800' : 'text-gray-800'
-                    }`}>
-                      {notification.title}
-                    </h3>
-                    <span className="text-xs text-gray-500">
-                      {new Date(notification.created_at).toLocaleString()}
-                    </span>
-                  </div>
-                  <p className="text-gray-700 text-sm mb-3">
-                    {notification.description}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs"
-                      onClick={() => viewDetails(notification)}
-                    >
-                      View details
-                    </Button>
-                    {!notification.is_read && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-xs bg-green-100 hover:bg-green-200 text-green-800"
-                        onClick={() => onMarkAsRead(notification.id)}
-                      >
-                        Mark as read
-                      </Button>
-                    )}
-                  </div>
+                  Mark all as read
+                </Button>
+              </div>
+            </div>
+
+            <div className="bg-white/30 backdrop-blur-md rounded-lg shadow-lg p-6 border border-[#71C9CE]">
+              {displayedNotifications.length === 0 ? (
+                <div className="p-6 text-center text-gray-700 flex flex-col items-center">
+                  <BellOff className="w-8 h-8 mb-2 text-gray-500" />
+                  No notifications available
                 </div>
-              ))}
-            </div>
-          )}
+              ) : (
+                <div className="space-y-3">
+                  {displayedNotifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={`p-4 rounded-lg transition-all ${
+                        !notification.is_read 
+                          ? 'bg-yellow-50/70 border-l-4 border-yellow-500 shadow-sm' 
+                          : 'bg-white/50 border-l-4 border-transparent'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className={`font-semibold ${
+                          !notification.is_read ? 'text-yellow-800' : 'text-gray-800'
+                        }`}>
+                          {notification.title}
+                        </h3>
+                        <span className="text-xs text-gray-500">
+                          {new Date(notification.created_at).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="text-gray-700 text-sm mb-3">
+                        {notification.description}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs"
+                          onClick={() => viewDetails(notification)}
+                        >
+                          View details
+                        </Button>
+                        {!notification.is_read && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs bg-green-100 hover:bg-green-200 text-green-800"
+                            onClick={() => onMarkAsRead(notification.id)}
+                          >
+                            Mark as read
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-          {notifications.length > displayCount && displayCount < 15 && (
-            <div className="text-center mt-6">
-              <Button
-                variant="outline"
-                onClick={loadMore}
-                className="border-[#71C9CE] text-[#71C9CE] hover:bg-[#71C9CE]/10"
-              >
-                Load more ({Math.min(5, 15 - displayCount)} more)
-              </Button>
-            </div>
-          )}
+              {notifications.length > displayCount && displayCount < 15 && (
+                <div className="text-center mt-6">
+                  <Button
+                    variant="outline"
+                    onClick={loadMore}
+                    className="border-[#71C9CE] text-[#71C9CE] hover:bg-[#71C9CE]/10"
+                  >
+                    Load more ({Math.min(5, 15 - displayCount)} more)
+                  </Button>
+                </div>
+              )}
 
-          {displayCount >= 15 && notifications.length > 15 && (
-            <div className="text-center mt-4 text-sm text-gray-600">
-              Showing 15 of {notifications.length} notifications
+              {displayCount >= 15 && notifications.length > 15 && (
+                <div className="text-center mt-4 text-sm text-gray-600">
+                  Showing 15 of {notifications.length} notifications
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
 
       {/* Notification Details Modal */}
