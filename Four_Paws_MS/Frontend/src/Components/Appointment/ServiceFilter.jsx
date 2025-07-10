@@ -18,7 +18,7 @@ const ServiceFilter = ({
             <select
               value={serviceType}
               onChange={(e) => setServiceType(e.target.value)}
-              className="px-4 py-2 bg-white/10 border border-gray-300 rounded-md text-gray-200 focus:ring-2 focus:ring-[#A6E3E9] focus:border-transparent"
+              className="px-4 py-2 bg-white/10 border border-gray-300 rounded-md text-gray-800 focus:ring-2 focus:ring-[#A6E3E9] focus:border-transparent"
             >
               <option value="all">All Services</option>
               <option value="clinic">Clinic Appointments</option>
@@ -31,7 +31,7 @@ const ServiceFilter = ({
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 bg-white/10 border border-gray-300 rounded-md text-gray-200 focus:ring-2 focus:ring-[#A6E3E9] focus:border-transparent"
+              className="px-4 py-2 bg-white/10 border border-gray-300 rounded-md text-gray-800 focus:ring-2 focus:ring-[#A6E3E9] focus:border-transparent"
             >
               <option value="all">All Status</option>
               <option value="Scheduled">Scheduled</option>

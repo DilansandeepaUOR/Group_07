@@ -1,6 +1,6 @@
 import React from "react";
 import { FaClinicMedical, FaAmbulance } from "react-icons/fa";
-import { formatDate, getStatusColor } from "./utils";
+import { formatDate, getStatusColor,convertTimeFormat} from "./utils";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -81,11 +81,19 @@ const ServiceListItem = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
         <div>
           <span className="block text-[#A6E3E9]  mb-1">Date</span>
-          <span className="text-gray-200">{formatDate(item.displayDate)}</span>
+          <span className="text-gray-200">
+            {item.displayDate && item.displayDate !== "Not Confirmed"
+              ? formatDate(item.displayDate)
+              : item.displayDate || ""}
+          </span>
         </div>
         <div>
           <span className="block text-[#A6E3E9]  mb-1">Time</span>
-          <span className="text-gray-200">{item.displayTime}</span>
+          <span className="text-gray-200">
+            {item.displayTime && item.displayTime !== "Not Confirmed"
+              ? convertTimeFormat(item.displayTime)
+              : item.displayTime || ""}
+          </span>
         </div>
         <div>
           <span className="block text-[#A6E3E9]  mb-1">Service</span>
@@ -94,18 +102,22 @@ const ServiceListItem = ({
         <div>
           <span className="block text-[#A6E3E9]  mb-1">Location</span>
           <span className={
-            `truncate ${item.displayType === 'coordinates' ? 'text-blue-600 underline' : 'text-gray-200'}`
+            `truncate ${item.displayType === 'coordinates' ? 'text-blue-700 font-semibold underline bg-gray-100 p-1 rounded-sm' : 'text-gray-200'}`
           }>
             {item.displayLocation}
           </span>
         </div>
       </div>
 
-      {item.additional_note && (
-        <div className="mt-4 pt-4 border-t border-white/10">
-          <span className="block text-[#A6E3E9]  mb-1">Additional Notes</span>
-          <span className="text-gray-200">{item.additional_note}</span>
-        </div>
+      {/* Additional Note (if present) */}
+      {item.displayAdditionalNote && item.displayAdditionalNote.trim() !== "" && (
+        <>
+          <hr className="my-4 border-t border-white/20" />
+          <div className="mt-2">
+            <span className="block text-[#A6E3E9] mb-1">Additional Note</span>
+            <span className="text-gray-200">{item.displayAdditionalNote}</span>
+          </div>
+        </>
       )}
     </div>
   );

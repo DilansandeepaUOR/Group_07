@@ -22,6 +22,21 @@ import AddPetModal from "@/Components/Appointment/AddPetModal";
 // Import utilities
 import { convertTimeFormat, formatDate, getStatusColor } from "@/Components/Appointment/utils";
 
+// Add shake animation style
+<style>{`
+@keyframes shake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+.shake {
+  animation: shake 0.4s;
+}
+`}</style>
+
 const AppointmentDetails = () => {
   const navigate = useNavigate();
   
@@ -48,6 +63,10 @@ const AppointmentDetails = () => {
   const [availability, setAvailability] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [completedAppointment, setCompletedAppointment] = useState(null);
+
+  // Add error states
+  const [petError, setPetError] = useState(false);
+  const [serviceError, setServiceError] = useState(false);
 
   // Steps configuration
   const steps = [
@@ -172,14 +191,22 @@ const AppointmentDetails = () => {
 
   const handleNext = () => {
     if (activeStep === 1) {
+      let hasError = false;
       if (!formData.pet_id) {
+        setPetError(true);
         toast.error("Please select a pet");
-        return;
+        hasError = true;
+      } else {
+        setPetError(false);
       }
       if (!formData.service_type) {
+        setServiceError(true);
         toast.error("Please select a service");
-        return;
+        hasError = true;
+      } else {
+        setServiceError(false);
       }
+      if (hasError) return;
       setActiveStep(2);
     } else if (activeStep === 2) {
       if (!formData.date) {
@@ -353,17 +380,17 @@ const AppointmentDetails = () => {
               <div className="space-y-6">
                 {/* Pet Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-[#A6E3E9] mb-3">Select Pet</label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label className={`block text-sm font-medium mb-3 ${petError ? 'text-red-500' : 'text-[#A6E3E9]'}`}>Select Pet</label>
+                  <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${petError ? 'border border-red-500 rounded-lg p-2 shake' : ''}`}> {/* Add red border and shake if error */}
                     {pets.map(pet => (
                       <div
                         key={pet.Pet_id}
-                        onClick={() => handleInputChange('pet_id', pet.Pet_id.toString())}
+                        onClick={() => { handleInputChange('pet_id', pet.Pet_id.toString()); setPetError(false); }}
                         className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                           formData.pet_id === pet.Pet_id.toString()
                             ? 'border-[#A6E3E9] bg-[#A6E3E9]/10'
                             : 'border-white/20 hover:border-[#A6E3E9]/50 bg-white/5'
-                        }`}
+                        } ${petError && !formData.pet_id ? 'border-red-500' : ''}`}
                       >
                         <div className="flex items-center">
                           <div className="w-10 h-10 bg-[#A6E3E9]/20 rounded-full flex items-center justify-center mr-3">
@@ -377,6 +404,9 @@ const AppointmentDetails = () => {
                       </div>
                     ))}
                   </div>
+                  {petError && !formData.pet_id && (
+                    <p className="text-red-500 text-xs mt-2 flex items-center gap-1"><AlertCircle className="inline h-4 w-4 mr-1" /> Please select a pet</p>
+                  )}
                   <div className="mt-4">
                     <AddPetModal onPetAdded={refreshPets} userId={user.id} />
                   </div>
@@ -384,17 +414,17 @@ const AppointmentDetails = () => {
                 
                 {/* Service Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-[#A6E3E9] mb-3">Select Service</label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label className={`block text-sm font-medium mb-3 ${serviceError ? 'text-red-500' : 'text-[#A6E3E9]'}`}>Select Service</label>
+                  <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${serviceError ? 'border border-red-500 rounded-lg p-2 shake' : ''}`}> {/* Add red border and shake if error */}
                     {services.map(service => (
                       <div
                         key={service.id}
-                        onClick={() => handleInputChange('service_type', service.id.toString())}
+                        onClick={() => { handleInputChange('service_type', service.id.toString()); setServiceError(false); }}
                         className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                           formData.service_type === service.id.toString()
                             ? 'border-[#A6E3E9] bg-[#A6E3E9]/10'
                             : 'border-white/20 hover:border-[#A6E3E9]/50 bg-white/5'
-                        }`}
+                        } ${serviceError && !formData.service_type ? 'border-red-500' : ''}`}
                       >
                         <div className="flex items-center">
                           <div className="w-10 h-10 bg-[#71C9CE]/20 rounded-full flex items-center justify-center mr-3">
@@ -408,6 +438,9 @@ const AppointmentDetails = () => {
                       </div>
                     ))}
                   </div>
+                  {serviceError && !formData.service_type && (
+                    <p className="text-red-500 text-xs mt-2 flex items-center gap-1"><AlertCircle className="inline h-4 w-4 mr-1" /> Please select a service</p>
+                  )}
                 </div>
                   </div>
               </div>
@@ -591,8 +624,12 @@ const AppointmentDetails = () => {
               
               <button
                 onClick={activeStep === 3 ? handleSubmit : handleNext}
-                disabled={isSubmitting}
-                className="px-6 py-2 bg-[#A6E3E9] text-[#22292F] rounded-lg font-medium hover:bg-[#71C9CE] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                disabled={
+                  isSubmitting ||
+                  (activeStep === 1 && (!formData.pet_id || !formData.service_type)) ||
+                  (activeStep === 2 && (!formData.date || !formData.time))
+                }
+                className={`px-6 py-2 bg-[#A6E3E9] text-[#22292F] rounded-lg font-medium hover:bg-[#71C9CE] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center`}
               >
                 {isSubmitting ? (
                   <>

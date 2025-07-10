@@ -31,7 +31,18 @@ router.get('/user/:id', async (req, res) => {
   const { id } = req.params;
   try {
     const [results] = await db.promise().query(
-      'SELECT mobile_service.*, pet.Pet_name FROM mobile_service JOIN pet ON mobile_service.pet_id = pet.Pet_id JOIN pet_owner ON mobile_service.petOwnerID = pet_owner.Owner_id',
+      `SELECT 
+        ms.*, 
+        p.Pet_name 
+      FROM 
+        mobile_service ms
+      JOIN 
+        pet p ON ms.pet_id = p.Pet_id 
+      JOIN 
+        pet_owner po ON ms.petOwnerID = po.Owner_id 
+      WHERE 
+        ms.petOwnerID = ?;
+      `,
       [id]
     );
     
@@ -97,7 +108,7 @@ router.post('/', async (req, res) => {
       reason,
     ]);
 
-    res.status(201).json({ message: 'Mobile appointment booked successfully.', appointment_id: newAppointment.insertId });
+    res.status(201).json({ message: 'Mobile appointment booked successfully. A confirmation email has been sent to your email.', appointment_id: newAppointment.insertId });
   } catch (error) {
     console.error('Error booking mobile service:', error);
     res.status(500).json({ error: 'Failed to book mobile service.' });

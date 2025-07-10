@@ -192,9 +192,10 @@ function AppointmentLanding() {
         type: "mobile",
         displayId: service.id,
         displayName: service.Pet_name || "Unnamed Pet",
-        displayDate: service.created_at,
-        displayTime: service.appointment_time || "Flexible",
+        displayDate: service.date || "Not Confirmed",
+        displayTime: service.time || "Not Confirmed",
         displayReason: service.service_type || "Mobile Service",
+        displayAdditionalNote:service.special_notes,
         displayStatus: service.status,
         displayType: service.type,
         displayLocation: service.type === "coordinates" 
@@ -205,7 +206,7 @@ function AppointmentLanding() {
               rel="noopener noreferrer"
               className="text-blue-400 underline"
             >
-              GPS: {parseFloat(service.latitude).toFixed(4)}, {parseFloat(service.longitude).toFixed(4)}
+              View in Map
             </a>
           )
           : service.address || "Address provided",

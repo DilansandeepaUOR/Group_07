@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, PawPrint, User, MapPin, CheckCircle, Loader2, ArrowRight, Home, Map } from "lucide-react";
+import { ChevronLeft, PawPrint, User, MapPin, CheckCircle, Loader2, ArrowRight, Home, Map, AlertCircle } from "lucide-react";
 import AuthRequiredCard from "@/Components/Appointment/AuthRequiredCard";
 import AddPetModal from "@/Components/Appointment/AddPetModal";
 import MapComponent from "@/Components/Appointment/MapComponent";
 
+// Add shake animation style
 const MobileServiceMain = () => {
   const navigate = useNavigate();
 
@@ -30,6 +31,11 @@ const MobileServiceMain = () => {
   const [mapSelectMode, setMapSelectMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [completedAppointment, setCompletedAppointment] = useState(null);
+  const [additionalNote, setAdditionalNote] = useState("");
+
+  // Add error states
+  const [petError, setPetError] = useState(false);
+  const [serviceError, setServiceError] = useState(false);
 
   // Steps configuration
   const steps = [
@@ -112,8 +118,22 @@ const MobileServiceMain = () => {
   // Step navigation
   const handleNext = () => {
     if (activeStep === 1) {
-      if (!petId) return toast.error("Please select a pet");
-      if (!selectedService) return toast.error("Please select a service");
+      let hasError = false;
+      if (!petId) {
+        setPetError(true);
+        toast.error("Please select a pet");
+        hasError = true;
+      } else {
+        setPetError(false);
+      }
+      if (!selectedService) {
+        setServiceError(true);
+        toast.error("Please select a service");
+        hasError = true;
+      } else {
+        setServiceError(false);
+      }
+      if (hasError) return;
       setActiveStep(2);
     } else if (activeStep === 2) {
       if (!useCurrentLocation && !userAddress) return toast.error("Please select a location option");
@@ -132,12 +152,16 @@ const MobileServiceMain = () => {
       const locationData = useCurrentLocation && currentLocation
         ? { type: "coordinates", latitude: currentLocation.latitude, longitude: currentLocation.longitude }
         : { type: "address", value: userAddress };
+      const selectedServiceObj = serviceOptions.find(s => s.id.toString() === selectedService);
+      const isOtherService = selectedServiceObj && selectedServiceObj.reason_name === "Other";
+      const reason = isOtherService ? additionalNote : (selectedServiceObj ? selectedServiceObj.reason_name : "");
       const appointmentData = {
         user_id: user.id,
         pet_id: petId,
         service_id: selectedService,
         location: locationData,
-        status: "pending"
+        status: "pending",
+        reason
       };
       await axios.post("http://localhost:3001/api/mobileservice", appointmentData);
       setCompletedAppointment(appointmentData);
@@ -168,6 +192,10 @@ const MobileServiceMain = () => {
       </div>
     );
   }
+
+  const selectedServiceObj = serviceOptions.find(s => s.id.toString() === selectedService);
+  const isOtherService = selectedServiceObj && selectedServiceObj.reason_name === "Other";
+  const reason = isOtherService ? additionalNote : (selectedServiceObj ? selectedServiceObj.reason_name : "");
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#22292F] via-[#028478] to-[#22292F]">
@@ -241,17 +269,17 @@ const MobileServiceMain = () => {
               <div className="space-y-6">
                 {/* Pet Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-[#A6E3E9] mb-3">Select Pet</label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label className={`block text-sm font-medium mb-3 ${petError ? 'text-red-500' : 'text-[#A6E3E9]'}`}>Select Pet</label>
+                  <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${petError ? 'border border-red-500 rounded-lg p-2 shake' : ''}`}>
                     {userPets.map(pet => (
                       <div
                         key={pet.Pet_id}
-                        onClick={() => setPetId(pet.Pet_id.toString())}
+                        onClick={() => { setPetId(pet.Pet_id.toString()); setPetError(false); }}
                         className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                           petId === pet.Pet_id.toString()
                             ? 'border-[#A6E3E9] bg-[#A6E3E9]/10'
                             : 'border-white/20 hover:border-[#A6E3E9]/50 bg-white/5'
-                        }`}
+                        } ${petError && !petId ? 'border-red-500' : ''}`}
                       >
                         <div className="flex items-center">
                           <div className="w-10 h-10 bg-[#A6E3E9]/20 rounded-full flex items-center justify-center mr-3">
@@ -265,23 +293,26 @@ const MobileServiceMain = () => {
                       </div>
                     ))}
                   </div>
+                  {petError && !petId && (
+                    <p className="text-red-500 text-xs mt-2 flex items-center gap-1"><AlertCircle className="inline h-4 w-4 mr-1" /> Please select a pet</p>
+                  )}
                   <div className="mt-4">
                     <AddPetModal onPetAdded={fetchInitialData} userId={user.id} />
                   </div>
                 </div>
                 {/* Service Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-[#A6E3E9] mb-3">Select Service</label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label className={`block text-sm font-medium mb-3 ${serviceError ? 'text-red-500' : 'text-[#A6E3E9]'}`}>Select Service</label>
+                  <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${serviceError ? 'border border-red-500 rounded-lg p-2 shake' : ''}`}>
                     {serviceOptions.map(service => (
                       <div
                         key={service.id}
-                        onClick={() => setSelectedService(service.id.toString())}
+                        onClick={() => { setSelectedService(service.id.toString()); setServiceError(false); }}
                         className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                           selectedService === service.id.toString()
                             ? 'border-[#A6E3E9] bg-[#A6E3E9]/10'
                             : 'border-white/20 hover:border-[#A6E3E9]/50 bg-white/5'
-                        }`}
+                        } ${serviceError && !selectedService ? 'border-red-500' : ''}`}
                       >
                         <div className="flex items-center">
                           <div className="w-10 h-10 bg-[#71C9CE]/20 rounded-full flex items-center justify-center mr-3">
@@ -295,6 +326,24 @@ const MobileServiceMain = () => {
                       </div>
                     ))}
                   </div>
+                  {serviceError && !selectedService && (
+                    <p className="text-red-500 text-xs mt-2 flex items-center gap-1"><AlertCircle className="inline h-4 w-4 mr-1" /> Please select a service</p>
+                  )}
+                  {isOtherService && (
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-[#A6E3E9] mb-1">
+                        Please specify your service request
+                      </label>
+                      <textarea
+                        className="w-full p-2 border border-white/10 rounded-md bg-white/10 text-gray-200 focus:ring-2 focus:ring-[#A6E3E9] focus:border-transparent"
+                        rows={3}
+                        value={additionalNote}
+                        onChange={e => setAdditionalNote(e.target.value)}
+                        placeholder="Describe your service needs..."
+                        required
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -482,8 +531,13 @@ const MobileServiceMain = () => {
               </button>
               <button
                 onClick={activeStep === 3 ? handleSubmit : handleNext}
-                disabled={isSubmitting}
-                className="px-6 py-2 bg-[#A6E3E9] text-[#22292F] rounded-lg font-medium hover:bg-[#71C9CE] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                disabled={
+                  isSubmitting ||
+                  (activeStep === 1 && (!petId || !selectedService))
+                }
+                className={`px-6 py-2 bg-[#A6E3E9] text-[#22292F] rounded-lg font-medium hover:bg-[#71C9CE] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center${
+                  activeStep === 1 && (!petId || !selectedService) ? ' opacity-50 cursor-not-allowed' : ''
+                }`}
               >
                 {isSubmitting ? (
                   <>
