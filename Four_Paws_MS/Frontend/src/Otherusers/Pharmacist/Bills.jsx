@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { Plus, Trash2, FileText } from "lucide-react"
 import { Button } from "../../components/ui/button"
-import { Input } from "../../components/ui/input"
+import { Input } from "../../Components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog"
