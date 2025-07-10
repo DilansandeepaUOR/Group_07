@@ -87,6 +87,26 @@ const DewormNotify = () => {
       key: 'age_condition',
     },
     {
+      title: 'Status',
+      dataIndex: 'is_active',
+      key: 'is_active',
+      render: (isActive) => (
+        <span 
+          style={{
+            backgroundColor: isActive ? '#e6f7ff' : '#fff1f0',
+            color: isActive ? '#52c41a' : '#f5222d',
+            padding: '4px 8px',
+            borderRadius: '4px',
+            border: `1px solid ${isActive ? '#b7eb8f' : '#ffa39e'}`,
+            display: 'inline-block',
+            fontWeight: 500
+          }}
+        >
+          {isActive ? 'Active' : 'Inactive'}
+        </span>
+      ),
+    },
+    {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
