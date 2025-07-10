@@ -15,6 +15,9 @@ import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import Appointment from "./Pages/Appointment";
 import AppointmentLanding from "./Pages/AppointmentLanding";
+import Delete from "./Pages/Delete";
+import Deactivate from "./Pages/Deactivate";
+import Passwordchange from "./Pages/Passwordchange";
 
 
 
@@ -79,6 +82,9 @@ const App = () => {
         <Route path="/Adlogin" element={<Adlogin />} />
         <Route path="/mobileservice" element={<Mobileservice />} />
         <Route path="/unauth" element={<Unauth />} />
+        <Route path="/Delete" element={<Delete />} />
+        <Route path="/Deactivate" element={<Deactivate />} />
+        <Route path="/Passwordchange" element={<Passwordchange />} />
 
         {/* Records Routes */}
         <Route path="/appointment" element={<Appointment />} />
