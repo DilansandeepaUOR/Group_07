@@ -22,4 +22,3 @@ function Input({
 }
 
 export { Input }
-export { Input }
