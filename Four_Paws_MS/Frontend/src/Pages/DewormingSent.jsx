@@ -67,9 +67,9 @@ const DewormingSent = () => {
     return (
         <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h1 style={{fontSize: '1.2rem'}}><strong>Note: </strong><span style={{ color: 'red' }}>Click the refresh button to check for and send new deworming reminders.</span></h1>
+                <h1><strong>Note: </strong><text style={{ color: 'red' }}>Please click the refresh button to see the latest notifications</text>.</h1>
                 <button onClick={handleRefresh} disabled={isRefreshing} style={styles.button}>
-                    {isRefreshing ? 'Refreshing...' : 'Refresh & Send'}
+                    {isRefreshing ? 'Refreshing...' : 'Refresh'}
                 </button>
             </div>
 
@@ -159,15 +159,13 @@ const styles = {
         },
     },
     button: {
-        padding: '10px 20px',
+        padding: '10px 15px',
         fontSize: '14px',
         cursor: 'pointer',
-        backgroundColor: '#28a745',
+        backgroundColor: '#007bff',
         color: 'white',
         border: 'none',
         borderRadius: '5px',
-        fontWeight: 'bold',
-        transition: 'background-color 0.3s',
     },
     pagination: {
         marginTop: '20px',

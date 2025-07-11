@@ -1,7 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy } from 'react';
+import{message} from 'antd';
 import axios from 'axios';
 
-const DewormEdit = ({ id, onCancel, onSuccess }) => {
+//import { on } from 'events';
+
+const DewormRecords = lazy(() => import('./DewormRecords'));
+
+const DewormEdit = ({ id, onCancel }) => {
     const [record, setRecord] = useState({
         date: '',
         weight: '',
@@ -16,7 +21,8 @@ const DewormEdit = ({ id, onCancel, onSuccess }) => {
     useEffect(() => {
         axios.get(`http://localhost:3001/api/deworm-records/${id}`)
             .then(response => {
-                setRecord(response.data);
+                const fetchedRecord = response.data;
+                setRecord(fetchedRecord);
                 setLoading(false);
             })
             .catch(err => {
@@ -78,11 +84,17 @@ const DewormEdit = ({ id, onCancel, onSuccess }) => {
         
         axios.put(`http://localhost:3001/api/deworm-records/${id}`, { date, weight, wormer })
             .then(() => {
-                onSuccess();
+               // onSuccess();
+                message.success('Deworming record updated successfully!');
+                onCancel(); // Call the onCancel prop to close the editor
+                
             })
             .catch(err => {
                 console.error("Failed to update record", err);
+                message.error('Failed to update record. Please check the fields and try again.');
                 setErrors({ general: 'Failed to update record. Please check the fields and try again.' });
+                onCancel(); // Call the onCancel prop to close the editor
+                
             });
     };
 

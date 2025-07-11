@@ -24,15 +24,15 @@ const DewormNotifications = lazy(() => import("../../Pages/DewormingSent"));
 const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-16 w-16 text-green-500 mx-auto"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>;
 
 // --- Success Popup Component ---
-const SuccessPopup = ({ onClose }) => (
+const SuccessPopup = ({ title, message, onClose }) => (
     <div 
         className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50"
         style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
     >
         <div className="bg-white rounded-lg shadow-2xl p-8 m-4 max-w-sm w-full text-center">
             <CheckCircleIcon />
-            <h3 className="text-2xl font-bold text-gray-800 mt-4">Success!</h3>
-            <p className="text-gray-600 mt-2">The deworming record has been saved successfully.</p>
+            <h3 className="text-2xl font-bold text-gray-800 mt-4">{title}</h3>
+            <p className="text-gray-600 mt-2">{message}</p>
             <button
                 onClick={onClose}
                 className="mt-6 w-full bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition-colors"
@@ -50,6 +50,7 @@ const DoctorDashboard = () => {
   const [editingRecordId, setEditingRecordId] = useState(null);
   // ADDED: State to control the deworming success popup
   const [showDewormSuccess, setShowDewormSuccess] = useState(false);
+  const [showRecordSuccess, setShowRecordSuccess] = useState(false);
   
 
 
@@ -98,6 +99,7 @@ const DoctorDashboard = () => {
             onEditRecord={handleEditRecord}
             editingRecordId={editingRecordId}
             onCancelEdit={handleCancelEdit}
+            onRecordSaved={() => setShowRecordSuccess(true)}
           />
         );
       default:
@@ -117,7 +119,7 @@ const DoctorDashboard = () => {
   return (
     <div className="min-h-screen flex bg-gradient-to-b from-[#E3FDFD] via-[#71C9CE] to-[#A6E3E9] text-gray-900">
         {/* Wrap main content to apply blur effect */}
-        <div className={`flex flex-1 ${showDewormSuccess ? 'blur-sm' : ''}`}>
+        <div className={`flex flex-1 ${showDewormSuccess || showRecordSuccess ? 'blur-sm' : ''}`}>
           {/* Sidebar */}
           <aside className="w-64 bg-[#71C9CE] text-gray-900 p-6 space-y-6">
             <h2 className="text-2xl font-bold">Doctor Dashboard</h2>
@@ -183,6 +185,13 @@ const DoctorDashboard = () => {
 
       {/* Render the popup here, on top of everything */}
       {showDewormSuccess && <SuccessPopup onClose={() => setShowDewormSuccess(false)} />}
+
+        {showRecordSuccess && (<SuccessPopup 
+          title="Success!"
+          message="The medical record has been saved successfully."
+          onClose={() => setShowRecordSuccess(false)} 
+        />
+      )}
     </div>
   );
 };
@@ -270,7 +279,7 @@ const renderSubContent = () => {
 
 
 // Medications with sub-slider
-const MedicationsSection = ({ onEditRecord, editingRecordId, onCancelEdit }) => {
+const MedicationsSection = ({ onEditRecord, editingRecordId, onCancelEdit, onRecordSaved }) => {
   const [activeSubTab, setActiveSubTab] = useState("new");
 
   const renderSubContent = () => {
@@ -295,7 +304,8 @@ const MedicationsSection = ({ onEditRecord, editingRecordId, onCancelEdit }) => 
         return (
           <div className="bg-white p-4 rounded shadow mt-4">
             <Suspense fallback={<div>Loading Form...</div>}>
-              <NewRecord />
+              {/* Pass the handler to the NewRecord component */}
+              <NewRecord onSuccess={onRecordSaved} />
             </Suspense>
           </div>
         );
