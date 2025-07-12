@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Eye, Pencil, XCircle, Check } from 'lucide-react';
+import { Eye, Pencil, XCircle, Check, PawPrint } from 'lucide-react';
 import ConfirmDialog from '../../Components/ui/ConfirmDialog';
 import RefreshButton from '../../Components/ui/RefreshButton';
 
@@ -22,6 +22,8 @@ const Appointments = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
   const [searchTerm, setSearchTerm] = useState("");
+  const [petModalOpen, setPetModalOpen] = useState(false);
+  const [petInfo, setPetInfo] = useState(null);
 
   // Move fetchAppointments out of useEffect for refresh
   const fetchAppointments = async () => {
@@ -180,6 +182,16 @@ const Appointments = () => {
     return new Date(`${dateStr} ${time}`);
   }
 
+  const handleViewPet = async (petId) => {
+    try {
+      const response = await axios.get(`http://localhost:3001/api/assistantdoctor/petinfo/${petId}`);
+      setPetInfo(response.data.pet);
+      setPetModalOpen(true);
+    } catch (error) {
+      alert("Failed to fetch pet info");
+    }
+  };
+
   // Filter and sort appointments before rendering
   const filteredAppointments = appointments
     .filter((appointment) => {
@@ -283,6 +295,15 @@ const Appointments = () => {
                           <Check className="w-4 h-4 mr-1" />
                           
                         </button>
+
+                        <button 
+                      onClick={() => handleViewPet(appointment.pet_table_id)}
+                      className="flex items-center text-[#028478] hover:text-[#71C9CE]"
+                      title="View Pet Info"
+                    >
+                      <PawPrint className="w-4 h-4 mr-1" />
+                    </button>
+
                         <button 
                           onClick={() => handleCancel(appointment.appointment_id)} 
                           className="flex items-center text-red-600 hover:text-red-700"
@@ -292,6 +313,7 @@ const Appointments = () => {
                         </button>
                       </>
                     )}
+                    
                   </td>
 
               </tr>
@@ -404,6 +426,30 @@ const Appointments = () => {
   type="cancel"
   onCancel={() => setCancelDialog({ open: false, appointmentId: null })}
 />
+
+{petModalOpen && petInfo && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm ">
+    <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+      <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={() => setPetModalOpen(false)}>
+        ×
+      </button>
+      <div className="flex items-center mb-4">
+        <PawPrint className="w-7 h-7 text-[#028478] mr-2" />
+        <h2 className="text-lg font-semibold text-[#028478]">Pet Information</h2>
+      </div>
+      <div className="space-y-2">
+        <div><span className="font-medium">Name:</span> {petInfo.Pet_name}</div>
+        <div><span className="font-medium">Type:</span> {petInfo.Pet_type}</div>
+        <div><span className="font-medium">Breed:</span> {petInfo.Pet_Breed || '-'}</div>
+        <div><span className="font-medium">Gender:</span> {petInfo.Pet_gender || '-'} </div>
+        <div><span className="font-medium">Date of Birth:</span> {petInfo.Pet_dob || '-'} <span className='text-green-600'>({petInfo.Pet_age})</span></div>
+        <div><span className="font-medium">Allergies:</span> {petInfo.Pet_Allergies || '-'}</div>
+        <div><span className="font-medium">Diet:</span> {petInfo.Pet_Diet || '-'}</div>
+        <div><span className="font-medium">Owner ID:</span> {petInfo.Owner_id}</div>
+      </div>
+    </div>
+  </div>
+)}
 
     </div>
   );

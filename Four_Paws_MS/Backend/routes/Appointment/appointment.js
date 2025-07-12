@@ -236,7 +236,7 @@ router.post('/appointment', async (req, res) => {
       throw new Error("Email service not available");
     }
     let subject = 'Clinic Appointment Completed Scheduled - Four Paws Clinic';
-    let Message = `Your appointment is scheduled on ${formatDate(fullDateTime)} at ${formatTime(fullDateTime)}. Please arrive at least 10 minutes early. Thank you!`;
+    let Message = `Your Clinic appointment is scheduled on ${formatDate(fullDateTime)} at ${formatTime(fullDateTime)}. Please arrive at least 10 minutes early. Thank you!`;
     let Location ='526/A, Colombo Rd,Rathnapura';
     // Styled HTML content for the email
     const htmlContent = `
@@ -259,7 +259,7 @@ router.post('/appointment', async (req, res) => {
           <!-- Pet Info -->
           <div style="margin-bottom: 20px;">
             <h3 style="color: #028478; font-size: 16px; margin-bottom: 10px;">Pet Information</h3>
-            <p style="margin: 0;"><strong>Pet Name:</strong> ${GetPetName.Pet_name || 'Not specified'}</p>
+            <p style="margin: 0;"><strong>Pet Name:</strong> ${GetPetName[0].Pet_name || 'Not specified'}</p>
           </div>
 
           <!-- Location Info -->
@@ -344,7 +344,7 @@ router.put('/cancel/:id', async (req, res) => {
 
 // Add pet endpoint
 router.post('/pets', async (req, res) => {
-  const { Pet_name, Pet_type, gender, dob, user_id } = req.body;
+  const { Pet_name, Pet_type, gender, dob, user_id,Pet_Breed,Pet_Allergies,Pet_Diet } = req.body;
 
   if (!Pet_name || !Pet_type || !gender || !dob || !user_id) {
     return res.status(400).json({ message: 'All fields are required.' });
@@ -357,8 +357,8 @@ router.post('/pets', async (req, res) => {
     // `;
     // await db.execute(sql, [Pet_name, Pet_type, gender, dob, user_id]);
     [result] = await db.promise().query(
-      ' INSERT INTO pet (Pet_name, Pet_type, Pet_gender, Pet_dob, Owner_id) VALUES (?, ?, ?, ?, ?)',
-      [Pet_name, Pet_type, gender, dob, user_id]
+      ' INSERT INTO pet (Pet_name, Pet_type, Pet_gender, Pet_dob, Owner_id, Pet_Breed, Pet_Allergies, Pet_Diet) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [Pet_name, Pet_type, gender, dob, user_id,Pet_Breed,Pet_Allergies,Pet_Diet]
     );
 
     res.status(201).json({ message: 'Pet added successfully.' });
