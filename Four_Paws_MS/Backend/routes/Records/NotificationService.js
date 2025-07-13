@@ -328,8 +328,8 @@ router.put('/notification-templates/:id', async (req, res) => {
     const { subject, message_body, days_before, is_active } = req.body;
     try {
         await query(
-            'UPDATE notification_templates SET subject = ?, message_body = ?, days_before = ?, is_active = ? WHERE template_id = ?',
-            [subject, message_body, days_before, is_active, req.params.id]
+            'UPDATE notification_templates SET subject = ?, message_body = ?, is_active = ? WHERE template_id = ?',
+            [subject, message_body, is_active, req.params.id]
         );
         res.json({ success: true, message: 'Template updated successfully.' });
     } catch (error) {
