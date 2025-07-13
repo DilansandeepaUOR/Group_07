@@ -1,4 +1,4 @@
-import React, { useState, useEffect,lazy,Suspense } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import {
   FaCalendarAlt,
   FaUser,
@@ -13,16 +13,44 @@ const NewRecord = lazy(() => import("../../Pages/RecordNew"));
 const ViewRecords = lazy(() => import("../../Pages/AllRecords"));
 const Notify = lazy(() => import("../../Pages/VaccineNotify"));
 const SentNotify = lazy(() => import("../../Pages/VaccineSent"));
+const EditRecord = lazy(() => import("../../Pages/RecordEdit"));
+const DewormNew = lazy(() => import("../../Pages/DeWormNew"));
+
+// --- Icon for Success Popup ---
+const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-16 w-16 text-green-500 mx-auto"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>;
+
+// --- Success Popup Component with Backdrop Blur ---
+const SuccessPopup = ({ onClose }) => (
+    <div 
+        className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50"
+        style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
+    >
+        <div className="bg-white rounded-lg shadow-2xl p-8 m-4 max-w-sm w-full text-center">
+            <CheckCircleIcon />
+            <h3 className="text-2xl font-bold text-gray-800 mt-4">Success!</h3>
+            <p className="text-gray-600 mt-2">The deworming record has been saved successfully.</p>
+            <button
+                onClick={onClose}
+                className="mt-6 w-full bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition-colors"
+            >
+                Close
+            </button>
+        </div>
+    </div>
+);
+
 
 const DoctorDashboard = () => {
-  const [activeTab, setActiveTab] = useState("home");
+  const [activeTab, setActiveTab] = useState("medications");
   const [doctor, setDoctor] = useState(null);
+  const [editingRecordId, setEditingRecordId] = useState(null);
+  // ADDED: State to control the deworming success popup
+  const [showDewormSuccess, setShowDewormSuccess] = useState(false);
 
   useEffect(() => {
     axios
       .get("http://localhost:3001/api/auth/admins", { withCredentials: true })
       .then((response) => {
-        console.log(response.data);
         setDoctor(response.data);
       })
       .catch(() => {
@@ -42,14 +70,30 @@ const DoctorDashboard = () => {
     }
   };
 
+  const handleEditRecord = (recordId) => {
+    setEditingRecordId(recordId);
+    setActiveTab("medications");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingRecordId(null);
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case "appointments":
         return <AppointmentsSection />;
-      case "patients":
-        return <PatientsSection />;
+      case "deworming":
+        // MODIFIED: Pass a handler to show the success popup
+        return <DewormingSection onRecordSaved={() => setShowDewormSuccess(true)} />;
       case "medications":
-        return <MedicationsSection />;
+        return (
+          <MedicationsSection
+            onEditRecord={handleEditRecord}
+            editingRecordId={editingRecordId}
+            onCancelEdit={handleCancelEdit}
+          />
+        );
       default:
         return (
           <div>
@@ -66,61 +110,73 @@ const DoctorDashboard = () => {
 
   return (
     <div className="min-h-screen flex bg-gradient-to-b from-[#E3FDFD] via-[#71C9CE] to-[#A6E3E9] text-gray-900">
-      {/* Sidebar */}
-      <aside className="w-64 bg-[#71C9CE] text-gray-900 p-6 space-y-6">
-        <h2 className="text-2xl font-bold">Doctor Dashboard</h2>
+        {/* Wrap main content to apply blur effect */}
+        <div className={`flex flex-1 ${showDewormSuccess ? 'blur-sm' : ''}`}>
+          {/* Sidebar */}
+          <aside className="w-64 bg-[#71C9CE] text-gray-900 p-6 space-y-6">
+            <h2 className="text-2xl font-bold">Doctor Dashboard</h2>
 
-        <div className="items-center gap-4 mt-4">
-          <img
-            src={dp || "Doctor"}
-            alt="Doctor"
-            className="w-24 h-24 rounded-full border border-gray-400"
-          />
-          <div>
-            <p className="text-black-300">
-              <strong>Dr. </strong> {doctor?.fname} {doctor?.lname}
-            </p>
-            <p className="text-black-300">
-              <strong>E-mail:</strong> {doctor?.email}
-            </p>
-          </div>
-        </div>
+            <div className="items-center gap-4 mt-4">
+              <img
+                src={dp || "Doctor"}
+                alt="Doctor"
+                className="w-24 h-24 rounded-full border border-gray-400"
+              />
+              <div>
+                <p className="text-black-300">
+                  <strong>Dr. </strong> {doctor?.fname} {doctor?.lname}
+                </p>
+                <p className="text-black-300">
+                  <strong>E-mail:</strong> {doctor?.email}
+                </p>
+              </div>
+            </div>
 
-        <ul className="space-y-4">
-          <li>
-            <button
-              onClick={() => setActiveTab("appointments")}
-              className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
-            >
-              <FaCalendarAlt /> Appointments
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => setActiveTab("patients")}
-              className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
-            >
-              <FaUser /> Patients
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => setActiveTab("medications")}
-              className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
-            >
-              <FaPills /> Medications
-            </button>
-          </li>
-          <li className="hover:text-red-400 items-center gap-2 w-full text-left cursor-pointer">
-            <a href="/Adlogin" onClick={handleLogout}>
-              <FaSignOutAlt className="mr-2" /> Logout
-            </a>
-          </li>
-        </ul>
-      </aside>
+            <ul className="space-y-4">
+              <li>
+                <button
+                  onClick={() => {
+                    setActiveTab("appointments");
+                    setEditingRecordId(null);
+                  }}
+                  className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
+                >
+                  <FaCalendarAlt /> Appointments
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => {
+                    setActiveTab("deworming");
+                    setEditingRecordId(null);
+                  }}
+                  className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
+                >
+                  <FaUser /> Deworming
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setActiveTab("medications")}
+                  className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
+                >
+                  <FaPills /> Medications
+                </button>
+              </li>
+              <li className="hover:text-red-400 items-center gap-2 w-full text-left cursor-pointer">
+                <a href="/Adlogin" onClick={handleLogout}>
+                  <FaSignOutAlt className="mr-2" /> Logout
+                </a>
+              </li>
+            </ul>
+          </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 p-8">{renderContent()}</main>
+          {/* Main Content */}
+          <main className="flex-1 p-8">{renderContent()}</main>
+      </div>
+
+      {/* Render the popup here, on top of everything */}
+      {showDewormSuccess && <SuccessPopup onClose={() => setShowDewormSuccess(false)} />}
     </div>
   );
 };
@@ -133,62 +189,102 @@ const AppointmentsSection = () => (
   </div>
 );
 
-// Patients
-const PatientsSection = () => (
-  <div>
-    <h2 className="text-2xl font-semibold text-[#028478]">Patients</h2>
-    <p className="mt-4">Patient area</p>
-  </div>
-);
+// Deworming
+// MODIFIED: Accept `onRecordSaved` prop and correct the buggy useState hook
+const DewormingSection = ({ onRecordSaved }) => {
+  const [activeSubTab, setActiveSubTab] = useState("new");
+  
+  const renderSubContent = () => {
+    switch (activeSubTab) {
+      case "new":
+        return (
+          <div className="bg-white p-4 rounded shadow mt-4">
+            <Suspense fallback={<div>Loading New Deworming Form...</div>}>
+              {/* MODIFIED: Pass the callback to the DewormNew component */}
+              <DewormNew onSuccess={onRecordSaved} />
+            </Suspense>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div>
+      <h2 className="text-2xl font-semibold text-[#028478]">Deworming</h2>
+      <div className="flex overflow-x-auto mt-4 space-x-4">
+        {[
+          { key: "new", label: "Add new Deworming Record" },
+          { key: "view", label: "View Deworming Records" },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            className={`px-4 py-2 rounded ${
+              activeSubTab === tab.key
+                ? "bg-[#028478] text-white"
+                : "bg-white border border-[#028478] text-[#028478]"
+            }`}
+            onClick={() => {
+              setActiveSubTab(tab.key);
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      {/* MODIFIED: Removed incorrect logic and simplified the rendering */}
+      <div className="mt-6">
+        {renderSubContent()}
+      </div>
+    </div>
+  );
+};
+
 
 // Medications with sub-slider
-const MedicationsSection = () => {
-  const [activeSubTab, setActiveSubTab] = useState("entry");
+const MedicationsSection = ({ onEditRecord, editingRecordId, onCancelEdit }) => {
+  const [activeSubTab, setActiveSubTab] = useState("new");
 
   const renderSubContent = () => {
     switch (activeSubTab) {
       case "pdf":
         return (
           <div className="bg-white p-4 rounded shadow mt-4">
-            <h3 className="text-lg font-semibold mb-2"></h3>
             <Suspense fallback={<div>Loading PDF Generator...</div>}>
-            <PetRecordPDF />
+              <PetRecordPDF />
             </Suspense>
           </div>
         );
       case "view":
         return (
           <div className="bg-white p-4 rounded shadow mt-4">
-            <h3 className="text-lg font-semibold mb-2"></h3>
             <Suspense fallback={<div>Loading All Records...</div>}>
-            <ViewRecords />
+              <ViewRecords onEdit={onEditRecord} />
             </Suspense>
           </div>
         );
       case "new":
         return (
           <div className="bg-white p-4 rounded shadow mt-4">
-            <h3 className="text-lg font-semibold mb-2"></h3>
             <Suspense fallback={<div>Loading Form...</div>}>
-            <NewRecord />
+              <NewRecord />
             </Suspense>
           </div>
         );
-        case "notify":
+      case "notify":
         return (
           <div className="bg-white p-4 rounded shadow mt-4">
-            <h3 className="text-lg font-semibold mb-2"></h3>
             <Suspense fallback={<div>Loading Notifications...</div>}>
-            <Notify />
+              <Notify />
             </Suspense>
           </div>
         );
-        case "sentnotify":
+      case "sentnotify":
         return (
           <div className="bg-white p-4 rounded shadow mt-4">
-            <h3 className="text-lg font-semibold mb-2"></h3>
             <Suspense fallback={<div>Loading Notifications...</div>}>
-            <SentNotify />
+              <SentNotify />
             </Suspense>
           </div>
         );
@@ -201,7 +297,6 @@ const MedicationsSection = () => {
     <div>
       <h2 className="text-2xl font-semibold text-[#028478]">Medications</h2>
 
-      {/* Subcategory Slider */}
       <div className="flex overflow-x-auto mt-4 space-x-4">
         {[
           { key: "pdf", label: "Generate PDF" },
@@ -217,15 +312,25 @@ const MedicationsSection = () => {
                 ? "bg-[#028478] text-white"
                 : "bg-white border border-[#028478] text-[#028478]"
             }`}
-            onClick={() => setActiveSubTab(tab.key)}
+            onClick={() => {
+              setActiveSubTab(tab.key);
+              onCancelEdit();
+            }}
           >
             {tab.label}
           </button>
         ))}
       </div>
-
-      {/* Dynamic Subcategory Content */}
-      <div className="mt-6">{renderSubContent()}</div>
+      
+      <div className="mt-6">
+        {editingRecordId ? (
+          <Suspense fallback={<div>Loading Editor...</div>}>
+            <EditRecord id={editingRecordId} onCancel={onCancelEdit} />
+          </Suspense>
+        ) : (
+          renderSubContent()
+        )}
+      </div>
     </div>
   );
 };
