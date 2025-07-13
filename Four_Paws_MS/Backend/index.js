@@ -76,6 +76,8 @@ app.use('/api', recordRoutes);
 //Deworm Notifications
 const dogdewormingNotificationService = require('./routes/Records/DogsDewormingNotificationService');
 app.use('/api/deworming-notifications', dogdewormingNotificationService.router);
+const catdewormingNotificationService = require('./routes/Records/CatsDewormingNotificationService');
+app.use('/api/cat-deworming-notifications', catdewormingNotificationService.router);
 
 //Mobile Service Section
 const mobileserviceRoutes =require('./routes/Appointment/mobileservice');

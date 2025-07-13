@@ -192,23 +192,23 @@ const generatePDF = () => {
     // === HEADER ===
     doc.setFillColor(whiteColor);
     doc.rect(0, 0, pageWidth, 35, 'F');
-    doc.addImage(logo, 'PNG', margin, 3, 35, 25);
+    doc.addImage(logo, 'PNG', margin, 3, 45, 25);
     doc.setFont('helvetica', 'bold').setFontSize(18).setTextColor(primaryColor);
-    doc.text('Four Paws Animal Clinic', margin + 40, 15);
+    doc.text('Four Paws Animal Clinic', margin + 50, 15);
     doc.setFont('helvetica', 'normal').setFontSize(9);
-    doc.text('No. 03 New Town, Ratnapura | +94 76 123 4567 | 4pawsbusiness4@gmail.com', margin + 40, 22);
+    doc.text('No. 03 New Town, Ratnapura | +94 760 999 899 | 4pawsbusiness4@gmail.com', margin + 50, 22);
 
-    // Main Document Title
+    // ... (The rest of your document generation code remains the same) ...
+    // Main Document Title, Patient Information, Medical Records, etc.
     doc.setFontSize(18).setFont('helvetica', 'bold').setTextColor(headerColor);
     doc.text('Pet Medical Record', margin, cursorY);
     cursorY += 15;
 
-    // === PATIENT INFORMATION ===
     doc.setDrawColor(lightGrayColor).setLineWidth(0.5);
     doc.line(margin, cursorY - 7, pageWidth - margin, cursorY - 7);
     
     doc.setFontSize(12).setFont('helvetica', 'bold').setTextColor(primaryColor);
-    doc.text('Patient Details', margin, cursorY);
+    doc.text('Pet Details', margin, cursorY);
     
     const reportDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     doc.setFontSize(10).setFont('helvetica', 'normal').setTextColor(secondaryColor);
@@ -233,7 +233,7 @@ const generatePDF = () => {
         [
           { content: 'Owner:', styles: { fontStyle: 'bold' } },
           selectedOwner.Owner_name,
-          { content: 'Email:', styles: { fontStyle: 'bold' } },
+          { content: 'Owner Email:', styles: { fontStyle: 'bold' } },
           selectedOwner.E_mail,
         ],
       ],
@@ -243,7 +243,6 @@ const generatePDF = () => {
     });
     cursorY = doc.lastAutoTable.finalY + 15;
 
-    // === MEDICAL RECORDS SECTION - IMPROVED ===
     doc.setFontSize(16).setFont('helvetica', 'bold').setTextColor(headerColor);
     doc.text('Visit History', margin, cursorY);
     cursorY += 10;
@@ -252,7 +251,6 @@ const generatePDF = () => {
       if (cursorY + neededSpace > pageHeight - margin) {
         doc.addPage();
         cursorY = margin;
-        // Re-add the header for new pages if needed
         doc.setFontSize(16).setFont('helvetica', 'bold').setTextColor(headerColor);
         doc.text('Visit History (continued)', margin, cursorY);
         cursorY += 15;
@@ -266,7 +264,6 @@ const generatePDF = () => {
         day: 'numeric' 
       });
 
-      // Calculate approximate space needed for this record
       const contentLines = [
         record.formattedVaccination,
         record.surgery,
@@ -279,14 +276,12 @@ const generatePDF = () => {
 
       const cardStartY = cursorY;
       
-      // Date header
       doc.setFillColor(lightGrayColor);
       doc.roundedRect(margin, cursorY, pageWidth - margin * 2, 10, 3, 3, 'F');
       doc.setFontSize(12).setFont('helvetica', 'bold').setTextColor(headerColor);
       doc.text(formattedDate, margin + 5, cursorY + 7);
       cursorY += 15;
 
-      // Helper function to add sections with optimized spacing
       const addRecordSection = (title, content) => {
         if (!content) return;
         
@@ -308,18 +303,51 @@ const generatePDF = () => {
       addRecordSection('Surgery:', record.surgery);
       addRecordSection('Additional Notes:', record.other);
 
-      // Card border
       doc.setDrawColor('#E2E8F0');
       doc.roundedRect(margin, cardStartY, pageWidth - margin * 2, cursorY - cardStartY + 5, 3, 3, 'S');
       cursorY += 10;
     });
 
+
     // === FOOTER ===
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
+
+      // --- START: WATERMARK ---
+      // This will add the logo to the center of the page with low opacity.
+      const watermarkWidth = 100; // Adjust the size of the watermark as needed
+      const watermarkHeight = 70; // Adjust the size of the watermark as needed
+      const watermarkX = (pageWidth - watermarkWidth) / 2;
+      const watermarkY = (pageHeight - watermarkHeight) / 2;
+
+      // Set the opacity for the watermark
+      doc.setGState(new doc.GState({opacity: 0.1})); 
+      
+      doc.addImage(logo, 'PNG', watermarkX, watermarkY, watermarkWidth, watermarkHeight);
+      
+      // IMPORTANT: Reset the opacity to 1 so other elements are not transparent
+      doc.setGState(new doc.GState({opacity: 1}));
+      // --- END: WATERMARK ---
+
+
+      // --- START: SIGNATURE AND NOTES SECTION ---
+      let startY = pageHeight - 80;
+      doc.setFontSize(10).setTextColor('#000000');
+      doc.text("Special Notes:", margin, startY);
+      doc.text("................................................................................", margin, startY += 10);
+      doc.text("................................................................................", margin, startY += 5);
+      doc.text("................................................................................", margin, startY += 5);
+      doc.text("................................................................................", margin, startY += 5);
+
+      let signatureY = pageHeight - 35;
+      doc.text("..................................................", margin, signatureY);
+      doc.setFontSize(9).setTextColor('#000000');
+      doc.text("Veterinarian's Signature", margin, signatureY + 5);
+      // --- END: SIGNATURE AND NOTES SECTION ---
+
+      // Footer Content (at the very bottom)
       doc.setFontSize(9).setTextColor('#718096');
-      doc.text(`Record for ${selectedPet.Pet_name}`, margin, pageHeight - 10);
       doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
     }
 

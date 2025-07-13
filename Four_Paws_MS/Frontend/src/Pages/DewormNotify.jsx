@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, ConfigProvider, message, Card, Typography, Space } from 'antd';
+import { Table, Button, Modal, Form, Input, ConfigProvider, Switch, message, Card, Typography, Space } from 'antd';
 import { FaCat, FaDog } from 'react-icons/fa';
+import { InfoCircleOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
@@ -45,6 +46,9 @@ const DewormNotify = () => {
     form.setFieldsValue({
       deworm_name: template.deworm_name,
       age_condition: template.age_condition,
+      subject: template.subject,
+      message_body: template.message_body,
+      is_active: template.is_active,
     });
     setVisible(true);
   };
@@ -208,6 +212,28 @@ const DewormNotify = () => {
               rules={[{ required: true, message: 'Please enter the age condition' }]}
             >
               <Input placeholder="e.g., '2' or 'last notified+4'" />
+            </Form.Item>
+            <Form.Item
+              name="subject"
+              label="Email Subject"
+              tooltip={{ title: 'Use {pet_name} for mention pet name. e.g., Upcoming vaccination reminder for {pet_name}', icon: <InfoCircleOutlined /> }}
+              rules={[{ required: true, message: 'Please enter the email subject' }]}
+            >
+              <Input placeholder="Enter email subject" />
+            </Form.Item>
+            <Form.Item
+              name="message_body"
+              label="Email Message Body"
+              rules={[{ required: true, message: 'Please enter the email message body' }]}
+            >
+              <Input.TextArea placeholder="Enter email message body" rows={4} />
+            </Form.Item>
+            <Form.Item
+              name="is_active"
+              label="Active"
+              valuePropName="checked"
+            >
+              <Switch />
             </Form.Item>
           </Form>
         </Modal>

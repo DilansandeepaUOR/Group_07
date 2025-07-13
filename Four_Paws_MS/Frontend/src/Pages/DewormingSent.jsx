@@ -36,7 +36,9 @@ const DewormingSent = () => {
         setCurrentPage(1); // Reset to the first page on refresh
         try {
             // Updated API endpoint to trigger deworming notifications
-            await axios.post('http://localhost:3001/api/deworming-notifications/trigger-deworming-notifications');
+            await axios.post('http://localhost:3001/api/deworming-notifications/trigger-deworming-notifications-dogs');
+            await axios.post('http://localhost:3001/api/cat-deworming-notifications/trigger-deworming-notifications-cats');
+            console.log('Deworming notifications triggered successfully.');
             // Fetch the updated history
             await fetchNotifications();
         } catch (error) {
@@ -85,6 +87,7 @@ const DewormingSent = () => {
                                 <th style={styles.th}>Deworming Task</th>
                                 <th style={styles.th}>Sent Date</th>
                                 <th style={styles.th}>Status</th>
+                                <th style={styles.th}>Subject</th>
                              </tr>
                         </thead>
                         <tbody>
@@ -105,6 +108,7 @@ const DewormingSent = () => {
                                             {notification.status.toUpperCase()}
                                         </span>
                                     </td>
+                                    <td style={styles.td}>{notification.subject}</td>
                                 </tr>
                             )) : (
                                 <tr>
