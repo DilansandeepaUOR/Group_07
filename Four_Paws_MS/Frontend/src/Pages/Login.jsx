@@ -100,7 +100,7 @@ function Login() {
 
         {/* Title */}
         <h2 className="text-2xl font-bold text-center text-white mb-4 Poppins">
-          Log in to Your Faw Paws Account
+          Log in to Your Four Paws Account
         </h2>
         <span>
           <img
