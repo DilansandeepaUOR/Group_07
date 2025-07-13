@@ -77,7 +77,6 @@ const VaccineSent = () => {
                            <th style={styles.th}>Vaccine</th>
                            <th style={styles.th}>Sent Date</th>
                            <th style={styles.th}>Status</th>
-                           <th style={styles.th}>Subject</th>
                          </tr>
                         </thead>
                         <tbody>
@@ -98,7 +97,6 @@ const VaccineSent = () => {
                                             {notification.status.toUpperCase()}
                                         </span>
                                     </td>
-                                    <td style={styles.td}>{notification.subject}</td>
                                 </tr>
                             ))}
                         </tbody>
