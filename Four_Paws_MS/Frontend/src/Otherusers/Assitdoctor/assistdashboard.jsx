@@ -43,9 +43,9 @@ const DoctorDashboard = () => {
 
   // Fetch profile picture once user is loaded
   useEffect(() => {
-    if (user?.id) {
+    if (doctor?.id) {
       axios
-        .get(`http://localhost:3001/api/adprofile/?id=${user.id}`)
+        .get(`http://localhost:3001/api/adprofile/?id=${doctor.id}`)
         .then((response) => {
           setPro_pic(response.data);
         })
@@ -53,7 +53,7 @@ const DoctorDashboard = () => {
           setPro_pic(dp); // fallback to default profile picture
         });
     }
-  }, [user]);
+  }, [doctor]);
 
   const handleLogout = async () => {
     try {
@@ -79,7 +79,7 @@ const DoctorDashboard = () => {
             {/* Profile Picture */}
             <img
               src={`http://localhost:3001${pro_pic?.Pro_pic}` || dp}
-              alt={user?.name}
+              alt={doctor?.name}
               className="w-24 h-24 rounded-full border border-gray-400"
               onError={(e) => {
                 e.target.onerror = null; // Prevent infinite loop if paw image fails
