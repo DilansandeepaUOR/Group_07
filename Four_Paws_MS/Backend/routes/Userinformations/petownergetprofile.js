@@ -85,8 +85,9 @@ router.put("/update", uploadpropic.single("image"), async (req, res) => {
   }
 });
 
-// Update password
 
+
+// Update password
 router.post("/passwordreset", async (req, res) => {
   const { id1, email, newPassword, currentPassword } = req.body;
 

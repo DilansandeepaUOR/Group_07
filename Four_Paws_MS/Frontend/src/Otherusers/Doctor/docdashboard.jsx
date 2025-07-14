@@ -1,5 +1,11 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
-import { FaCalendarAlt, FaUser, FaPills, FaSignOutAlt,FaUsers } from "react-icons/fa";
+import {
+  FaCalendarAlt,
+  FaUser,
+  FaPills,
+  FaSignOutAlt,
+  FaUsers,
+} from "react-icons/fa";
 import axios from "axios";
 import dp from "../../../src/assets/paw_vector.png";
 import { Link } from "react-router-dom";
@@ -58,6 +64,7 @@ const DoctorDashboard = () => {
   const [editingRecordId, setEditingRecordId] = useState(null);
   // ADDED: State to control the deworming success popup
   const [showDewormSuccess, setShowDewormSuccess] = useState(false);
+  const [pro_pic, setPro_pic] = useState(dp);
 
   useEffect(() => {
     axios
@@ -69,6 +76,20 @@ const DoctorDashboard = () => {
         setDoctor(null);
       });
   }, []);
+
+  // Fetch profile picture once user is loaded
+  useEffect(() => {
+    if (user?.id) {
+      axios
+        .get(`http://localhost:3001/api/adprofile/?id=${user.id}`)
+        .then((response) => {
+          setPro_pic(response.data);
+        })
+        .catch(() => {
+          setPro_pic(dp); // fallback to default profile picture
+        });
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -131,17 +152,28 @@ const DoctorDashboard = () => {
           <h2 className="text-2xl font-bold">Doctor Dashboard</h2>
           <div className="flex justify-center items-center w-full">
             <div className="flex flex-col items-center border-1 p-4 bg-gray-50 gap-4 mt-4">
+              {/* Profile Picture */}
               <img
+                src={`http://localhost:3001${pro_pic?.Pro_pic}` || dp}
+                alt={user?.name}
+                className="w-24 h-24 rounded-full border border-gray-400"
+                onError={(e) => {
+                  e.target.onerror = null; // Prevent infinite loop if paw image fails
+                  e.target.src = dp;
+                }}
+              />
+
+              {/* <img
                 src={dp || "Admin"}
                 alt="Admin"
                 className="w-24 h-24 rounded-full border border-gray-400"
-              />
+              /> */}
               <div>
                 <p className="text-black-300">
                   <strong>Assistant Doctor: </strong> {doctor?.fname}{" "}
                   {doctor?.lname}
                 </p>
-                
+
                 <div>
                   <Link to={"/docprofile"}>
                     <button
@@ -155,7 +187,6 @@ const DoctorDashboard = () => {
               </div>
             </div>
           </div>
-          
 
           <ul className="space-y-4">
             <li>

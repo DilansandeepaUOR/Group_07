@@ -62,6 +62,7 @@ function Profile() {
     confirm: false,
   });
 
+  //set image preview
   const [imagePreview, setImagePreview] = useState(dp);
   const navigate = useNavigate();
 
@@ -339,8 +340,8 @@ function Profile() {
     }
   };
 
+  
   //password change
-
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
