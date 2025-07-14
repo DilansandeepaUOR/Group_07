@@ -30,6 +30,7 @@ const createNotification = async (title, description, type, related_id = null) =
 
 /*DashBoard */
 
+
 // Get total count of medicines
 router.get('/api/medicines/count', (req, res) => {
   const sql = 'SELECT COUNT(*) AS count FROM medicines';
@@ -83,6 +84,29 @@ router.get('/api/medicines/out-of-stock', (req, res) => {
     res.json({ outOfStock: results[0].outOfStock });
   });
 });
+
+
+//Get total number of bills generated
+router.get('/api/bills/count', (req, res) => {
+  const sql = 'SELECT COUNT(*) AS count FROM bills';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json({ count: results[0].count });
+  });
+});
+
+
+
+
+
+
+
+
+
+
 
 // Get number of low-stock medicines (stock ≤ 5)
 router.get('/api/medicines/low-stock', (req, res) => {
@@ -1136,8 +1160,8 @@ router.get('/api/detailed-sales', (req, res) => {
       m.id,
       m.name,
       m.price,
-      SUM(ABS(s.stock_change)) as quantity_sold,
-      SUM(ABS(s.stock_change) * m.price) as total_revenue
+      COALESCE(SUM(ABS(s.stock_change)), 0) as quantity_sold,
+      COALESCE(SUM(ABS(s.stock_change) * m.price), 0) as total_revenue
     FROM sales s
     JOIN medicines m ON s.medicine_id = m.id
     WHERE s.change_type = 'STOCK_OUT'
@@ -1493,6 +1517,28 @@ router.get('/api/pharmacy/bills/:id', async (req, res) => {
   } catch (err) {
     console.error('Error fetching bill:', err);
     res.status(500).json({ error: 'Failed to fetch bill' });
+  }
+});
+
+// DELETE a bill by ID
+router.delete('/api/bills/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // First, delete bill items associated with the bill
+    await db.promise().query('DELETE FROM bill_items WHERE bill_id = ?', [id]);
+
+    // Then, delete the bill itself
+    const [result] = await db.promise().query('DELETE FROM bills WHERE id = ?', [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Bill not found' });
+    }
+
+    res.json({ success: true, message: 'Bill deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting bill:', err);
+    res.status(500).json({ error: 'Failed to delete bill' });
   }
 });
 

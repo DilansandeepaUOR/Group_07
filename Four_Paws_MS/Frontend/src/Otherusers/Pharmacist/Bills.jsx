@@ -1,11 +1,8 @@
-"use client"
-
-import { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect } from "react"
 import { Plus, Trash2, FileText } from "lucide-react"
 import { Button } from "../../Components/ui/button"
 import { Input } from "../../Components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "../../Components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../Components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../Components/ui/dialog"
 import { useToast } from "../../Components/ui/use-toast"
 
@@ -475,6 +472,16 @@ export default function PetShopBills() {
         return
       }
 
+      // Phone number validation: must be 10 digits if provided
+      if (newBill.customerPhone.trim() && !/^\d{10}$/.test(newBill.customerPhone.trim())) {
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: "Enter a valid phone number.",
+        })
+        return
+      }
+
       if (newBill.items.length === 0) {
         toast({
           variant: "destructive",
@@ -575,12 +582,7 @@ export default function PetShopBills() {
     }
   }
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount)
-  }
+  // Removed unused formatCurrency function
 
   const handleViewBill = async (billId) => {
     try {
