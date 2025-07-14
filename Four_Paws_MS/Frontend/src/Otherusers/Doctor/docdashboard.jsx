@@ -1,14 +1,10 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import {
   FaCalendarAlt,
-  FaMobileAlt,
+  FaUser,
   FaPills,
   FaSignOutAlt,
-
-  FaUsers,
-
   FaDog,
-
 } from "react-icons/fa";
 import axios from "axios";
 import dp from "../../../src/assets/paw_vector.png";
@@ -18,55 +14,14 @@ const NewRecord = lazy(() => import("../../Pages/RecordNew"));
 const ViewRecords = lazy(() => import("../../Pages/AllRecords"));
 const Notify = lazy(() => import("../../Pages/VaccineNotify"));
 const SentNotify = lazy(() => import("../../Pages/VaccineSent"));
-
-import Appointment from '../Services/appointments'
-import MobileService from '../Services/mobileService'
-
-const EditRecord = lazy(() => import("../../Pages/RecordEdit"));
-const DewormNew = lazy(() => import("../../Pages/DeWormNew"));
+const DewormNew = lazy(() => import("../../Pages/DewormNew"));
 const DewormRecords = lazy(() => import("../../Pages/DewormRecords"));
 const DewormEdit = lazy(() => import("../../Pages/DewormEdit"));
 const DewormNotify = lazy(() => import("../../Pages/DewormNotify"));
 const DewormNotifications = lazy(() => import("../../Pages/DewormingSent"));
 
 // --- Icon for Success Popup ---
-const CheckCircleIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="h-16 w-16 text-green-500 mx-auto"
-  >
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-  </svg>
-);
-
-
-// --- Success Popup Component with Backdrop Blur ---
-const SuccessPopup = ({ onClose }) => (
-  <div
-    className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50"
-    style={{ backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
-  >
-    <div className="bg-white rounded-lg shadow-2xl p-8 m-4 max-w-sm w-full text-center">
-      <CheckCircleIcon />
-      <h3 className="text-2xl font-bold text-gray-800 mt-4">Success!</h3>
-      <p className="text-gray-600 mt-2">
-        The deworming record has been saved successfully.
-      </p>
-      <button
-        onClick={onClose}
-        className="mt-6 w-full bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition-colors"
-      >
-        Close
-      </button>
+const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-16 w-16 text-green-500 mx-auto"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>;
 
 // --- Success Popup Component ---
 const SuccessPopup = ({ title, message, onClose }) => (
@@ -85,14 +40,8 @@ const SuccessPopup = ({ title, message, onClose }) => (
                 Close
             </button>
         </div>
-
     </div>
-  </div>
 );
-
-
-
-
 
 
 const DoctorDashboard = () => {
@@ -101,12 +50,8 @@ const DoctorDashboard = () => {
   const [editingRecordId, setEditingRecordId] = useState(null);
   // ADDED: State to control the deworming success popup
   const [showDewormSuccess, setShowDewormSuccess] = useState(false);
-
-  const [pro_pic, setPro_pic] = useState(dp);
-=======
   const [showRecordSuccess, setShowRecordSuccess] = useState(false);
   
-
 
 
   useEffect(() => {
@@ -119,20 +64,6 @@ const DoctorDashboard = () => {
         setDoctor(null);
       });
   }, []);
-
-  // Fetch profile picture once user is loaded
-  useEffect(() => {
-    if (user?.id) {
-      axios
-        .get(`http://localhost:3001/api/adprofile/?id=${user.id}`)
-        .then((response) => {
-          setPro_pic(response.data);
-        })
-        .catch(() => {
-          setPro_pic(dp); // fallback to default profile picture
-        });
-    }
-  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -158,15 +89,10 @@ const DoctorDashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "appointments":
-        return <Appointment />;
-      case "mobile":
-        return <MobileService />;
         return <AppointmentsSection />;
       case "deworming":
         // MODIFIED: Pass a handler to show the success popup
-        return (
-          <DewormingSection onRecordSaved={() => setShowDewormSuccess(true)} />
-        );
+        return <DewormingSection onRecordSaved={() => setShowDewormSuccess(true)} />;
       case "medications":
         return (
           <MedicationsSection
@@ -178,141 +104,41 @@ const DoctorDashboard = () => {
         );
       default:
         return (
-          <Appointment />
+          <div>
+            <h2 className="text-2xl font-semibold text-[#028478]">
+              Welcome to the Doctor Dashboard
+            </h2>
+            <p className="mt-4">
+              Please select a section from the sidebar to get started.
+            </p>
+          </div>
         );
     }
   };
 
   return (
     <div className="min-h-screen flex bg-gradient-to-b from-[#E3FDFD] via-[#71C9CE] to-[#A6E3E9] text-gray-900">
-
-      {/* Wrap main content to apply blur effect */}
-      <div className={`flex flex-1 ${showDewormSuccess ? "blur-sm" : ""}`}>
-        {/* Sidebar */}
-        <aside className="w-64 bg-[#71C9CE] text-gray-900 p-6 space-y-6">
-          <h2 className="text-2xl font-bold">Doctor Dashboard</h2>
-          <div className="flex justify-center items-center w-full">
-            <div className="flex flex-col items-center border-1 p-4 bg-gray-50 gap-4 mt-4">
-              {/* Profile Picture */}
-
         {/* Wrap main content to apply blur effect */}
         <div className={`flex flex-1 ${showDewormSuccess || showRecordSuccess ? 'blur-sm' : ''}`}>
           {/* Sidebar */}
           <aside className="w-64 bg-[#71C9CE] text-gray-900 p-6 space-y-6">
             <h2 className="text-2xl font-bold">Doctor Dashboard</h2>
 
-
-        <ul className="space-y-4">
-          <li>
-            <button
-              onClick={() => setActiveTab("appointments")}
-              className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
-            >
-              <FaCalendarAlt /> Appointments
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => setActiveTab("mobile")}
-              className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
-            >
-              <FaMobileAlt /> Mobile Service
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => setActiveTab("medications")}
-              className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
-            >
-              <FaPills /> Medications
-            </button>
-          </li>
-          <li className="hover:text-red-400 items-center gap-2 w-full text-left cursor-pointer">
-            <a href="/Adlogin" onClick={handleLogout}>
-              <FaSignOutAlt className="mr-2" /> Logout
-            </a>
-          </li>
-        </ul>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 p-8">{renderContent()}</main>
             <div className="items-center gap-4 mt-4">
-
               <img
-                src={`http://localhost:3001${pro_pic?.Pro_pic}` || dp}
-                alt={user?.name}
+                src={dp || "Doctor"}
+                alt="Doctor"
                 className="w-24 h-24 rounded-full border border-gray-400"
-                onError={(e) => {
-                  e.target.onerror = null; // Prevent infinite loop if paw image fails
-                  e.target.src = dp;
-                }}
               />
-
-              {/* <img
-                src={dp || "Admin"}
-                alt="Admin"
-                className="w-24 h-24 rounded-full border border-gray-400"
-              /> */}
               <div>
                 <p className="text-black-300">
-                  <strong>Assistant Doctor: </strong> {doctor?.fname}{" "}
-                  {doctor?.lname}
+                  <strong>Dr. </strong> {doctor?.fname} {doctor?.lname}
                 </p>
-
-                <div>
-                  <Link to={"/docprofile"}>
-                    <button
-                      onClick={() => setActiveTab("profsetting")}
-                      className="flex items-center gap-2 w-full text-left hover:text-[#71C9CE] cursor-pointer"
-                    >
-                      <FaUsers /> Profile Settings
-                    </button>
-                  </Link>
-                </div>
+                <p className="text-black-300">
+                  <strong>E-mail:</strong> {doctor?.email}
+                </p>
               </div>
             </div>
-          </div>
-
-
-          <ul className="space-y-4">
-            <li>
-              <button
-                onClick={() => {
-                  setActiveTab("appointments");
-                  setEditingRecordId(null);
-                }}
-                className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
-              >
-                <FaCalendarAlt /> Appointments
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => {
-                  setActiveTab("deworming");
-                  setEditingRecordId(null);
-                }}
-                className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
-              >
-                <FaUser /> Deworming
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => setActiveTab("medications")}
-                className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
-              >
-                <FaPills /> Medications
-              </button>
-            </li>
-            <li className="hover:text-red-400 items-center gap-2 w-full text-left cursor-pointer">
-              <a href="/Adlogin" onClick={handleLogout}>
-                <FaSignOutAlt className="mr-2" /> Logout
-              </a>
-            </li>
-          </ul>
-        </aside>
 
             <ul className="space-y-4">
               <li>
@@ -353,16 +179,11 @@ const DoctorDashboard = () => {
             </ul>
           </aside>
 
-
-        {/* Main Content */}
-        <main className="flex-1 p-8">{renderContent()}</main>
+          {/* Main Content */}
+          <main className="flex-1 p-8">{renderContent()}</main>
       </div>
 
       {/* Render the popup here, on top of everything */}
-
-      {showDewormSuccess && (
-        <SuccessPopup onClose={() => setShowDewormSuccess(false)} />
-
       {showDewormSuccess && <SuccessPopup onClose={() => setShowDewormSuccess(false)} />}
 
         {showRecordSuccess && (<SuccessPopup 
@@ -370,37 +191,24 @@ const DoctorDashboard = () => {
           message="The medical record has been saved successfully."
           onClose={() => setShowRecordSuccess(false)} 
         />
-
       )}
     </div>
   );
 };
 
 // Appointments
-// const AppointmentsSection = () => (
-//   <div>
-//     <h2 className="text-2xl font-semibold text-[#028478]">Appointments</h2>
-//     <p className="mt-4">Appointments area.</p>
-//   </div>
-// );
+const AppointmentsSection = () => (
+  <div>
+    <h2 className="text-2xl font-semibold text-[#028478]">Appointments</h2>
+    <p className="mt-4">Appointments area.</p>
+  </div>
+);
 
-
-// Patients
-// const PatientsSection = () => (
-//   <div>
-//     <h2 className="text-2xl font-semibold text-[#028478]">Patients</h2>
-//     <p className="mt-4">Patient area</p>
-//   </div>
-// );
 // Deworming
 const DewormingSection = ({ onRecordSaved}) => {
   const [activeSubTab, setActiveSubTab] = useState("new");
 
-
-  const renderSubContent = () => {
-
 const renderSubContent = () => {
-
     switch (activeSubTab) {
       case "new":
         return (
@@ -462,31 +270,16 @@ const renderSubContent = () => {
           </button>
         ))}
       </div>
-
-      {/* MODIFIED: Removed incorrect logic and simplified the rendering */}
-      <div className="mt-6">{renderSubContent()}</div>
-
       <div className="mt-6">
         {renderSubContent()}
       </div>
-
     </div>
   );
 };
 
 
 // Medications with sub-slider
-const MedicationsSection = ({
-  onEditRecord,
-  editingRecordId,
-  onCancelEdit,
-}) => {
-
-
-
-// Medications with sub-slider
 const MedicationsSection = ({ onEditRecord, editingRecordId, onCancelEdit, onRecordSaved }) => {
-
   const [activeSubTab, setActiveSubTab] = useState("new");
 
   const renderSubContent = () => {
@@ -565,7 +358,7 @@ const MedicationsSection = ({ onEditRecord, editingRecordId, onCancelEdit, onRec
           </button>
         ))}
       </div>
-
+      
       <div className="mt-6">
         {editingRecordId ? (
           <Suspense fallback={<div>Loading Editor...</div>}>
