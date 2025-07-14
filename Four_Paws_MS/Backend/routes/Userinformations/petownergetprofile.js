@@ -31,7 +31,7 @@ router.get("/profile", async (req, res) => {
         [id]
       );
 
-    //console.log("Database results:", results);
+    console.log("Database results:", results);
 
     if (results.length === 0) {
       return res.status(404).json({ error: "user not found" });
