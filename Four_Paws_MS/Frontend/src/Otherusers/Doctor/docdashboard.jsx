@@ -1,7 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import {
   FaCalendarAlt,
-  FaUser,
+  FaMobileAlt,
   FaPills,
   FaSignOutAlt,
   FaDog,
@@ -14,6 +14,10 @@ const NewRecord = lazy(() => import("../../Pages/RecordNew"));
 const ViewRecords = lazy(() => import("../../Pages/AllRecords"));
 const Notify = lazy(() => import("../../Pages/VaccineNotify"));
 const SentNotify = lazy(() => import("../../Pages/VaccineSent"));
+
+import Appointment from '../Services/appointments'
+import MobileService from '../Services/mobileService'
+
 const EditRecord = lazy(() => import("../../Pages/RecordEdit"));
 const DewormNew = lazy(() => import("../../Pages/DeWormNew"));
 const DewormRecords = lazy(() => import("../../Pages/DewormRecords"));
@@ -43,6 +47,7 @@ const SuccessPopup = ({ title, message, onClose }) => (
         </div>
     </div>
 );
+
 
 
 const DoctorDashboard = () => {
@@ -90,6 +95,9 @@ const DoctorDashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "appointments":
+        return <Appointment />;
+      case "mobile":
+        return <MobileService />;
         return <AppointmentsSection />;
       case "deworming":
         // MODIFIED: Pass a handler to show the success popup
@@ -105,14 +113,7 @@ const DoctorDashboard = () => {
         );
       default:
         return (
-          <div>
-            <h2 className="text-2xl font-semibold text-[#028478]">
-              Welcome to the Doctor Dashboard
-            </h2>
-            <p className="mt-4">
-              Please select a section from the sidebar to get started.
-            </p>
-          </div>
+          <Appointment />
         );
     }
   };
@@ -125,6 +126,42 @@ const DoctorDashboard = () => {
           <aside className="w-64 bg-[#71C9CE] text-gray-900 p-6 space-y-6">
             <h2 className="text-2xl font-bold">Doctor Dashboard</h2>
 
+
+        <ul className="space-y-4">
+          <li>
+            <button
+              onClick={() => setActiveTab("appointments")}
+              className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
+            >
+              <FaCalendarAlt /> Appointments
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => setActiveTab("mobile")}
+              className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
+            >
+              <FaMobileAlt /> Mobile Service
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => setActiveTab("medications")}
+              className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
+            >
+              <FaPills /> Medications
+            </button>
+          </li>
+          <li className="hover:text-red-400 items-center gap-2 w-full text-left cursor-pointer">
+            <a href="/Adlogin" onClick={handleLogout}>
+              <FaSignOutAlt className="mr-2" /> Logout
+            </a>
+          </li>
+        </ul>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 p-8">{renderContent()}</main>
             <div className="items-center gap-4 mt-4">
               <img
                 src={dp || "Doctor"}
@@ -198,13 +235,21 @@ const DoctorDashboard = () => {
 };
 
 // Appointments
-const AppointmentsSection = () => (
-  <div>
-    <h2 className="text-2xl font-semibold text-[#028478]">Appointments</h2>
-    <p className="mt-4">Appointments area.</p>
-  </div>
-);
+// const AppointmentsSection = () => (
+//   <div>
+//     <h2 className="text-2xl font-semibold text-[#028478]">Appointments</h2>
+//     <p className="mt-4">Appointments area.</p>
+//   </div>
+// );
 
+
+// Patients
+// const PatientsSection = () => (
+//   <div>
+//     <h2 className="text-2xl font-semibold text-[#028478]">Patients</h2>
+//     <p className="mt-4">Patient area</p>
+//   </div>
+// );
 // Deworming
 const DewormingSection = ({ onRecordSaved}) => {
   const [activeSubTab, setActiveSubTab] = useState("new");
@@ -277,6 +322,7 @@ const renderSubContent = () => {
     </div>
   );
 };
+
 
 
 // Medications with sub-slider
