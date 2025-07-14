@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, ConfigProvider, message, Card, Typography, Space } from 'antd';
+import { Table, Button, Modal, Form, Input, ConfigProvider, Switch, message, Card, Typography, Space } from 'antd';
 import { FaCat, FaDog } from 'react-icons/fa';
+import { InfoCircleOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
@@ -15,6 +16,14 @@ const DewormNotify = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
 
+  const goToPrevPage = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1));
+  };
+
+  const goToNextPage = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  };
+  
   useEffect(() => {
     fetchTemplates();
   }, [animalType]);
@@ -45,6 +54,9 @@ const DewormNotify = () => {
     form.setFieldsValue({
       deworm_name: template.deworm_name,
       age_condition: template.age_condition,
+      subject: template.subject,
+      message_body: template.message_body,
+      is_active: template.is_active,
     });
     setVisible(true);
   };
@@ -124,7 +136,7 @@ const DewormNotify = () => {
 
   return (
     <ConfigProvider theme={{ token: { fontSize: 16 } }}>
-      <Card style={{ margin: '24px' }}>
+      <div style={{ margin: '24px' }}>
         <Title level={3}>Deworming Notification Templates</Title>
         <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
           These templates determine the deworming schedule for pets.
@@ -162,27 +174,35 @@ const DewormNotify = () => {
               pagination={false}
               scroll={{ x: true }}
             />
-            {totalPages > 1 && (
-              <div style={{ marginTop: '20px', textAlign: 'right'}}>
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="cursor-pointer px-4 py-2 mx-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <span style={{ margin: '0 15px' }}>
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="cursor-pointer px-4 py-2 mx-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
-            )}
+            {/* This is the NEW pagination block to add */}
+            <div className="flex items-center justify-between mt-4">
+                {/* Results Text */}
+                <div>
+                  <p className="text-sm text-gray-700">
+                      Showing <span className="font-medium">{indexOfFirstRow + 1} </span> 
+                      to <span className="font-medium">{Math.min(indexOfLastRow, templates.length)} </span> 
+                      of <span className="font-medium">{templates.length}</span> results
+                  </p>
+                </div>
+                {/* Pagination Controls */}
+                <div className="flex items-center">
+                    <button 
+                        onClick={goToPrevPage} 
+                        disabled={currentPage === 1} 
+                        className="cursor-pointer px-4 py-2 mx-1 text-sm bg-white border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Previous
+                    </button>
+                    <span className="mx-4 text-sm">Page {currentPage} of {totalPages}</span>
+                    <button 
+                        onClick={goToNextPage} 
+                        disabled={currentPage === totalPages} 
+                        className="cursor-pointer px-4 py-2 mx-1 text-sm bg-white border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Next
+                    </button>
+                </div>
+            </div>
           </>
         )}
         <Modal
@@ -209,9 +229,31 @@ const DewormNotify = () => {
             >
               <Input placeholder="e.g., '2' or 'last notified+4'" />
             </Form.Item>
+            <Form.Item
+              name="subject"
+              label="Email Subject"
+              tooltip={{ title: 'Use {pet_name} for mention pet name. e.g., Upcoming vaccination reminder for {pet_name}', icon: <InfoCircleOutlined /> }}
+              rules={[{ required: true, message: 'Please enter the email subject' }]}
+            >
+              <Input placeholder="Enter email subject" />
+            </Form.Item>
+            <Form.Item
+              name="message_body"
+              label="Email Message Body"
+              rules={[{ required: true, message: 'Please enter the email message body' }]}
+            >
+              <Input.TextArea placeholder="Enter email message body" rows={4} />
+            </Form.Item>
+            <Form.Item
+              name="is_active"
+              label="Active"
+              valuePropName="checked"
+            >
+              <Switch />
+            </Form.Item>
           </Form>
         </Modal>
-      </Card>
+      </div>
     </ConfigProvider>
   );
 };

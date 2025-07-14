@@ -843,14 +843,14 @@ router.get("/cat-templates", (req, res) => {
 // UPDATE Dog Deworming Template (Static Route)
 router.put("/dog-templates/:id", (req, res) => {
   const { id } = req.params;
-  const { deworm_name, age_condition } = req.body;
+  const { deworm_name, age_condition, subject, message_body, is_active } = req.body;
 
-  if (!deworm_name || !age_condition) {
-    return res.status(400).json({ error: "Both fields are required." });
+  if (!deworm_name || !age_condition || !subject || !message_body || is_active === undefined) {
+    return res.status(400).json({ error: "All fields are required." });
   }
 
-  const q = `UPDATE dog_deworm_templates SET deworm_name = ?, age_condition = ? WHERE id = ?`;
-  db.query(q, [deworm_name, age_condition, id], (err, result) => {
+  const q = `UPDATE dog_deworm_templates SET deworm_name = ?, age_condition = ?, subject = ?, message_body = ?, is_active = ? WHERE id = ?`;
+  db.query(q, [deworm_name, age_condition, subject, message_body, is_active, id], (err, result) => {
     if (err) {
       console.error("Error updating dog_deworm_templates:", err);
       return res.status(500).json({ error: "Failed to update the template." });
@@ -865,14 +865,14 @@ router.put("/dog-templates/:id", (req, res) => {
 // UPDATE Cat Deworming Template (Static Route)
 router.put("/cat-templates/:id", (req, res) => {
   const { id } = req.params;
-  const { deworm_name, age_condition } = req.body;
+  const { deworm_name, age_condition, subject, message_body, is_active } = req.body;
 
-  if (!deworm_name || !age_condition) {
-    return res.status(400).json({ error: "Both fields are required." });
+  if (!deworm_name || !age_condition || !subject || !message_body || is_active === undefined) {
+    return res.status(400).json({ error: "All fields are required." });
   }
 
-  const q = `UPDATE cat_deworm_templates SET deworm_name = ?, age_condition = ? WHERE id = ?`;
-  db.query(q, [deworm_name, age_condition, id], (err, result) => {
+  const q = `UPDATE cat_deworm_templates SET deworm_name = ?, age_condition = ?, subject = ?, message_body = ?, is_active = ? WHERE id = ?`;
+  db.query(q, [deworm_name, age_condition, subject, message_body, is_active, id], (err, result) => {
     if (err) {
       console.error("Error updating cat_deworm_templates:", err);
       return res.status(500).json({ error: "Failed to update the template." });
