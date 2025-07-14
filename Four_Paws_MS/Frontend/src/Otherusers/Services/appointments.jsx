@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Eye, Pencil, XCircle, Check, PawPrint } from 'lucide-react';
 import ConfirmDialog from '../../Components/ui/ConfirmDialog';
 import RefreshButton from '../../Components/ui/RefreshButton';
+import { message } from 'antd';
 
 
 const Appointments = () => {
@@ -24,6 +25,7 @@ const Appointments = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [petModalOpen, setPetModalOpen] = useState(false);
   const [petInfo, setPetInfo] = useState(null);
+  const [notify, setNotify] = useState(null); // { type: 'success'|'error', text: string }
 
   // Move fetchAppointments out of useEffect for refresh
   const fetchAppointments = async () => {
@@ -54,6 +56,17 @@ const Appointments = () => {
   useEffect(() => {
     fetchAppointments();
   }, [showAll, currentPage]);
+
+  useEffect(() => {
+    if (notify) {
+      if (notify.type === 'success') {
+        message.success(notify.text);
+      } else if (notify.type === 'error') {
+        message.error(notify.text);
+      }
+      setNotify(null); // Clear after showing
+    }
+  }, [notify]);
 
   const toggleView = () => {
     setShowAll(!showAll);
@@ -99,7 +112,9 @@ const Appointments = () => {
         a.appointment_id === appointmentId ? { ...a, status: 'Cancelled' } : a
       );
       setAppointments(updatedAppointments);
+      setNotify({ type: 'success', text: 'Appointment cancelled!' });
     } catch (error) {
+      setNotify({ type: 'error', text: 'Failed to cancel appointment.' });
       console.error('Error updating appointment status:', error);
     }
   };
@@ -120,7 +135,9 @@ const Appointments = () => {
         a.appointment_id === appointmentId ? { ...a, status: 'Completed' } : a
       );
       setAppointments(updatedAppointments);
+      setNotify({ type: 'success', text: 'Appointment marked as completed!' });
     } catch (error) {
+      setNotify({ type: 'error', text: 'Failed to mark appointment as completed.' });
       console.error('Error updating appointment status:', error);
     }
   };
@@ -285,6 +302,14 @@ const Appointments = () => {
                       <Eye className="w-4 h-4 mr-1" />  
                     </button>
 
+                    <button 
+                      onClick={() => handleViewPet(appointment.pet_table_id)}
+                      className="flex items-center text-[#028478] hover:text-[#71C9CE]"
+                      title="View Pet Info"
+                    >
+                      <PawPrint className="w-4 h-4 mr-1" />
+                    </button>
+
                     {appointment.status.toLowerCase() !== 'cancelled' &&
                     appointment.status.toLowerCase() !== 'completed' && (
                       <>
@@ -295,14 +320,6 @@ const Appointments = () => {
                           <Check className="w-4 h-4 mr-1" />
                           
                         </button>
-
-                        <button 
-                      onClick={() => handleViewPet(appointment.pet_table_id)}
-                      className="flex items-center text-[#028478] hover:text-[#71C9CE]"
-                      title="View Pet Info"
-                    >
-                      <PawPrint className="w-4 h-4 mr-1" />
-                    </button>
 
                         <button 
                           onClick={() => handleCancel(appointment.appointment_id)} 
@@ -437,15 +454,30 @@ const Appointments = () => {
         <PawPrint className="w-7 h-7 text-[#028478] mr-2" />
         <h2 className="text-lg font-semibold text-[#028478]">Pet Information</h2>
       </div>
-      <div className="space-y-2">
-        <div><span className="font-medium">Name:</span> {petInfo.Pet_name}</div>
-        <div><span className="font-medium">Type:</span> {petInfo.Pet_type}</div>
-        <div><span className="font-medium">Breed:</span> {petInfo.Pet_Breed || '-'}</div>
-        <div><span className="font-medium">Gender:</span> {petInfo.Pet_gender || '-'} </div>
-        <div><span className="font-medium">Date of Birth:</span> {petInfo.Pet_dob || '-'} <span className='text-green-600'>({petInfo.Pet_age})</span></div>
-        <div><span className="font-medium">Allergies:</span> {petInfo.Pet_Allergies || '-'}</div>
-        <div><span className="font-medium">Diet:</span> {petInfo.Pet_Diet || '-'}</div>
-        <div><span className="font-medium">Owner ID:</span> {petInfo.Owner_id}</div>
+      <div className="space-y-2 flex justify-space">
+        <div className="grid grid-cols-2 gap-2">
+  <div className="font-medium">Name:</div>
+  <div>{petInfo.Pet_name}</div>
+  
+  <div className="font-medium">Type:</div>
+  <div>{petInfo.Pet_type}</div>
+  
+  <div className="font-medium">Breed:</div>
+  <div>{petInfo.Pet_Breed || '-'}</div>
+  
+  <div className="font-medium">Gender:</div>
+  <div>{petInfo.Pet_gender || '-'}</div>
+  
+  <div className="font-medium">Date of Birth:</div>
+  <div>{petInfo.Pet_dob || '-'} <span className='text-green-600'>({petInfo.Pet_age})</span></div>
+  
+  <div className="font-medium">Allergies:</div>
+  <div>{petInfo.Pet_Allergies || '-'}</div>
+  
+  <div className="font-medium">Diet:</div>
+  <div>{petInfo.Pet_Diet || '-'}</div>
+  
+</div>
       </div>
     </div>
   </div>

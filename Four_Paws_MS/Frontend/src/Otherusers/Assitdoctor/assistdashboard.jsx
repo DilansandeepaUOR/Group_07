@@ -7,6 +7,7 @@ import {
   FaSignOutAlt,
   FaSearch,
   FaMobileAlt,
+  FaClock,
 } from "react-icons/fa";
 import axios from "axios";
 import dp from "../../../src/assets/paw_vector.png";
@@ -14,9 +15,10 @@ import dp from "../../../src/assets/paw_vector.png";
 // Import the components
 import Appointments from "../Services/appointments";
 import Patients from "./patients";
-import Prescriptions from "./prescriptions";
+import ServiceManagement from "../Services/serviceManagement";
 import Medications from "./medications";
 import MobileService from "../Services/mobileService";
+import TimeManagement from "../Services/ServiceTimeManagement"
 
 const DoctorDashboard = () => {
   // Set the default active tab to "appointments"
@@ -81,28 +83,28 @@ const DoctorDashboard = () => {
               <FaCalendarAlt /> Appointments
             </button>
           </li>
-          {/* <li>
+          <li>
             <button
-              onClick={() => setActiveTab("patients")}
+              onClick={() => setActiveTab("servicemanagement")}
               className={`flex items-center gap-2 w-full text-left hover:text-gray-700 ${
-                activeTab === "patients" ? "font-bold text-[#028478]" : ""
+                activeTab === "servicemanagement" ? "font-bold text-[#028478]" : ""
               }`}
             >
-              <FaUser /> Patients
-            </button>
-          </li> */}
-          {/* <li>
-            <button
-              onClick={() => setActiveTab("prescriptions")}
-              className={`flex items-center gap-2 w-full text-left hover:text-gray-700 ${
-                activeTab === "prescriptions" ? "font-bold text-[#028478]" : ""
-              }`}
-            >
-              <FaNotesMedical /> Prescriptions
+              <FaUser /> Service Management
             </button>
           </li>
-          <li> */}
-            {/* <button
+          <li>
+            <button
+              onClick={() => setActiveTab("timemanagement")}
+              className={`flex items-center gap-2 w-full text-left hover:text-gray-700 ${
+                activeTab === "timemanagement" ? "font-bold text-[#028478]" : ""
+              }`}
+            >
+              <FaClock /> Manage Time Slots
+            </button>
+          </li>
+           <li>
+           <button
               onClick={() => setActiveTab("medications")}
               className={`flex items-center gap-2 w-full text-left hover:text-gray-700 ${
                 activeTab === "medications" ? "font-bold text-[#028478]" : ""
@@ -110,7 +112,7 @@ const DoctorDashboard = () => {
             >
               <FaPills /> Medications
             </button>
-          </li> */}
+          </li>
           <li>
             <button
               onClick={() => setActiveTab("mobile")}
@@ -134,8 +136,8 @@ const DoctorDashboard = () => {
       <main className="flex-1 p-8">
         {/* Tab Content - Default is Appointments */}
         {activeTab === "appointments" && <Appointments />}
-        {activeTab === "patients" && <Patients />}
-        {activeTab === "prescriptions" && <Prescriptions />}
+        {activeTab === "timemanagement" && <TimeManagement />}
+        {activeTab === "servicemanagement" && <ServiceManagement />}
         {activeTab === "medications" && <Medications />}
         {activeTab === "mobile" && <MobileService />}
       </main>

@@ -78,7 +78,7 @@ const MobileServiceMain = () => {
       setLoading(true);
       const [petsRes, servicesRes, addressRes] = await Promise.all([
         axios.get(`http://localhost:3001/api/pets?id=${user.id}`),
-        axios.get("http://localhost:3001/appointments/reasons"),
+        axios.get("http://localhost:3001/appointments/reasons",{ params: { type: 'Mobile' }}),
         axios.get(`http://localhost:3001/api/mobileservice/address?id=${user.id}`)
       ]);
       setUserPets(petsRes.data || []);

@@ -9,6 +9,7 @@ import Loading from '../../app/loading';
 import { Calendar as DatePicker } from '../../Components/ui/calendar';
 import ConfirmDialog from '../../Components/ui/ConfirmDialog';
 import RefreshButton from '../../Components/ui/RefreshButton';
+import { message } from 'antd';
 
 // Fix for default marker icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -23,6 +24,7 @@ const MobileService = () => {
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [status, setStatus] = useState('confirmed');
+  const [statusC, setStatusC] = useState();
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -43,6 +45,33 @@ const MobileService = () => {
   useEffect(() => {
     fetchAppointments();
   }, []);
+
+  // Handle form error messages
+  useEffect(() => {
+    if (formError) {
+      message.error({
+        content: formError,
+        style: {
+          marginTop: '16px',
+        },
+        duration: 5,
+      });
+    }
+  }, [formError]);
+
+  useEffect(() => {
+    if (updateMessage) {
+      if (updateMessage.type === 'success') {
+        message.success(updateMessage.text || 'Successfully updated appointment!');
+      } else if (updateMessage.type === 'error') {
+        message.error(updateMessage.text || 'Failed to update appointment!');
+      }
+      // Clear the message after showing it
+      if (typeof setUpdateMessage === 'function') {
+        setUpdateMessage(null);
+      }
+    }
+  }, [updateMessage, setUpdateMessage]);
 
   const fetchAppointments = async () => {
     try {
@@ -94,6 +123,7 @@ const MobileService = () => {
   const handleBack = () => {
     setSelectedAppointment(null);
     setStatus('');
+    setStatusC('');
     setNotes('');
     setShowMap(false);
     setAppointmentDate(null);
@@ -110,9 +140,14 @@ const MobileService = () => {
   
     // Identify which fields are missing
     const missingFields = [];
-    if (!appointmentDate) missingFields.push('Date');
-    if (!appointmentTime) missingFields.push('Time');
-    if (!status?.trim()) missingFields.push('Status');
+    
+    // Only require date and time if status is not cancelled
+    if (statusC !== 'cancelled') {
+      if (!appointmentDate) missingFields.push('Date');
+      if (!appointmentTime) missingFields.push('Time');
+    }
+    
+    if (!statusC?.trim()) missingFields.push('Status');
   
     if (missingFields.length > 0) {
       setFormError(`${missingFields.join(', ')} ${missingFields.length > 1 ? 'are' : 'is'} required.`);
@@ -129,7 +164,7 @@ const MobileService = () => {
     try {
       setIsUpdating(true); // Start loading
       await axios.put(`${API_URL}/appointment/${selectedAppointment.id}`, {
-        status,
+        status: statusC,
         special_notes: notes,
         date: appointmentDate ? appointmentDate.toISOString().split('T')[0] : undefined,
         time: appointmentTime
@@ -139,10 +174,12 @@ const MobileService = () => {
         ? `Confirmation email sent to ${selectedAppointment.E_mail}`
         : 'No email sent (no email address available)';
         
-      setUpdateMessage({ 
-        type: 'success', 
-        text: `Appointment updated successfully. ${emailInfo}.` 
-      });
+      // setUpdateMessage({ 
+      //   type: 'success', 
+      //   text: `Appointment updated successfully. ${emailInfo}.` 
+      // });
+
+      setUpdateMessage({type:'success',text:emailInfo});
       handleBack();
       fetchAppointments();
     } catch (err) {
@@ -372,12 +409,14 @@ const MobileService = () => {
                 </h3>
                 <div className="space-y-4">
                 <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Date & Time {status === 'cancelled' && <span className="text-gray-500 font-normal">(optional for cancelled appointments)</span>}
+                      </label>
 
                       <div className="flex items-center gap-4">
                         {/* Date Picker */}
                         <DatePicker 
-                          required
+                          required={status !== 'cancelled'}
                           classNames={{
                             day_selected: 'bg-[#008478] text-white',
                             day_today: 'border border-[#008478]',
@@ -388,18 +427,18 @@ const MobileService = () => {
                           mode="single"
                           selected={appointmentDate}
                           onSelect={setAppointmentDate}
-                          className="rounded-md border"
+                          className={`rounded-md border ${status === 'cancelled' ? 'opacity-60' : ''}`}
                           disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0)) || initialStatus === 'completed' || initialStatus === 'confirmed' || initialStatus === 'cancelled'}
                         />
 
                         {/* Time Picker */}
                         <div>
                           <input
-                            required
+                            required={status !== 'cancelled'}
                             type="time"
                             value={appointmentTime}
                             onChange={(e) => setAppointmentTime(e.target.value)}
-                            className="border rounded-md px-2 py-1 text-[#008478]"
+                            className={`border rounded-md px-2 py-1 text-[#008478] ${status === 'cancelled' ? 'opacity-60' : ''}`}
                             disabled={initialStatus === 'completed' || initialStatus === 'confirmed' || initialStatus === 'cancelled'}
                           />
                         </div>
@@ -412,20 +451,26 @@ const MobileService = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                       <select
                         required
-                        value={status}
-                        onChange={(e) => setStatus(e.target.value)}
+                        value={statusC}
+                        onChange={(e) => setStatusC(e.target.value)}
                         className="w-full rounded-md border border-gray-300 px-3 py-2 text-[#008478] focus:border-[#008478] focus:ring-[#008478] focus:outline-none shadow-sm"
-                        
+                        disabled={initialStatus === 'cancelled'}
                       >
                         {initialStatus === 'confirmed' ? (
                           <>
-                            <option >Select Status</option>
+                            <option value="">Select Status</option>
                             <option value="completed">✓ Complete (sends email)</option>
+                            <option value="cancelled">✗ Cancel (sends email)</option>
+                          </>
+                        ) : initialStatus === 'pending' ? (
+                          <>
+                            <option value="">Select Status</option>
+                            <option value="confirmed">✓ Confirm (sends email)</option>
                             <option value="cancelled">✗ Cancel (sends email)</option>
                           </>
                         ) : (
                           <>
-                            <option >Select Status</option>
+                            <option value="">Select Status</option>
                             <option value="confirmed">✓ Confirm (sends email)</option>
                             <option value="completed">✓ Complete (sends email)</option>
                             <option value="cancelled">✗ Cancel (sends email)</option>
@@ -468,17 +513,6 @@ const MobileService = () => {
             </div>
           </div>
           
-          {/* Error message for required fields */}
-          {formError && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-                <span className="text-red-700 text-sm font-medium">{formError}</span>
-              </div>
-            </div>
-          )}
           <div className="mt-6 flex justify-end space-x-3">
             <button
               onClick={handleBack}
@@ -486,7 +520,7 @@ const MobileService = () => {
             >
               Cancel
             </button>
-            {initialStatus !== 'completed' && (
+            {initialStatus !== 'completed' && initialStatus !== 'cancelled' && (
               <button
                 onClick={handleUpdateAppointment}
                 className="bg-[#028478] text-white px-4 py-2 rounded hover:bg-[#046a5b]"
@@ -558,6 +592,7 @@ const MobileService = () => {
           getStatusColor={getStatusColor}
           isToday={false}
           updateMessage={updateMessage}
+          setUpdateMessage={setUpdateMessage}
         />
       ) : (
         <>
@@ -569,6 +604,7 @@ const MobileService = () => {
             getStatusColor={getStatusColor}
             isToday={true}
             updateMessage={updateMessage}
+            setUpdateMessage={setUpdateMessage}
           />
           <AssDoctorAppointmentTable
             title="Upcoming Mobile Appointments"
@@ -578,6 +614,7 @@ const MobileService = () => {
             getStatusColor={getStatusColor}
             isToday={false}
             updateMessage={updateMessage}
+            setUpdateMessage={setUpdateMessage}
           />
         </>
       )}

@@ -115,7 +115,7 @@ const AppointmentDetails = () => {
       // Fetch pets, services, and time slots in parallel
       const [petsRes, servicesRes, slotsRes] = await Promise.all([
         axios.get(`http://localhost:3001/appointments/pets?id=${user.id}`),
-        axios.get("http://localhost:3001/appointments/reasons"),
+        axios.get("http://localhost:3001/appointments/reasons", { params: { type: 'Clinic' } }),
         axios.get("http://localhost:3001/appointments/timeslots")
       ]);
 

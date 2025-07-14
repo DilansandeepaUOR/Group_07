@@ -1,5 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Eye } from 'lucide-react';
+import {message} from 'antd';
+import e from 'cors';
 
 const AssDoctorAppointmentTable = ({
   title,
@@ -13,28 +15,26 @@ const AssDoctorAppointmentTable = ({
   const [statusFilter, setStatusFilter] = useState('all');
   const tableRef = useRef(null);
 
+  // Handle success message
+  useEffect(() => {
+    if (updateMessage) {
+      if (updateMessage.type === 'success') {
+        message.success(updateMessage.text || 'Successfully updated appointment!');
+      } else if (updateMessage.type === 'error') {
+        message.error(updateMessage.text || 'Failed to update appointment!');
+      }
+    }
+  }, [updateMessage]);
+
   const filteredAppointments = appointments.filter(appt => {
     if (statusFilter === 'all') return true;
     return (appt.status || '').toLowerCase() === statusFilter;
   });
 
-  const handleShowAll = () => {
-    setStatusFilter('all');
-    setTimeout(() => {
-      if (tableRef.current) {
-        tableRef.current.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 100);
-  };
+ 
 
   return (
     <div className="space-y-8">
-      {/* Success/Error Message */}
-      {updateMessage && isToday &&(
-        <div className={`p-3 rounded-md mb-2 text-center ${updateMessage.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-700'}`}>
-          {updateMessage.text}
-        </div>
-      )}
       <div>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-[#028478]">{title}</h2>
@@ -80,9 +80,11 @@ const AssDoctorAppointmentTable = ({
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="text-sm font-medium text-gray-900">
-                            {appointment?.created_at
-                              ? new Date(appointment.created_at).toISOString().slice(0, 10)
-                              : 'Unnamed Pet'}
+                            {isToday
+                              ? 'Today'
+                              : (appointment?.created_at
+                                  ? new Date(appointment.created_at).toISOString().slice(0, 10)
+                                  : 'Unnamed Pet')}
                           </div>
                         </div>
                       </td>

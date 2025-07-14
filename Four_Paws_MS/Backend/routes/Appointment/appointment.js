@@ -124,7 +124,7 @@ router.get('/checkdatetime', async (req, res) => {
 router.get('/timeslots', async (req, res) => {
   try {
     const [results] = await db.promise().query(
-      'SELECT time_slot FROM time_slots'
+      'SELECT time_slot FROM time_slots WHERE enabled =1'
     );
     res.json(results);
   } catch (err) {
@@ -135,10 +135,19 @@ router.get('/timeslots', async (req, res) => {
 
 router.get('/reasons', async (req, res) => {
   try {
-    const [results] = await db.promise().query(
-      'SELECT * FROM reasons ORDER BY id'
-    );
-    res.json(results);
+  const {type}=req.query;
+
+  let sql = 'SELECT * FROM reasons';
+  let params = [];
+
+  if (type && type !== 'All') {
+    // Show services that are either the requested type or 'All'
+    sql += ' WHERE ServiceType = ? OR ServiceType = ?';
+    params = [type, 'All'];
+  }
+    
+  const [rows] = await db.promise().query(sql, params);
+  res.json(rows);
   } catch (err) {
     console.error('Database error:', err);
     res.status(500).json({ error: 'Error fetching reasons' });
