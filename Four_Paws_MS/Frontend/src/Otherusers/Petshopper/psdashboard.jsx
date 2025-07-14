@@ -62,7 +62,7 @@ const psdashboard = () => {
   return (
     <div className="min-h-screen flex bg-gradient-to-b from-[#E3FDFD] via-[#71C9CE] to-[#A6E3E9] text-gray-900">
       <aside className="w-64 bg-[#71C9CE] text-gray-900 p-6 space-y-6">
-        <h2 className="text-2xl font-bold">Admin Dashboard</h2>
+        <h2 className="text-2xl font-bold">Pet Shopper Dashboard</h2>
 
         <div className="flex justify-center items-center w-full">
           <div className="flex flex-col items-center border-1 p-4 bg-gray-50 gap-4 mt-4">
