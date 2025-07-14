@@ -15,7 +15,7 @@ import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import Appointment from "./Pages/Appointment";
 import AppointmentLanding from "./Pages/AppointmentLanding";
-import MobileAssistantDoctor from "./Pages/MobileAssistantDoctor";
+//import MobileAssistantDoctor from "./Pages/MobileAssistantDoctor";
 
 import Mobileservice from "./Pages/MobileService";
 
@@ -80,14 +80,14 @@ const App = () => {
         <Route path="/unauth" element={<Unauth />} />
 
         {/* Mobile Assistant Doctor Route */}
-        <Route 
+        {/* <Route 
           path="/mobile/assistant-doctor" 
           element={
             <ProtectedRoutes allowedRoles={["Assistant Doctor"]}>
               <MobileAssistantDoctor />
             </ProtectedRoutes>
           } 
-        />
+        /> */}
 
         {/* Records Routes */}
         <Route path="/appointment" element={<Appointment />} />

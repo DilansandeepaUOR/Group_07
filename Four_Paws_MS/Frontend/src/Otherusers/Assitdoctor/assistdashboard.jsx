@@ -14,9 +14,7 @@ import dp from "../../../src/assets/paw_vector.png";
 
 // Import the components
 import Appointments from "../Services/appointments";
-import Patients from "./patients";
 import ServiceManagement from "../Services/serviceManagement";
-import Medications from "./medications";
 import MobileService from "../Services/mobileService";
 import TimeManagement from "../Services/ServiceTimeManagement"
 
@@ -83,7 +81,7 @@ const DoctorDashboard = () => {
               <FaCalendarAlt /> Appointments
             </button>
           </li>
-          <li>
+          {/* <li>
             <button
               onClick={() => setActiveTab("servicemanagement")}
               className={`flex items-center gap-2 w-full text-left hover:text-gray-700 ${
@@ -92,8 +90,8 @@ const DoctorDashboard = () => {
             >
               <FaUser /> Service Management
             </button>
-          </li>
-          <li>
+          </li> */}
+          {/* <li>
             <button
               onClick={() => setActiveTab("timemanagement")}
               className={`flex items-center gap-2 w-full text-left hover:text-gray-700 ${
@@ -102,17 +100,8 @@ const DoctorDashboard = () => {
             >
               <FaClock /> Manage Time Slots
             </button>
-          </li>
-           <li>
-           <button
-              onClick={() => setActiveTab("medications")}
-              className={`flex items-center gap-2 w-full text-left hover:text-gray-700 ${
-                activeTab === "medications" ? "font-bold text-[#028478]" : ""
-              }`}
-            >
-              <FaPills /> Medications
-            </button>
-          </li>
+          </li> */}
+           
           <li>
             <button
               onClick={() => setActiveTab("mobile")}
@@ -138,7 +127,6 @@ const DoctorDashboard = () => {
         {activeTab === "appointments" && <Appointments />}
         {activeTab === "timemanagement" && <TimeManagement />}
         {activeTab === "servicemanagement" && <ServiceManagement />}
-        {activeTab === "medications" && <Medications />}
         {activeTab === "mobile" && <MobileService />}
       </main>
     </div>
