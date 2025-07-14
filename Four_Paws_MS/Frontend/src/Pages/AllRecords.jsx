@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-// React Icons
 import { FaSearch, FaFilter, FaCalendarAlt, FaTimes, FaEdit, FaTrash, FaSave, FaChevronDown, FaUser, FaPaw, FaWeightHanging, FaCheck } from 'react-icons/fa';
-// Ant Design is only used for the Modal container and messages
 import { Modal, message, ConfigProvider } from 'antd';
-
 
 //===================================================================================//
 //               EDIT RECORD MODAL                                                   //
@@ -148,8 +145,6 @@ const EditRecordModal = ({ id, visible, onClose, onUpdateSuccess }) => {
       okText="Save Changes"
       cancelText="Cancel"
       confirmLoading={submitLoading}
-      // We remove the modal's own footer to use our custom buttons if we wanted,
-      // but here we map onOk to our handler for simplicity.
     >
       {loading ? (
         <div className="text-center py-12"><div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div></div>
@@ -311,8 +306,8 @@ const AllRecords = () => {
                     {/* Filter and Search Section */}
                     <div className="mb-6 bg-gray-50 p-4 rounded-lg">
                         <div className="flex flex-col md:flex-row gap-4 items-center">
-                            <div className="relative flex-grow w-full"><FaSearch className="text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" /><input type="text" placeholder="Search by owner or pet name..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && applyFilters()} className="pl-10 pr-10 w-full p-2 border rounded-md"/>{searchTerm && <button onClick={clearAllFilters} className="absolute right-3 top-1/2 -translate-y-1/2" title="Clear"><FaTimes className="text-gray-500 hover:text-gray-700" /></button>}</div>
-                            <div className="flex flex-shrink-0 gap-2"><button onClick={applyFilters} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"><FaSearch /> Search</button><button onClick={() => setShowFilters(!showFilters)} className="flex items-center gap-2 bg-white border px-4 py-2 rounded-md hover:bg-gray-100"><FaFilter /> Filters</button></div>
+                            <div className="relative flex-grow w-full"><FaSearch className="text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" /><input type="text" placeholder="Search by owner or pet name..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && applyFilters()} className="pl-10 pr-10 w-full p-2 border rounded-md"/>{searchTerm && <button onClick={clearAllFilters} className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2" title="Clear"><FaTimes className="cursor-pointer text-gray-500 hover:text-gray-700" /></button>}</div>
+                            <div className="flex flex-shrink-0 gap-2">{searchTerm.trim() ? <button onClick={applyFilters} className="cursor-pointer flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-all duration-150"><FaSearch /> Search</button> : <span className="flex items-center gap-2 bg-gray-300 text-gray-500 px-4 py-2 rounded-md cursor-not-allowed"><FaSearch /> Search</span>}<button onClick={() => setShowFilters(!showFilters)} className="cursor-pointer flex items-center gap-2 bg-white border px-4 py-2 rounded-md hover:bg-gray-100"><FaFilter /> Filters</button></div>
                         </div>
                         {showFilters && (
                             <form onSubmit={handleFilterSubmit} className="mt-4 p-4 bg-white border rounded-lg shadow-sm">
@@ -321,7 +316,7 @@ const AllRecords = () => {
                                     <div><label className="block text-sm font-medium text-gray-700 mb-1">Month</label><select name="month" value={filters.month} onChange={handleFilterChange} className="w-full p-2 border rounded-md"><option value="">All Months</option>{months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}</select></div>
                                     <div><label className="block text-sm font-medium text-gray-700 mb-1">Specific Date</label><input type="date" name="date" value={filters.date} onChange={handleFilterChange} className="w-full p-2 border rounded-md" /></div>
                                 </div>
-                                <div className="mt-4 flex justify-end gap-2"><button type="button" onClick={clearAllFilters} className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Clear</button><button type="submit" className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700">Apply Filters</button></div>
+                                <div className="mt-4 flex justify-end gap-2"><button type="button" onClick={clearAllFilters} className="cursor-pointer px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Clear</button><button type="submit" className="cursor-pointer px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700">Apply Filters</button></div>
                             </form>
                         )}
                     </div>
@@ -338,7 +333,7 @@ const AllRecords = () => {
                                                 <td className="px-6 py-4"><div className="font-medium text-gray-900">{record.Owner_name}</div><div className="text-sm text-gray-500">{record.E_mail}</div></td>
                                                 <td className="px-6 py-4"><div className="font-medium text-gray-900">{record.Pet_name}</div><div className="text-sm text-gray-500 capitalize">{record.Pet_type}</div></td>
                                                 <td className="px-6 py-4 text-sm max-w-xs truncate"><div className="text-gray-900">{record.weight && <p><b>Weight:</b> {record.weight}kg</p>}{record.surgery && <p><b>Surgery:</b> {record.surgery}</p>}{(record.vaccine_name || record.other_vaccine) && <p><b>Vaccine:</b> {record.vaccine_name || record.other_vaccine}</p>}{record.other && <p><b>Notes:</b> {record.other}</p>}</div></td>
-                                                <td className="px-6 py-4 text-right"><div className="flex justify-end space-x-2"><button onClick={() => handleEditClick(record.id)} className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-50" title="Edit"><FaEdit className="h-5 w-5" /></button><button onClick={() => handleDelete(record.id)} className="text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-50" title="Delete"><FaTrash className="h-5 w-5" /></button></div></td>
+                                                <td className="px-6 py-4 text-right"><div className="flex justify-end space-x-2"><button onClick={() => handleEditClick(record.id)} className="cursor-pointer text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-50" title="Edit"><FaEdit className="h-5 w-5" /></button><button onClick={() => handleDelete(record.id)} className="cursor-pointer text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-50" title="Delete"><FaTrash className="h-5 w-5" /></button></div></td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -346,7 +341,7 @@ const AllRecords = () => {
                                 {totalPages > 1 && (
                                     <div className="flex items-center justify-between mt-4">
                                         <div><p className="text-sm text-gray-700">Showing <span className="font-medium">{(currentPage - 1) * recordsPerPage + 1}</span> to <span className="font-medium">{Math.min(currentPage * recordsPerPage, allRecords.length)}</span> of <span className="font-medium">{allRecords.length}</span> results</p></div>
-                                        <div className="flex items-center"><button onClick={goToPrevPage} disabled={currentPage === 1} className="px-4 py-2 mx-1 text-sm bg-white border rounded-md hover:bg-gray-50 disabled:opacity-50">Previous</button><span className="mx-4 text-sm">Page {currentPage} of {totalPages}</span><button onClick={goToNextPage} disabled={currentPage === totalPages} className="px-4 py-2 mx-1 text-sm bg-white border rounded-md hover:bg-gray-50 disabled:opacity-50">Next</button></div>
+                                        <div className="flex items-center"><button onClick={goToPrevPage} disabled={currentPage === 1} className="cursor-pointer px-4 py-2 mx-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Previous</button><span className="mx-4 text-sm">Page {currentPage} of {totalPages}</span><button onClick={goToNextPage} disabled={currentPage === totalPages} className="cursor-pointer px-4 py-2 mx-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Next</button></div>
                                     </div>
                                 )}
                             </>
@@ -354,16 +349,17 @@ const AllRecords = () => {
                     </div>
                 {isEditModalOpen && <EditRecordModal id={editingRecordId} visible={isEditModalOpen} onClose={handleCloseModal} onUpdateSuccess={handleUpdateSuccess} />}
                 {/*/ Delete modal */}
-                {deleteModal.isOpen && (
+                {deleteModal.isOpen &&(
                 <div className="fixed inset-0 flex items-center justify-center p-4 z-50 shadow-2xl">
-                    <div className="bg-green-100 rounded-lg p-6 max-w-md w-full shadow-2xl">
-                    <h3 className="text-lg font-medium mb-4">Confirm Deletion</h3>
-                    <p className="mb-6">Are you sure you want to delete this record? This action cannot be undone.</p>
+                  <div className="absolute inset-0 bg-opacity-30 backdrop-blur-sm" onClick={() => setDeleteModal({ isOpen: false, id: null })}></div>
+                    <div className="relative z-10 bg-white rounded-lg p-6 max-w-md w-full shadow-2xl">
+                      <h3 className="text-lg font-medium mb-4">Confirm Deletion</h3>
+                      <p className="mb-6">Are you sure you want to delete this record? This action cannot be undone.</p>
                     
-                    <div className="flex justify-end space-x-3">
+                      <div className="flex justify-end space-x-3">
                         <button
                         onClick={() => setDeleteModal({ isOpen: false, id: null })}
-                        className="cursor-pointer px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                        className="cursor-pointer  backdrop-blur-sm px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                         disabled={deleteModal.isLoading}
                         >
                         Cancel
@@ -390,9 +386,9 @@ const AllRecords = () => {
                         >
                         {deleteModal.isLoading ? 'Deleting...' : 'Delete'}
                         </button>
+                      </div>
                     </div>
-                    </div>
-                </div>
+                  </div>
                 )}
             </div>
         </ConfigProvider>

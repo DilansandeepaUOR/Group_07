@@ -1,8 +1,6 @@
 import React, { useState, useEffect, lazy } from 'react';
-import{message} from 'antd';
+import{message, Button } from 'antd';
 import axios from 'axios';
-
-//import { on } from 'events';
 
 const DewormRecords = lazy(() => import('./DewormRecords'));
 
@@ -57,10 +55,10 @@ const DewormEdit = ({ id, onCancel }) => {
         }
 
         // Weight validation
-        if (!record.weight) {
-            newErrors.weight = 'Weight is required.';
-        } else if (isNaN(record.weight) || record.weight <= 0) {
+        if (!record.weight || parseFloat(record.weight) <= 0) {
             newErrors.weight = 'Weight must be a positive number.';
+        } else if (String(record.weight).includes('.') && String(record.weight).split('.')[1].length > 2) {
+            newErrors.weight = 'Weight cannot exceed 2 decimal places.';
         }
 
         // Wormer validation
@@ -101,14 +99,13 @@ const DewormEdit = ({ id, onCancel }) => {
     if (loading) return <div className="p-6 text-center">Loading editor...</div>;
 
     return (
-        <div className="p-6 max-w-lg mx-auto bg-white">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">Edit Deworming Record</h2>
+    <div className="pt-4">
             <div className="mb-4 p-4 bg-gray-100 rounded-md">
                 <p><strong>Owner:</strong> {record.Owner_name}</p>
                 <p><strong>Pet:</strong> {record.Pet_name}</p>
             </div>
             
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className='space-y-8 mt-6'>
                 {errors.general && <p className="text-red-500 mb-4">{errors.general}</p>}
                 
                 <div className="mb-4">
@@ -156,19 +153,17 @@ const DewormEdit = ({ id, onCancel }) => {
                 </div>
                 
                 <div className="flex items-center justify-end space-x-4">
-                    <button
-                        type="button"
+                    <Button
                         onClick={onCancel}
-                        className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                        style={{ marginRight: 8 }}
                     >
                         Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    </Button>
+                    <Button
+                        type="primary" htmlType="submit"
                     >
                         Save Changes
-                    </button>
+                    </Button>
                 </div>
             </form>
         </div>

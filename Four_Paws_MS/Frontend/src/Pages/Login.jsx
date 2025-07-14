@@ -157,6 +157,7 @@ function Login() {
         <div className="flex flex-col justify-center items-center gap-5">
           <div>
             <button
+              onKeyPress={(e) => e.key === 'Enter' && handleLogin(e)}
               onClick={handleLogin}
               className="px-4 py-2 rounded-lg transition flex items-center justify-center gap-2 w-[300px] bg-[#028478] hover:bg-[#5ba29c] text-white font-bold cursor-pointer"
             >
