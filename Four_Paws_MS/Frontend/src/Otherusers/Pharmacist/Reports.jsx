@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, Sector } from "recharts";
 import { PieChart as PieChartIcon, Table as TableIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../Components/ui/select";
 
 export default function ReportsSection() {
   const [isLoading, setIsLoading] = useState(true);
@@ -107,13 +108,99 @@ export default function ReportsSection() {
     }
   };
 
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    
+    // Report title
+    doc.setFontSize(18);
+    doc.setTextColor(40, 40, 40);
+    doc.text("Pharmacy Sales Report", 105, 15, { align: 'center' });
+    
+    // Period and date
+    doc.setFontSize(12);
+    doc.text(`Period: ${periods.find(p => p.value === period)?.label}`, 20, 30);
+    doc.text(`Generated On: ${new Date().toLocaleString()}`, 20, 40);
+    
+    // Revenue summary
+    doc.setFontSize(14);
+    doc.setTextColor(113, 201, 206); // #71C9CE
+    doc.text("Revenue Summary", 20, 55);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(40, 40, 40);
+    doc.autoTable({
+      startY: 60,
+      head: [["Period", "Total Revenue"]],
+      body: [
+        [
+          periods.find(p => p.value === period)?.label,
+          `LKR ${revenue.toFixed(2)}`
+        ]
+      ],
+      headStyles: {
+        fillColor: [113, 201, 206],
+        textColor: [255, 255, 255]
+      },
+      margin: { top: 60 }
+    });
+
+    // Top selling medicines
+    doc.setFontSize(14);
+    doc.setTextColor(113, 201, 206);
+    doc.text("Top Selling Medicines", 20, doc.autoTable.previous.finalY + 20);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(40, 40, 40);
+    doc.autoTable({
+      startY: doc.autoTable.previous.finalY + 25,
+      head: [["Medicine", "Units Sold", "Revenue"]],
+      body: topMedicines.map(item => [
+        item.name,
+        item.value,
+        `LKR ${item.revenue.toFixed(2)}`
+      ]),
+      headStyles: {
+        fillColor: [113, 201, 206],
+        textColor: [255, 255, 255]
+      }
+    });
+
+    // Detailed sales
+    doc.setFontSize(14);
+    doc.setTextColor(113, 201, 206);
+    doc.text("Detailed Sales", 20, doc.autoTable.previous.finalY + 20);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(40, 40, 40);
+    doc.autoTable({
+      startY: doc.autoTable.previous.finalY + 25,
+      head: [["Medicine", "Unit Price", "Quantity Sold", "Revenue"]],
+      body: detailedSales.map(item => [
+        item.name,
+        `LKR ${item.price.toFixed(2)}`,
+        item.quantity_sold,
+        `LKR ${item.total_revenue.toFixed(2)}`
+      ]),
+      headStyles: {
+        fillColor: [113, 201, 206],
+        textColor: [255, 255, 255]
+      },
+      columnStyles: {
+        1: { cellWidth: 30 },
+        2: { cellWidth: 30 },
+        3: { cellWidth: 30 }
+      }
+    });
+
+    doc.save(`Pharmacy_Sales_Report_${period}.pdf`);
+  };
+
   const formatCurrency = (value) => {
-    const numValue = Number(value) || 0;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'LKR',
       minimumFractionDigits: 2
-    }).format(numValue);
+    }).format(value);
   };
 
   const renderActiveShape = (props) => {
@@ -151,17 +238,6 @@ export default function ReportsSection() {
       </g>
     );
   };
-
-  // Calculate totals for the table footer
-  const totalQuantity = detailedSales.reduce((sum, item) => {
-    const quantity = Number(item.quantity_sold) || 0;
-    return sum + quantity;
-  }, 0);
-
-  const totalDetailedRevenue = detailedSales.reduce((sum, item) => {
-    const revenue = Number(item.total_revenue) || 0;
-    return sum + revenue;
-  }, 0);
 
   return (
     <div className="bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6 min-h-screen">
@@ -253,7 +329,15 @@ export default function ReportsSection() {
                   ))}
                 </SelectContent>
               </Select>
+              <button
+                className="ml-4 px-4 py-2 bg-[#71C9CE] text-white rounded shadow hover:bg-[#5bb3b8] transition"
+                onClick={exportPDF}
+                type="button"
+              >
+                Export PDF
+              </button>
             </div>
+            
           </div>
 
           <div className="p-6 bg-white/50 rounded-lg shadow-inner flex justify-center items-center min-h-32 mb-6">
@@ -295,7 +379,7 @@ export default function ReportsSection() {
                       <tr key={item.id}>
                         <td className="px-4 py-2 text-sm text-gray-800">{item.name}</td>
                         <td className="px-4 py-2 text-sm text-right text-gray-800">{formatCurrency(item.price)}</td>
-                        <td className="px-4 py-2 text-sm text-right text-gray-800">{Number(item.quantity_sold) || 0}</td>
+                        <td className="px-4 py-2 text-sm text-right text-gray-800">{item.quantity_sold}</td>
                         <td className="px-4 py-2 text-sm text-right text-gray-800">{formatCurrency(item.total_revenue)}</td>
                       </tr>
                     ))}
@@ -305,10 +389,28 @@ export default function ReportsSection() {
                       <td className="px-4 py-2 text-sm font-semibold text-gray-800">Total</td>
                       <td className="px-4 py-2 text-sm text-right text-gray-800"></td>
                       <td className="px-4 py-2 text-sm text-right font-semibold text-gray-800">
-                        {detailedSales.reduce((sum, item) => sum + (Number(item.quantity_sold) || 0), 0).toLocaleString()}
+                        {
+                          (() => {
+                            let totalQty = 0;
+                            detailedSales.forEach(item => {
+                              const qty = Number(item.quantity_sold);
+                              if (!isNaN(qty)) totalQty += qty;
+                            });
+                            return totalQty;
+                          })()
+                        }
                       </td>
                       <td className="px-4 py-2 text-sm text-right font-semibold text-gray-800">
-                        {formatCurrency(detailedSales.reduce((sum, item) => sum + (Number(item.total_revenue) || 0), 0))}
+                        {
+                          (() => {
+                            let totalRev = 0;
+                            detailedSales.forEach(item => {
+                              const rev = Number(item.total_revenue);
+                              if (!isNaN(rev)) totalRev += rev;
+                            });
+                            return isNaN(totalRev) ? 'LKR 0.00' : formatCurrency(totalRev);
+                          })()
+                        }
                       </td>
                     </tr>
                   </tfoot>

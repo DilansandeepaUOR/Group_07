@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Bell, BellOff, CheckCircle, X } from "lucide-react";
 
@@ -12,6 +12,20 @@ export default function NotificationsSection({
 }) {
   const [displayCount, setDisplayCount] = useState(5);
   const [selectedNotification, setSelectedNotification] = useState(null);
+
+  // Add polling for notifications
+  useEffect(() => {
+    // Initial fetch
+    onRefresh();
+
+    // Set up polling interval (every 10 seconds)
+    const pollInterval = setInterval(() => {
+      onRefresh();
+    }, 10000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(pollInterval);
+  }, [onRefresh]);
 
   const loadMore = () => {
     setDisplayCount(prevCount => Math.min(prevCount + 5, 15));
@@ -28,6 +42,16 @@ export default function NotificationsSection({
   const closeDetails = () => {
     setSelectedNotification(null);
   };
+
+  if (!notifications) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] p-6">
+        <div className="max-w-7xl mx-auto text-center text-gray-800">
+          Loading notifications...
+        </div>
+      </div>
+    );
+  }
 
   const displayedNotifications = notifications.slice(0, displayCount);
   const unreadCount = notifications.filter(n => !n.is_read).length;
@@ -46,13 +70,6 @@ export default function NotificationsSection({
             )}
           </h1>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={onRefresh}
-              className="text-gray-900"
-            >
-              Refresh
-            </Button>
             <Button
               className="bg-[#71C9CE] hover:bg-[#A6E3E9] text-gray-900"
               onClick={onMarkAllAsRead}

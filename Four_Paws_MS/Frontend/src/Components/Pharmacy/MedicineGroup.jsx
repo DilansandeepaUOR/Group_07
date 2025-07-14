@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { Plus, Edit, Trash2, X, Search, Eye, ChevronLeft, ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "../../Components/ui/button"
 
 export default function MedicineGroupSection() {
   const API_BASE_URL = "http://localhost:3001/pharmacy/api/medicine-groups";
@@ -12,7 +12,7 @@ export default function MedicineGroupSection() {
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false)
   const [showViewGroupModal, setShowViewGroupModal] = useState(false)
   const [showEditGroupModal, setShowEditGroupModal] = useState(false)
-  const [showRemoveItemModal, setShowRemoveItemModal] = useState(false)
+  const [ setShowRemoveItemModal] = useState(false)
   const [showDeleteGroupModal, setShowDeleteGroupModal] = useState(false)
   const [showAddMedicineModal, setShowAddMedicineModal] = useState(false)
   
@@ -173,7 +173,7 @@ const filteredGroups = useMemo(() => {
         throw new Error(errorData.error || 'Failed to create group')
       }
   
-      const data = await response.json()
+      //const data = await response.json()
       
       const fetchResponse = await fetch(
         `${API_BASE_URL}?search=${searchTerm}&page=${currentPage}&limit=${itemsPerPage}`
@@ -271,7 +271,7 @@ const filteredGroups = useMemo(() => {
     }
   }, [medicineGroups, selectedItems])
 
-  const handleRemoveSelected = useCallback(async () => {
+  useCallback(async () => {
     if (!window.confirm(`Are you sure you want to remove ${selectedItems.length} medicines from this group?`)) {
       return
     }

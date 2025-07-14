@@ -10,8 +10,6 @@ import {
   FaTrash,
   FaEye,
 } from "react-icons/fa";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import dp from "../../../src/assets/paw_vector.png";
 import { Link } from "react-router-dom";
@@ -21,6 +19,7 @@ import AdUserManagement from "../Components/adusermanagement";
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("users");
   const [user, setUser] = useState(null);
+  const [pro_pic, setPro_pic] = useState(dp); // default profile picture
 
   useEffect(() => {
     axios
@@ -32,6 +31,20 @@ const AdminDashboard = () => {
         setUser(null);
       });
   }, []);
+
+  // Fetch profile picture once user is loaded
+  useEffect(() => {
+    if (user?.id) {
+      axios
+        .get(`http://localhost:3001/api/adprofile/?id=${user.id}`)
+        .then((response) => {
+          setPro_pic(response.data);
+        })
+        .catch(() => {
+          setPro_pic(dp); // fallback to default profile picture
+        });
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -49,27 +62,43 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen flex bg-gradient-to-b from-[#E3FDFD] via-[#71C9CE] to-[#A6E3E9] text-gray-900">
       <aside className="w-64 bg-[#71C9CE] text-gray-900 p-6 space-y-6">
-        <h2 className="text-2xl font-bold">Admin Dashboard</h2>
+        <div>
+          {user?.id === 13 ? (
+            <h2 className="text-2xl font-bold">Super Admin Dashboard</h2>
+          ) : (
+            <h2 className="text-2xl font-bold">Admin Dashboard</h2>
+          )}
+        </div>
 
         <div className="flex justify-center items-center w-full">
           <div className="flex flex-col items-center border-1 p-4 bg-gray-50 gap-4 mt-4">
+            {/* Profile Picture */}
             <img
+              src={`http://localhost:3001${pro_pic?.Pro_pic}` || dp}
+              alt={user?.name}
+              className="w-24 h-24 rounded-full border border-gray-400"
+              onError={(e) => {
+                e.target.onerror = null; // Prevent infinite loop if paw image fails
+                e.target.src = dp;
+              }}
+            />
+            {/* <img
               src={dp || "Admin"}
               alt="Admin"
               className="w-24 h-24 rounded-full border border-gray-400"
-            />
+            /> */}
             <div>
               <p className="text-black-300">
                 <strong>Admin: </strong> {user?.fname} {user?.lname}
               </p>
               <div>
                 <Link to={"/adprofile"}>
-                <button
-                  onClick={() => setActiveTab("profsetting")}
-                  className="flex items-center gap-2 w-full text-left hover:text-[#71C9CE] cursor-pointer"
-                >
-                  <FaUsers /> Profile Settings
-                </button>
+                  <button
+                    onClick={() => setActiveTab("profsetting")}
+                    className="flex items-center gap-2 w-full text-left hover:text-[#71C9CE] cursor-pointer"
+                  >
+                    <FaUsers /> Profile Settings
+                  </button>
                 </Link>
               </div>
             </div>
@@ -120,7 +149,7 @@ const AdminDashboard = () => {
 //user management section
 const UserManagement = () => (
   <div>
-    <AdUserManagement/>
+    <AdUserManagement />
   </div>
 );
 

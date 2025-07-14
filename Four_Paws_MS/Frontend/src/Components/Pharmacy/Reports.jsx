@@ -5,8 +5,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, Sector } fro
 import { PieChart as PieChartIcon, Table as TableIcon } from "lucide-react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../Components/ui/select";
 
 export default function ReportsSection() {
   const [isLoading, setIsLoading] = useState(true);
@@ -330,6 +329,13 @@ export default function ReportsSection() {
                   ))}
                 </SelectContent>
               </Select>
+              <button
+                className="ml-4 px-4 py-2 bg-[#71C9CE] text-white rounded shadow hover:bg-[#5bb3b8] transition"
+                onClick={exportPDF}
+                type="button"
+              >
+                Export PDF
+              </button>
             </div>
             
           </div>
@@ -383,10 +389,28 @@ export default function ReportsSection() {
                       <td className="px-4 py-2 text-sm font-semibold text-gray-800">Total</td>
                       <td className="px-4 py-2 text-sm text-right text-gray-800"></td>
                       <td className="px-4 py-2 text-sm text-right font-semibold text-gray-800">
-                        {detailedSales.reduce((sum, item) => sum + item.quantity_sold, 0)}
+                        {
+                          (() => {
+                            let totalQty = 0;
+                            detailedSales.forEach(item => {
+                              const qty = Number(item.quantity_sold);
+                              if (!isNaN(qty)) totalQty += qty;
+                            });
+                            return totalQty;
+                          })()
+                        }
                       </td>
                       <td className="px-4 py-2 text-sm text-right font-semibold text-gray-800">
-                        {formatCurrency(detailedSales.reduce((sum, item) => sum + item.total_revenue, 0))}
+                        {
+                          (() => {
+                            let totalRev = 0;
+                            detailedSales.forEach(item => {
+                              const rev = Number(item.total_revenue);
+                              if (!isNaN(rev)) totalRev += rev;
+                            });
+                            return isNaN(totalRev) ? 'LKR 0.00' : formatCurrency(totalRev);
+                          })()
+                        }
                       </td>
                     </tr>
                   </tfoot>

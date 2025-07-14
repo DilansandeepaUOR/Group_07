@@ -10,10 +10,13 @@ import {
   FaEye,
   FaEyeSlash,
   FaCamera,
+  FaTrash,
+  FaBan,
 } from "react-icons/fa";
 import axios from "axios";
 import dp from "../../assets/paw_vector.png";
 import { useNavigate } from "react-router-dom";
+import e from "cors";
 
 function adprofile() {
   const [user, setUser] = useState(null);
@@ -27,6 +30,8 @@ function adprofile() {
     date_of_birth: "",
     gender: "",
     address: "",
+    image: null,
+    oldImage: "",
   });
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -39,7 +44,6 @@ function adprofile() {
     confirm: false,
   });
   const [imagePreview, setImagePreview] = useState(dp);
-  const [selectedImage, setSelectedImage] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -67,13 +71,18 @@ function adprofile() {
             address: response.data.address || "",
             gender: response.data.gender || "",
             date_of_birth: response.data.date_of_birth
-              ? new Date(response.data.date_of_birth).toISOString().split("T")[0]
+              ? new Date(response.data.date_of_birth)
+                  .toISOString()
+                  .split("T")[0]
               : "",
+            image: null,
+            oldImage: response.data.Pro_pic || "", // Changed from profileImage to Pro_pic
           });
 
-          if (response.data.profileImage) {
+          if (response.data.Pro_pic) {
+            // Changed from profileImage to Pro_pic
             setImagePreview(
-              `http://localhost:3001/uploads/${response.data.profileImage}`
+              `http://localhost:3001${response.data.Pro_pic}` // Added proper path construction
             );
           }
         })
@@ -94,8 +103,12 @@ function adprofile() {
   };
 
   const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setEditForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, files } = e.target;
+    if (name === "image") {
+      setEditForm({ ...editForm, image: files[0] });
+    } else {
+      setEditForm({ ...editForm, [name]: value });
+    }
   };
 
   const handlePasswordChange = (e) => {
@@ -110,7 +123,10 @@ function adprofile() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setSelectedImage(file);
+      // Update form state
+      setEditForm((prev) => ({ ...prev, image: file }));
+
+      // Update preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
@@ -124,14 +140,22 @@ function adprofile() {
     try {
       const formData = new FormData();
 
-      // Append only non-empty fields from editForm
-      Object.entries(editForm).forEach(([key, value]) => {
-        formData.append(key, value || ""); // Send empty string if value is falsy
-      });
+      formData.append("first_name", editForm.first_name);
+      formData.append("last_name", editForm.last_name);
+      formData.append("email", editForm.email);
+      formData.append("phone_number", editForm.phone_number);
+      formData.append("gender", editForm.gender);
+      formData.append("address", editForm.address);
+      formData.append("date_of_birth", editForm.date_of_birth);
 
-      // Append the selected image if it exists
-      if (selectedImage) {
-        formData.append("profileImage", selectedImage);
+      // Include old image path if available
+      if (editForm.oldImage) {
+        formData.append("oldImage", editForm.oldImage);
+      }
+
+      // Append image with correct field name ('image' to match backend)
+      if (editForm.image) {
+        formData.append("image", editForm.image);
       }
 
       const response = await axios.put(
@@ -139,11 +163,26 @@ function adprofile() {
         formData,
         {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
           },
           withCredentials: true,
         }
       );
+
+      // Handle successful update
+      if (response.data.message) {
+        alert(response.data.message);
+
+        // Update image preview if a new image was uploaded
+        if (response.data.profileImage) {
+          setImagePreview(`http://localhost:3001${response.data.profileImage}`);
+          setEditForm((prev) => ({
+            ...prev,
+            oldImage: response.data.profileImage,
+            image: null,
+          }));
+        }
+      }
 
       setProfile(response.data);
       alert(response.data.message || "Profile updated successfully!");
@@ -154,6 +193,7 @@ function adprofile() {
     }
   };
 
+  //password change
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
@@ -162,25 +202,66 @@ function adprofile() {
     }
 
     try {
-      await axios.post(
-        "http://localhost:3001/api/auth/change-password",
+      const response = await axios.post(
+        `http://localhost:3001/api/adpasswordreset`,
         {
+          id1: user.id,
+          email: user.email,
           currentPassword: passwordForm.currentPassword,
           newPassword: passwordForm.newPassword,
         },
         { withCredentials: true }
       );
-      alert("Password changed successfully!");
+
+      alert(response.data.message || "Password changed successfully!");
       setPasswordForm({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
       });
     } catch (err) {
-      console.error("Error changing password:", err);
-      alert(err.response?.data?.message || "Failed to change password");
+      alert(err.response?.data?.error || "Failed to change password");
     }
   };
+
+  //deactivate and delete account requests
+  //Deactivate account request
+  const handleDeactivateRequest = async () => {
+    try {
+      await axios.post(`http://localhost:3001/api/adaccount/deactivate`, {
+        email: user.email,
+        id: user.id,
+      });
+      if (user.id == 13) {
+        alert("This admin account cannot be deactivated.");
+      }
+      else {
+        alert("Confirmation email sent for deactivation.");
+      }
+    } catch (err) {
+      alert("Failed to send confirmation email.");
+    }
+  };
+
+  //Delete account request
+  const handleDeleteRequest = async () => {
+    try {
+      await axios.post(`http://localhost:3001/api/adaccount/delete`, {
+        email: user.email,
+        id: user.id,
+      });
+      if (user.id == 13) {
+        alert("This admin account cannot be deleted.");
+      }
+      else {
+        alert("Confirmation email sent for deletion.");
+      }
+      
+    } catch (err) {
+      alert("Failed to send confirmation email.");
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-gradient-to-b from-[#22292F] via-[#028478] to-[#46dfd0] text-white">
       {/* Sidebar */}
@@ -219,6 +300,26 @@ function adprofile() {
           >
             <FaLock className="mr-2" /> Change Password
           </li>
+
+          <li
+            onClick={() => setActiveTab("deactivate")}
+            className={`hover:text-yellow-400 flex items-center cursor-pointer ${
+              activeTab === "deactivate"
+                ? "font-bold underline text-yellow-400"
+                : ""
+            }`}
+          >
+            <FaBan className="mr-2" /> Deactivate Account
+          </li>
+          <li
+            onClick={() => setActiveTab("delete")}
+            className={`hover:text-red-400 flex items-center cursor-pointer ${
+              activeTab === "delete" ? "font-bold underline text-red-400" : ""
+            }`}
+          >
+            <FaTrash className="mr-2" /> Delete Account
+          </li>
+
           <li className="hover:text-red-400 flex items-center cursor-pointer">
             <button onClick={handleLogout} className="flex items-center">
               <FaSignOutAlt className="mr-2" /> Logout
@@ -494,16 +595,35 @@ function adprofile() {
             </form>
           )}
 
-          {/* Medical Records Tab */}
-          {activeTab === "medical" && (
+
+          {/* Deactivate account Tab */}
+          {activeTab === "deactivate" && (
             <div>
-              <h2 className="text-2xl font-bold mb-6">Medical Records</h2>
-              <div className="bg-[#374151] p-4 rounded-lg">
-                {profile?.medicals ? (
-                  <p className="whitespace-pre-line">{profile.medicals}</p>
-                ) : (
-                  <p className="text-gray-400">No medical records available</p>
-                )}
+              <h2 className="text-2xl font-bold mb-6">
+                Deactivate Your Account
+              </h2>
+              <div className="flex justify-center items-center bg-[#374151] p-4 rounded-lg">
+                <button
+                  className="mt-4 bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded cursor-pointer"
+                  onClick={handleDeactivateRequest}
+                >
+                  Request Deactivation via Email
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Delete account Tab */}
+          {activeTab === "delete" && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6">Delete Your Account</h2>
+              <div className="flex items-center justify-center bg-[#374151] p-4 rounded-lg">
+                <button
+                  className="mt-4 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded cursor-pointer"
+                  onClick={handleDeleteRequest}
+                >
+                  Request Deletion via Email
+                </button>
               </div>
             </div>
           )}
