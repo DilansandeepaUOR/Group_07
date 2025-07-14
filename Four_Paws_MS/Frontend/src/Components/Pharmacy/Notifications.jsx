@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react';
-import { Button } from "@/components/ui/button";
+import { Button } from "../../Components/ui/button";
 import { Bell, BellOff, CheckCircle, X } from "lucide-react";
 
 export default function NotificationsSection({ 

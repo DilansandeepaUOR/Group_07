@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa"
-import { Button } from "@/components/ui/button"
+import { Button } from "../../Components/ui/button"
 
 export default function ProductsSection() {
   const API_BASE_URL = "http://localhost:3001/pharmacy/api/medicines";

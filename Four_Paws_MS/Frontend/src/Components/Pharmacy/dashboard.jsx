@@ -1,7 +1,7 @@
 import { ShieldCheck, DollarSign, PillIcon as Capsule, AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
+import { Button } from "../../Components/ui/button";
 
 export default function DashboardSection() {
   const [medicineCount, setMedicineCount] = useState(0);

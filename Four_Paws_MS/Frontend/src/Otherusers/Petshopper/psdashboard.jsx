@@ -10,8 +10,7 @@ import {
   FaTrash,
   FaEye,
 } from "react-icons/fa";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { Button } from "../../Components/ui/button";
 import axios from "axios";
 import dp from "../../assets/paw_vector.png";
 import { Link } from "react-router-dom";

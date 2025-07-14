@@ -5,8 +5,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, Sector } fro
 import { PieChart as PieChartIcon, Table as TableIcon } from "lucide-react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../Components/ui/select";
 
 export default function ReportsSection() {
   const [isLoading, setIsLoading] = useState(true);

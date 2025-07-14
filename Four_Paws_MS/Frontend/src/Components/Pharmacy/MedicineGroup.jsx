@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { Plus, Edit, Trash2, X, Search, Eye, ChevronLeft, ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "../../Components/ui/button"
 
 export default function MedicineGroupSection() {
   const API_BASE_URL = "http://localhost:3001/pharmacy/api/medicine-groups";
