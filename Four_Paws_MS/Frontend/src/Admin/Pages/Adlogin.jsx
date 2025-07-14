@@ -163,7 +163,9 @@ function Adlogin() {
 
         {/* Buttons */}
         <div className="flex justify-between items-center">
+ 
           <button
+            onKeyPress={(e) => e.key === 'Enter' && handleLogin(e)}
             onClick={handleLogin}
             className="px-4 py-2 rounded-lg transition flex items-center justify-center w-full gap-2 bg-[#028478] hover:bg-[#5ba29c] text-white cursor-pointer"
           >

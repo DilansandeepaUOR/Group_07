@@ -65,6 +65,10 @@ app.use('/pharmacy', pharmacy);
 const assistantdoctorRoutes =require('./routes/Assitdoctor/assistantdoctor');
 app.use('/api/assistantdoctor', assistantdoctorRoutes);
 
+//mobile assistant doctor
+const mobileAssistantDoctorRoutes = require('./routes/Assitdoctor/mobileAssistantDoctor');
+app.use('/api/mobile/assistantdoctor', mobileAssistantDoctorRoutes);
+
 //Contact info routes
 const contactInfoRoutes = require('./routes/Contactinfo/contact');
 app.use('/contact', contactInfoRoutes);
@@ -73,9 +77,25 @@ app.use('/contact', contactInfoRoutes);
 const recordRoutes = require('./routes/Records/RecordSelection');
 app.use('/api', recordRoutes);
 
+//Deworm Notifications
+const dogdewormingNotificationService = require('./routes/Records/DogsDewormingNotificationService');
+app.use('/api/deworming-notifications', dogdewormingNotificationService.router);
+const catdewormingNotificationService = require('./routes/Records/CatsDewormingNotificationService');
+app.use('/api/cat-deworming-notifications', catdewormingNotificationService.router);
+
 //Mobile Service Section
 const mobileserviceRoutes =require('./routes/Appointment/mobileservice');
 app.use('/api/mobileservice', mobileserviceRoutes);
+
+
+//Appointments Service Section
+const appointmenteserviceRoutes =require('./routes/Appointment/Services');
+app.use('/api/Appointment/services', appointmenteserviceRoutes);
+
+//Appointments Time Section
+const appointmentManageTimeRoutes =require('./routes/Appointment/Timemanagement');
+app.use('/api/appointments/managetime', appointmentManageTimeRoutes);
+
 
 app.get('/api/test-route', (req, res) => {
   res.json({ message: "Test route works!" });

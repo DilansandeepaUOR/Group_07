@@ -14,6 +14,9 @@ const AddPetModal = ({ onPetAdded, userId }) => {
   const [petType, setPetType] = useState("Dog");
   const [gender, setGender] = useState("");
   const [dob, setDob] = useState("");
+  const [petBreed, setPetBreed] = useState("");
+  const [petAllergies, setPetAllergies] = useState("");
+  const [petDiet, setPetDiet] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState(null);
 
@@ -27,7 +30,10 @@ const AddPetModal = ({ onPetAdded, userId }) => {
         Pet_type: petType,
         gender,
         dob,
-        user_id: userId || user?.id
+        user_id: userId || user?.id,
+        Pet_Breed: petBreed,
+        Pet_Allergies: petAllergies,
+        Pet_Diet: petDiet
       });
 
       toast.success("Pet added successfully!");
@@ -37,6 +43,9 @@ const AddPetModal = ({ onPetAdded, userId }) => {
       setPetType("Dog");
       setGender("");
       setDob("");
+      setPetBreed("");
+      setPetAllergies("");
+      setPetDiet("");
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to add pet. Please try again.");
       console.error("Error adding pet:", error);
@@ -75,7 +84,7 @@ const AddPetModal = ({ onPetAdded, userId }) => {
           <Plus className="h-4 w-4 mr-1" /> Add Pet
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="w-full max-w-xs sm:max-w-md p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>Add New Pet</DialogTitle>
           <DialogDescription>
@@ -92,33 +101,34 @@ const AddPetModal = ({ onPetAdded, userId }) => {
               required
             />
           </div>
-          <div>
-            <Label htmlFor="petType" className="pb-2">Pet Type</Label>
-            <Select value={petType} onValueChange={setPetType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select pet type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Dog">Dog</SelectItem>
-                <SelectItem value="Cat">Cat</SelectItem>
-                <SelectItem value="Bird">Bird</SelectItem>
-                <SelectItem value="Rabbit">Rabbit</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="gender" className="pb-2">Gender</Label>
-            <Select value={gender} onValueChange={setGender}>
-              <SelectTrigger>
-                <SelectValue placeholder="Gender" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Male">Male</SelectItem>
-                <SelectItem value="Female">Female</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="w-full sm:w-1/2">
+              <Label htmlFor="petType" className="pb-2">Pet Type</Label>
+              <Select value={petType} onValueChange={setPetType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select pet type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Dog">Dog</SelectItem>
+                  <SelectItem value="Cat">Cat</SelectItem>
+                  <SelectItem value="Cow">Cow</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-full sm:w-1/2">
+              <Label htmlFor="gender" className="pb-2">Gender</Label>
+              <Select value={gender} onValueChange={setGender}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Male">Male</SelectItem>
+                  <SelectItem value="Female">Female</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div>
             <Label htmlFor="dob" className="pb-2">Date of Birth</Label>
@@ -127,13 +137,46 @@ const AddPetModal = ({ onPetAdded, userId }) => {
               id="dob"
               value={dob}
               onChange={(e) => setDob(e.target.value)}
+              max={new Date().toISOString().split('T')[0]}
             />
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <div>
+            <Label htmlFor="petBreed" className="pb-2">Breed</Label>
+            <Input
+              id="petBreed"
+              value={petBreed}
+              onChange={(e) => setPetBreed(e.target.value)}
+              placeholder="e.g. Labrador, Persian, etc."
+            />
+          </div>
+          <div>
+            <Label htmlFor="petAllergies" className="pb-2">Allergies</Label>
+            <Input
+              id="petAllergies"
+              value={petAllergies}
+              onChange={(e) => setPetAllergies(e.target.value)}
+              placeholder="e.g. Pollen, Chicken, None"
+            />
+          </div>
+          <div>
+            <Label htmlFor="petDiet" className="pb-2">Diet</Label>
+            <Input
+              id="petDiet"
+              value={petDiet}
+              onChange={(e) => setPetDiet(e.target.value)}
+              placeholder="e.g. Vegetarian, Grain-free, etc."
+            />
+          </div>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              className="w-full sm:w-auto block sm:hidden"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="bg-[#008879] hover:bg-[#07776b] text-white">
+            <Button type="submit" disabled={isSubmitting} className="bg-[#008879] hover:bg-[#07776b] text-white w-full sm:w-auto">
               {isSubmitting ? "Adding..." : "Add Pet"}
             </Button>
           </DialogFooter>

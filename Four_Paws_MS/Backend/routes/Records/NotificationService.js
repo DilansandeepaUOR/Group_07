@@ -34,7 +34,6 @@ const query = (sql, params) => {
 };
 
 // --- Core Helper Functions ---
-
 const calculatePetAgeInWeeks = (dob) => {
     return moment().diff(moment(dob), 'weeks') + 1; // Adding 1 to include the current week
 };
@@ -286,12 +285,51 @@ router.get('/notification-templates', async (req, res) => {
     }
 });
 
+router.post('/notification-templates', async (req, res) => {
+    const { 
+        template_name, 
+        age_condition, 
+        vaccine_name, 
+        subject, 
+        message_body, 
+        is_active = 1 // Default to active if not specified
+    } = req.body;
+
+    // Validate required fields
+    if (!template_name || !age_condition || !vaccine_name || !subject || !message_body) {
+        return res.status(400).json({ 
+            error: 'Missing required fields: template_name, age_condition, vaccine_name, subject, message_body' 
+        });
+    }
+
+    try {
+        const result = await query(
+            `INSERT INTO notification_templates 
+            (template_name, age_condition, vaccine_name, subject, message_body, is_active) 
+            VALUES (?, ?, ?, ?, ?, ?)`,
+            [template_name, age_condition, vaccine_name, subject, message_body, is_active]
+        );
+
+        res.status(201).json({ 
+            success: true, 
+            message: 'Template created successfully',
+            template_id: result.insertId 
+        });
+    } catch (error) {
+        console.error('Error creating notification template:', error);
+        res.status(500).json({ 
+            error: 'Failed to create template',
+            details: error.message 
+        });
+    }
+});
+
 router.put('/notification-templates/:id', async (req, res) => {
     const { subject, message_body, days_before, is_active } = req.body;
     try {
         await query(
-            'UPDATE notification_templates SET subject = ?, message_body = ?, days_before = ?, is_active = ? WHERE template_id = ?',
-            [subject, message_body, days_before, is_active, req.params.id]
+            'UPDATE notification_templates SET subject = ?, message_body = ?, is_active = ? WHERE template_id = ?',
+            [subject, message_body, is_active, req.params.id]
         );
         res.json({ success: true, message: 'Template updated successfully.' });
     } catch (error) {

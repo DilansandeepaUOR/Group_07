@@ -27,15 +27,48 @@ router.get('/address', async (req, res) => {
   }
 });
 
+router.get('/user/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [results] = await db.promise().query(
+      `SELECT 
+        ms.*, 
+        p.Pet_name 
+      FROM 
+        mobile_service ms
+      JOIN 
+        pet p ON ms.pet_id = p.Pet_id 
+      JOIN 
+        pet_owner po ON ms.petOwnerID = po.Owner_id 
+      WHERE 
+        ms.petOwnerID = ?;
+      `,
+      [id]
+    );
+    
+    // Add `type` field to each result
+    const updatedResults = results.map(row => ({
+      ...row,
+      type: row.address == null ? 'coordinates' : 'address'
+    }));
+
+    res.json(updatedResults);
+  } catch (err) {
+    console.error('Database error:', err);
+    res.status(500).json({ error: 'Error fetching mobile services' });
+  }
+  
+});
+
 
 router.post('/', async (req, res) => {
   try {
     const {
       user_id,
-      pet_details,       // assuming this is pet_id
+      pet_id,       // assuming this is pet_id
       location,
       status,
-      special_notes = '' // optional field from frontend
+      reason = '' // optional field from frontend
     } = req.body;
 
     // Extract location details
@@ -45,23 +78,25 @@ router.post('/', async (req, res) => {
 
     // Create table if it does not exist
     await db.promise().query(`
-      CREATE TABLE IF NOT EXISTS mobileService (
+      CREATE TABLE IF NOT EXISTS mobile_service (
         id INT AUTO_INCREMENT PRIMARY KEY,
         petOwnerID INT NOT NULL,
         pet_id INT NOT NULL,
         latitude DECIMAL(10, 8),
         longitude DECIMAL(11, 8),
         address TEXT,
-        status VARCHAR(50),
+        status ENUM('pending', 'confirmed', 'cancelled', 'completed') NOT NULL DEFAULT 'pending',
         special_notes TEXT,
+        reason TEXT,
+        date DATE,
+        time TIME,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    const pet_id=pet_details.pet_id;
 
     // Insert appointment
     const [newAppointment] = await db.promise().query(`
-      INSERT INTO mobileService (petOwnerID, pet_id, latitude, longitude, address, status, special_notes)
+      INSERT INTO mobile_service (petOwnerID, pet_id, latitude, longitude, address, status, reason)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `, [
       user_id,
@@ -70,16 +105,32 @@ router.post('/', async (req, res) => {
       longitude,
       address,
       status,
-      special_notes
+      reason,
     ]);
 
-    res.status(201).json({ message: 'Mobile appointment booked successfully.', appointment_id: newAppointment.insertId });
+    res.status(201).json({ message: 'Mobile appointment booked successfully. A confirmation email has been sent to your email.', appointment_id: newAppointment.insertId });
   } catch (error) {
     console.error('Error booking mobile service:', error);
     res.status(500).json({ error: 'Failed to book mobile service.' });
   }
   
 });
+
+router.put('/cancel/:id', async (req, res) => {
+  console.log("cancel")
+  const { id } = req.params;
+  try {
+    const [results] = await db.promise().query(
+      'UPDATE mobile_service SET status = "Cancelled" WHERE id = ?',
+      [id]
+    );
+    res.json({ message: 'Mobile service cancelled successfully.' });
+  } catch (error) {
+    console.error('Error cancelling mobile service:', error);
+    res.status(500).json({ error: 'Failed to cancel mobile service.' });
+  }
+});
+
 
 // Error handling middleware
 router.use((err, req, res, next) => {
