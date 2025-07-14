@@ -23,10 +23,6 @@ import Passwordchange from "./Pages/Passwordchange";
 
 import Mobileservice from "./Pages/MobileService";
 
-
-// Records Pages
-
-
 //import Adlogin from "./Admin/Pages/Adlogin";
 
 import VaccineNotify from "./Pages/VaccineNotify";
@@ -36,7 +32,7 @@ import MobileService from "./Pages/MobileService";
 import SearchRecords from "./Pages/SearchRecords";
 import PetRecordPDF from "./Pages/PetRecordPDF";
 import AllRecords from "./Pages/AllRecords";
-import RecordEdit from "./Pages/RecordEdit";
+//import RecordEdit from "./Pages/RecordEdit";
 import RecordNew from "./Pages/RecordNew";
 
 // Admin Pages
@@ -94,7 +90,6 @@ const App = () => {
 
         <Route path="/recordselection" element={<PetRecordPDF />} />
         <Route path="/recordsNew" element={<AllRecords />} />
-        <Route path="/records/edit/:id" element={<RecordEdit />} />
         <Route path="/records/new" element={<RecordNew />} />
 
         <Route path="/search" element={<SearchRecords />} />

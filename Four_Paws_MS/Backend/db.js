@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const mysql = require('mysql2');
+const mysql = require('mysql');
 
 
 // Create a connection pool instead of a single connection

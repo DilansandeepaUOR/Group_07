@@ -251,9 +251,9 @@ export default function App({ onSuccess }) {
     <div className="w-full">
       <div className="w-full mx-auto">
         <h1 className="text-3xl font-bold text-gray-800 text-center mb-2">New Deworming Record</h1>
-        <p className="text-center text-gray-500 mb-8">Fill in the details below to log a new record.</p>
+        <p className="text-center text-gray-500 mb-8">Fill all the details below to create a new record.</p>
 
-        <form onSubmit={handleSubmit} noValidate className="bg-white p-8 rounded-xl shadow-lg space-y-8">
+        <form onSubmit={handleSubmit} noValidate className="bg-white p-8 space-y-8">
           {/* --- Owner and Pet Selection Grid --- */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Owner Selection Column */}
@@ -280,7 +280,7 @@ export default function App({ onSuccess }) {
                 name="ownerId"
                 value={formData.ownerId}
                 onChange={handleChange}
-                className={`block w-full p-2 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition ${errors.ownerId ? 'border-red-500' : 'border-gray-300'}`}
+                className={`cursor-pointer block w-full p-2 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition ${errors.ownerId ? 'border-red-500' : 'border-gray-300'}`}
               >
                 <option value="">Select an Owner</option>
                 {filteredOwners.length > 0 ? (
@@ -326,13 +326,14 @@ export default function App({ onSuccess }) {
                     name="petId"
                     value={formData.petId}
                     onChange={handleChange}
-                    className={`block w-full p-2 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed ${errors.petId ? 'border-red-500' : 'border-gray-300'}`}
+                    className={`cursor-pointer block w-full p-2 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed ${errors.petId ? 'border-red-500' : 'border-gray-300'}`}
                     disabled={!formData.ownerId || isPetLoading}
                 >
                     <option value="">{isPetLoading ? 'Loading...' : (formData.ownerId ? 'Select a Pet' : 'Select an owner first')}</option>
                     {filteredPets.length > 0 ? (
                         filteredPets.map(pet => (
-                            <option key={pet.Pet_id} value={pet.Pet_id}>
+                            <option 
+                                key={pet.Pet_id} value={pet.Pet_id}>
                                 {pet.Pet_name} ({pet.Pet_type})
                             </option>
                         ))
@@ -370,14 +371,14 @@ export default function App({ onSuccess }) {
             <button
                 type="button"
                 onClick={handleCancel}
-                className="px-6 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 transition"
+                className="cursor-pointer px-6 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 transition"
             >
                 Cancel
             </button>
             <button
                 type="submit"
                 disabled={isSaveDisabled()}
-                className="px-6 py-2 text-white font-semibold bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition disabled:bg-blue-300 disabled:cursor-not-allowed"
+                className="cursor-pointer px-6 py-2 text-white font-semibold bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition disabled:bg-blue-300 disabled:cursor-not-allowed"
             >
                 {isSubmitting ? 'Saving...' : 'Save Record'}
             </button>

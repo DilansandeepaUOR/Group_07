@@ -4,6 +4,7 @@ import {
   FaUser,
   FaPills,
   FaSignOutAlt,
+  FaDog,
 } from "react-icons/fa";
 import axios from "axios";
 import dp from "../../../src/assets/paw_vector.png";
@@ -35,7 +36,7 @@ const SuccessPopup = ({ title, message, onClose }) => (
             <p className="text-gray-600 mt-2">{message}</p>
             <button
                 onClick={onClose}
-                className="mt-6 w-full bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition-colors"
+                className="cursor-pointer mt-6 w-full bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition-colors"
             >
                 Close
             </button>
@@ -147,7 +148,7 @@ const DoctorDashboard = () => {
                     setActiveTab("appointments");
                     setEditingRecordId(null);
                   }}
-                  className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
+                  className="cursor-pointer flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
                 >
                   <FaCalendarAlt /> Appointments
                 </button>
@@ -158,9 +159,9 @@ const DoctorDashboard = () => {
                     setActiveTab("deworming");
                     setEditingRecordId(null);
                   }}
-                  className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
+                  className="cursor-pointer flex items-center gap-2 w-full text-left hover:text-gray-700"
                 >
-                  <FaUser /> Deworming
+                  <FaDog /> Deworming
                 </button>
               </li>
               <li>
@@ -259,7 +260,7 @@ const renderSubContent = () => {
         ].map((tab) => (
           <button
             key={tab.key}
-            className={`px-4 py-2 rounded ${
+            className={` cursor-pointer px-4 py-2 rounded hover:bg-green-400 ${
               activeSubTab === tab.key
                 ? "bg-[#028478] text-white"
                 : "bg-white border border-[#028478] text-[#028478]"
@@ -344,7 +345,7 @@ const MedicationsSection = ({ onEditRecord, editingRecordId, onCancelEdit, onRec
         ].map((tab) => (
           <button
             key={tab.key}
-            className={`px-4 py-2 rounded ${
+            className={` cursor-pointer px-4 py-2 rounded hover:bg-green-400 ${
               activeSubTab === tab.key
                 ? "bg-[#028478] text-white"
                 : "bg-white border border-[#028478] text-[#028478]"

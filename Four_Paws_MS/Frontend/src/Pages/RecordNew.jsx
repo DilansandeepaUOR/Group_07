@@ -289,7 +289,7 @@ return (
       <div className="p-8">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-gray-800">Add New Medical Record</h2>
-          <p className="text-gray-500">Fill in the details below to create a new record.</p>
+          <p className="text-gray-500">Fill all the details below to create a new record.</p>
         </div>
         {successMessage && (
           <div className="p-4 mb-6 bg-green-100 border border-green-400 text-green-700 rounded flex items-center">
@@ -309,7 +309,7 @@ return (
                   <FaSearch className="text-gray-400" />
                 </div>
                 <input type="text" placeholder="Search owners..." value={ownerSearchTerm} onChange={(e) => setOwnerSearchTerm(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="cursor-text block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
               
@@ -319,7 +319,7 @@ return (
               {!searchStatus.loading && !searchStatus.noResults && filteredOwners.length > 0 && (
                 <>
                   <select name="ownerId" value={formData.ownerId} onChange={handleChange}
-                    className={`mt-2 block w-full pl-10 p-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${errors.ownerId ? 'border-red-500' : 'border-gray-300'}`}
+                    className={`cursor-pointer mt-2 block w-full pl-10 p-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${errors.ownerId ? 'border-red-500' : 'border-gray-300'}`}
                     disabled={loading.owners}
                   >
                     <option value="">Select Owner</option>
@@ -363,7 +363,7 @@ return (
                 </div>
               
               <select name="petId" value={formData.petId} onChange={handleChange}
-                className={`block w-full p-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${errors.petId ? 'border-red-500' : 'border-gray-300'}`}
+                className={`cursor-pointer block w-full p-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${errors.petId ? 'border-red-500' : 'border-gray-300'}`}
                 disabled={!formData.ownerId || loading.pets}
               >
                 <option value="">{loading.pets ? 'Loading pets...' : (formData.ownerId ? 'Select Pet' : 'Select an owner first')}</option>
