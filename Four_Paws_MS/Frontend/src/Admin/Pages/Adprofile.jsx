@@ -69,13 +69,16 @@ function adprofile() {
             date_of_birth: response.data.date_of_birth
               ? new Date(response.data.date_of_birth).toISOString().split("T")[0]
               : "",
+            image: null,
+            oldImage: response.data.Pro_pic || "", // Changed from profileImage to Pro_pic
           });
 
-          if (response.data.profileImage) {
-            setImagePreview(
-              `http://localhost:3001/uploads/${response.data.profileImage}`
-            );
-          }
+          if (response.data.Pro_pic) {
+              // Changed from profileImage to Pro_pic
+              setImagePreview(
+                `http://localhost:3001${response.data.Pro_pic}` // Added proper path construction
+              );
+            }
         })
         .catch(console.error);
     }

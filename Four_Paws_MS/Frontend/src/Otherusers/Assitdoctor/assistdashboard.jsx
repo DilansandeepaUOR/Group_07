@@ -6,8 +6,10 @@ import {
   FaUser,
   FaSignOutAlt,
   FaSearch,
+  FaUsers,
 } from "react-icons/fa";
 import axios from "axios";
+import { Link } from "react-router-dom";
 import dp from "../../../src/assets/paw_vector.png";
 
 // Import the components
@@ -24,7 +26,7 @@ const DoctorDashboard = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3001/api/auth/user", { withCredentials: true })
+      .get("http://localhost:3001/api/auth/admins", { withCredentials: true })
       .then((response) => {
         setDoctor(response.data);
       })
@@ -50,21 +52,31 @@ const DoctorDashboard = () => {
     <div className="min-h-screen flex bg-gradient-to-b from-[#E3FDFD] via-[#71C9CE] to-[#A6E3E9] text-gray-900">
       {/* Sidebar */}
       <aside className="w-64 bg-[#71C9CE] text-gray-900 p-6 space-y-6">
-        <h2 className="text-2xl font-bold">Doctor Dashboard</h2>
+        <h2 className="text-2xl font-bold">Assistant Doctor Dashboard</h2>
 
-        <div className="items-center gap-4 mt-4">
-          <img
-            src={dp || "Doctor"}
-            alt="Doctor"
-            className="w-24 h-24 rounded-full border border-gray-400"
-          />
-          <div>
-            <p className="text-black-300">
-              <strong>Dr. {doctor?.fname} {doctor?.lname}</strong>
-            </p>
-            <p className="text-black-300">
-              <strong>Specialization:</strong> Veterinary Medicine
-            </p>
+        <div className="flex justify-center items-center w-full">
+          <div className="flex flex-col items-center border-1 p-4 bg-gray-50 gap-4 mt-4">
+            <img
+              src={dp || "Admin"}
+              alt="Admin"
+              className="w-24 h-24 rounded-full border border-gray-400"
+            />
+            <div>
+              <p className="text-black-300">
+                <strong>Assistant Doctor: </strong> {doctor?.fname} {doctor?.lname}
+              </p>
+              
+              <div>
+                <Link to={"/assistprofile"}>
+                <button
+                  onClick={() => setActiveTab("profsetting")}
+                  className="flex items-center gap-2 w-full text-left hover:text-[#71C9CE] cursor-pointer"
+                >
+                  <FaUsers /> Profile Settings
+                </button>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
 
