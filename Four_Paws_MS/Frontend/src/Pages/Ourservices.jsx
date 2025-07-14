@@ -1,11 +1,47 @@
 import React from "react";
 import { FaSyringe, FaFlask, FaAmbulance, FaUserMd } from "react-icons/fa";
+import { motion } from "framer-motion"; // Import Framer Motion
 import Navbar from "@/Components/Navbar/Navbar";
 import Footer from "@/Components/Footer/Footer";
 import s1 from "../assets/Surgery.png";
 import s2 from "../assets/OPD_Treatments.jpg";
 import s3 from "../assets/Vet_lab.jpg";
 import s4 from "../assets/Mobile_service.jpeg";
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+      when: "beforeChildren"
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 50, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { 
+      duration: 0.7,
+      ease: "easeOut"
+    }
+  }
+};
+
+const floatVariants = {
+  float: {
+    y: [0, -15, 0],
+    transition: {
+      duration: 3,
+      repeat: Infinity,
+      ease: "easeInOut"
+    }
+  }
+};
 
 function Ourservices() {
   const services = [
@@ -38,37 +74,74 @@ function Ourservices() {
       image: s4,
     },
   ];
+  
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <Navbar />
       <div className="min-h-screen bg-gradient-to-b from-[#22292F] via-[#028478] to-[#22292F]">
         {/* Heading Section */}
-        <div className="relative py-20 text-center">
+        <motion.div 
+          className="relative py-20 text-center"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+        >
           <div className="container mx-auto px-4">
-            <h1 className="text-4xl md:text-5xl font-bold text-[#A6E3E9] mb-4">
+            <motion.h1 
+              className="text-4xl md:text-5xl font-bold text-[#A6E3E9] mb-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+            >
               Our Services at Four Paws Veterinary Clinic
-            </h1>
-            <p className="text-lg text-gray-200 max-w-2xl mx-auto">
+            </motion.h1>
+            <motion.p 
+              className="text-lg text-gray-200 max-w-2xl mx-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+            >
               Compassionate care for your beloved pets since 2021
-            </p>
+            </motion.p>
           </div>
-        </div>
+        </motion.div>
+        
         {/* Services Grid */}
-        <div className="container mx-auto px-4 py-20">
+        <motion.div 
+          className="container mx-auto px-4 py-20"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {services.map((service, index) => (
-              <div
+              <motion.div
                 key={index}
-                className="bg-gradient-to-b from-[#A6E3E9] via-[#71C9CE] to-[#A6E3E9]  rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
+                className="bg-gradient-to-b from-[#A6E3E9] via-[#71C9CE] to-[#A6E3E9] rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
+                variants={itemVariants}
+                whileHover={{ 
+                  y: -10,
+                  scale: 1.03,
+                  boxShadow: "0 20px 30px rgba(0,0,0,0.2)"
+                }}
               >
                 <div
                   className="h-48 bg-cover bg-center"
                   style={{ backgroundImage: `url(${service.image})` }}
                 ></div>
                 <div className="p-6">
-                  <div className="flex items-center justify-center w-16 h-16 mb-4 rounded-full bg-[#028478] bg-opacity-10 mx-auto">
+                  <motion.div 
+                    className="flex items-center justify-center w-16 h-16 mb-4 rounded-full bg-[#028478] bg-opacity-10 mx-auto"
+                    variants={floatVariants}
+                    animate="float"
+                  >
                     {service.icon}
-                  </div>
+                  </motion.div>
                   <h3 className="text-xl font-bold text-center text-[#028478] mb-3">
                     {service.title}
                   </h3>
@@ -76,13 +149,13 @@ function Ourservices() {
                     {service.description}
                   </p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
       <Footer />
-    </div>
+    </motion.div>
   );
 }
 
