@@ -15,13 +15,15 @@ import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import Appointment from "./Pages/Appointment";
 import AppointmentLanding from "./Pages/AppointmentLanding";
+
 //import MobileAssistantDoctor from "./Pages/MobileAssistantDoctor";
 
+import Delete from "./Pages/Delete";
+import Deactivate from "./Pages/Deactivate";
+import Passwordchange from "./Pages/Passwordchange";
+
+
 import Mobileservice from "./Pages/MobileService";
-
-
-// Records Pages
-
 
 //import Adlogin from "./Admin/Pages/Adlogin";
 
@@ -32,7 +34,7 @@ import MobileService from "./Pages/MobileService";
 import SearchRecords from "./Pages/SearchRecords";
 import PetRecordPDF from "./Pages/PetRecordPDF";
 import AllRecords from "./Pages/AllRecords";
-import RecordEdit from "./Pages/RecordEdit";
+//import RecordEdit from "./Pages/RecordEdit";
 import RecordNew from "./Pages/RecordNew";
 
 // Admin Pages
@@ -78,6 +80,9 @@ const App = () => {
         <Route path="/Adlogin" element={<Adlogin />} />
         <Route path="/mobileservice" element={<Mobileservice />} />
         <Route path="/unauth" element={<Unauth />} />
+        <Route path="/Delete" element={<Delete />} />
+        <Route path="/Deactivate" element={<Deactivate />} />
+        <Route path="/Passwordchange" element={<Passwordchange />} />
 
         {/* Mobile Assistant Doctor Route */}
         {/* <Route 
@@ -97,7 +102,6 @@ const App = () => {
 
         <Route path="/recordselection" element={<PetRecordPDF />} />
         <Route path="/recordsNew" element={<AllRecords />} />
-        <Route path="/records/edit/:id" element={<RecordEdit />} />
         <Route path="/records/new" element={<RecordNew />} />
 
         <Route path="/search" element={<SearchRecords />} />

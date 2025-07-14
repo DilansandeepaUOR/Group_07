@@ -2,21 +2,21 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaSearch, FaFilter, FaTimes } from 'react-icons/fa';
 
-const VaccineSent = () => {
-    // --- Existing and New State ---
-    const [allNotifications, setAllNotifications] = useState([]); // Master list of all notifications
-    const [notifications, setNotifications] = useState([]); // List of notifications to display (can be filtered)
+const DewormingSent = () => {
+    // --- State Management ---
+    const [allNotifications, setAllNotifications] = useState([]);
+    const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
-    // State for Search and Filters
+    // --- State for Search and Filters ---
     const [searchTerm, setSearchTerm] = useState('');
     const [filters, setFilters] = useState({ year: '', month: '', date: '' });
     const [years, setYears] = useState([]);
     const [showFilters, setShowFilters] = useState(false);
     const [isFiltered, setIsFiltered] = useState(false);
     
-    // State for Pagination
+    // --- State for Pagination ---
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
 
@@ -28,17 +28,17 @@ const VaccineSent = () => {
     const fetchNotifications = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:3001/api/notifications/notification-history');
+            const response = await axios.get('http://localhost:3001/api/deworming-notifications/deworming-notification-history');
             const data = response.data;
-            setAllNotifications(data); // Store the master list
-            setNotifications(data);     // Set the initial list to display
+            setAllNotifications(data);
+            setNotifications(data);
 
-            // Derive unique years from the data for the filter dropdown
             const uniqueYears = [...new Set(data.map(item => new Date(item.sent_date).getFullYear()))];
-            setYears(uniqueYears.sort((a, b) => b - a)); // Sort years descending
+            setYears(uniqueYears.sort((a, b) => b - a));
 
         } catch (error) {
-            console.error('Error fetching notifications:', error);
+            console.error('Error fetching deworming notifications:', error);
+            setNotifications([]); 
         } finally {
             setLoading(false);
         }
@@ -48,7 +48,6 @@ const VaccineSent = () => {
     const applyFilters = () => {
         let filteredData = [...allNotifications];
 
-        // Apply search term filter
         if (searchTerm) {
             filteredData = filteredData.filter(item =>
                 item.Pet_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -56,7 +55,6 @@ const VaccineSent = () => {
             );
         }
 
-        // Apply date filters
         if (filters.year) {
             filteredData = filteredData.filter(item => new Date(item.sent_date).getFullYear() === parseInt(filters.year));
         }
@@ -69,7 +67,7 @@ const VaccineSent = () => {
 
         setNotifications(filteredData);
         setIsFiltered(true);
-        setCurrentPage(1); // Reset to first page after filtering
+        setCurrentPage(1);
     };
 
     const handleFilterSubmit = (e) => {
@@ -80,7 +78,7 @@ const VaccineSent = () => {
     const clearAllFilters = () => {
         setSearchTerm('');
         setFilters({ year: '', month: '', date: '' });
-        setNotifications(allNotifications); // Reset to the original full list
+        setNotifications(allNotifications);
         setIsFiltered(false);
         setCurrentPage(1);
     };
@@ -93,12 +91,13 @@ const VaccineSent = () => {
     const handleRefresh = async () => {
         setIsRefreshing(true);
         try {
-            await axios.post('http://localhost:3001/api/notifications/trigger-notifications');
-            await fetchNotifications(); // Refetches and resets filters
-            clearAllFilters(); // Clear any active filters
+            await axios.post('http://localhost:3001/api/deworming-notifications/trigger-deworming-notifications-dogs');
+            await axios.post('http://localhost:3001/api/cat-deworming-notifications/trigger-deworming-notifications-cats');
+            await fetchNotifications();
+            clearAllFilters();
         } catch (error) {
             console.error('Error during refresh:', error);
-            alert('Failed to refresh notifications.');
+            alert('Failed to refresh deworming notifications.');
         } finally {
             setIsRefreshing(false);
         }
@@ -158,7 +157,6 @@ const VaccineSent = () => {
                                     <FaSearch /> Search
                                 </span>
                             )}
-                            
                             <button 
                                 onClick={() => setShowFilters(!showFilters)} 
                                 className="cursor-pointer flex items-center gap-2 bg-white border px-4 py-2 rounded-md hover:bg-gray-100"
@@ -203,7 +201,7 @@ const VaccineSent = () => {
                     <div className="text-center py-12"><div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div></div>
                 ) : notifications.length === 0 ? (
                     <div className="text-center py-12 bg-gray-50 rounded-lg">
-                        <p className="mt-2 text-gray-600">{isFiltered ? "No notifications match your filters." : "No notifications found."}</p>
+                        <p className="mt-2 text-gray-600">{isFiltered ? "No notifications match your filters." : "No deworming notifications have been sent yet."}</p>
                     </div>
                 ) : (
                     <>
@@ -212,7 +210,7 @@ const VaccineSent = () => {
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pet Name</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Owner</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vaccine</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Deworming Task</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sent Date</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                                 </tr>
@@ -222,7 +220,7 @@ const VaccineSent = () => {
                                     <tr key={notification.notification_id} className="hover:bg-gray-50">
                                         <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{notification.Pet_name}</td>
                                         <td className="px-6 py-4 whitespace-nowrap">{notification.Owner_name}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">{notification.template_name}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">{notification.deworm_name}</td>
                                         <td className="px-6 py-4 whitespace-nowrap">{formatDate(notification.sent_date)}</td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`px-6 inline-flex text-md leading-5 font-semibold rounded-full ${
@@ -264,4 +262,4 @@ const VaccineSent = () => {
     );
 };
 
-export default VaccineSent;
+export default DewormingSent;

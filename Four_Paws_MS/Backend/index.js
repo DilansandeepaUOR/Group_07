@@ -11,7 +11,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Fix the path to NotificationService
+// Path to NotificationService
 const { router: notificationRouter } = require('./routes/Records/NotificationService');
 app.use('/api/notifications', notificationRouter);
 const { dailyNotificationCheck } = require('./routes/Records/NotificationService');
@@ -21,9 +21,6 @@ dailyNotificationCheck();
 const appointmentRoutes = require('./routes/Appointment/appointment');
 app.use('/appointments', appointmentRoutes);
 
-//user authentications
-const recordEntryRoutes = require('./routes/RecordEntry/recordHandle');
-app.use('/record', recordEntryRoutes);
 
 const registerRoutes =require('./routes/Userinformations/petownerregister');
 app.use('/api/registerform', registerRoutes);
@@ -80,9 +77,16 @@ app.use('/contact', contactInfoRoutes);
 const recordRoutes = require('./routes/Records/RecordSelection');
 app.use('/api', recordRoutes);
 
+//Deworm Notifications
+const dogdewormingNotificationService = require('./routes/Records/DogsDewormingNotificationService');
+app.use('/api/deworming-notifications', dogdewormingNotificationService.router);
+const catdewormingNotificationService = require('./routes/Records/CatsDewormingNotificationService');
+app.use('/api/cat-deworming-notifications', catdewormingNotificationService.router);
+
 //Mobile Service Section
 const mobileserviceRoutes =require('./routes/Appointment/mobileservice');
 app.use('/api/mobileservice', mobileserviceRoutes);
+
 
 //Appointments Service Section
 const appointmenteserviceRoutes =require('./routes/Appointment/Services');
@@ -91,6 +95,7 @@ app.use('/api/Appointment/services', appointmenteserviceRoutes);
 //Appointments Time Section
 const appointmentManageTimeRoutes =require('./routes/Appointment/Timemanagement');
 app.use('/api/appointments/managetime', appointmentManageTimeRoutes);
+
 
 app.get('/api/test-route', (req, res) => {
   res.json({ message: "Test route works!" });

@@ -33,6 +33,7 @@
     "nodemailer": "^6.10.1",
     "qrcode": "^1.5.4",
     "react-hot-toast": "^2.5.2",
+    "react-toastify": "^11.0.5",
     "rout": "^1.0.1",
     "route": "^0.2.5",
     "soap": "^1.1.11",
