@@ -303,7 +303,7 @@ router.post("/addpet", async (req, res) => {
           return res.status(404).json({ error: "Pet not found" });
         }
 
-        res.status(200).json({ message: "Pet added successfully DB" });
+        res.status(200).json({ message: "Pet added successfully" });
       }
     );
   } catch (error) {
@@ -362,7 +362,7 @@ router.put("/updatepets/:ownerid/:petid", async (req, res) => {
           return res.status(404).json({ error: "Pet not found" });
         }
 
-        res.status(200).json({ message: "User updated successfully DB" });
+        res.status(200).json({ message: "User updated successfully" });
       }
     );
   } catch (error) {
