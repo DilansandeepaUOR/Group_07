@@ -36,7 +36,7 @@ function Profilearea() {
           setPro_pic(dp); // fallback to default profile picture
         });
     }
-  }, [user]); 
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -59,9 +59,7 @@ function Profilearea() {
       >
         {/* Profile Picture */}
         <img
-          src={
-            `http://localhost:3001${pro_pic?.Pro_pic}` || dp
-          }
+          src={`http://localhost:3001${pro_pic?.Pro_pic}` || dp}
           alt={user?.name}
           className="w-10 h-10 rounded-full border border-[#028478] hover:border-gray-900"
           onError={(e) => {
@@ -96,9 +94,12 @@ function Profilearea() {
                 Profile
               </li>
             </Link>
-            <li className="block px-4 py-2 text-sm text-gray-100 hover:bg-[#69cac2] cursor-pointer">
-              Settings
-            </li>
+            <Link to={"/appointmentlanding"}>
+              <li className="block px-4 py-2 text-sm text-gray-100 hover:bg-[#69cac2] cursor-pointer">
+                My Appointments
+              </li>
+            </Link>
+
             <a href="/">
               <li
                 className="block px-4 py-2 text-sm text-gray-100 hover:bg-[#69cac2] "

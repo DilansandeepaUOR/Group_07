@@ -329,6 +329,23 @@ const UserForm = ({ closeForm, editingUser, refreshUsers }) => {
               required
             />
           </div>
+          <div>
+            {!editingUser && (
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="Password"
+                className="p-2 border rounded-md col-span-2"
+                onChange={handleChange}
+                value={formData.confirmPassword}
+                required
+              />
+            )}
+          </div>
+
+          <div></div>
+          <div><h2>--------------------------------</h2></div>
+          <div><h2>Pet Details--------------</h2></div>
 
           <div>
             {editingUser && (
@@ -368,11 +385,11 @@ const UserForm = ({ closeForm, editingUser, refreshUsers }) => {
           </div>
 
           <div>
-            {editingUser && (
+            
               <label className="flex font-bold" htmlFor="Product Description">
                 Pet DOB
               </label>
-            )}
+            
             <input
               type="date"
               name="Pet_dob"
@@ -425,21 +442,9 @@ const UserForm = ({ closeForm, editingUser, refreshUsers }) => {
             </div>
           )}
 
-          <div>
-            {!editingUser && (
-              <input
-                type="password"
-                name="confirmPassword"
-                placeholder="Password"
-                className="p-2 border rounded-md col-span-2"
-                onChange={handleChange}
-                value={formData.confirmPassword}
-                required
-              />
-            )}
-          </div>
+          
 
-          <div className="col-span-2 flex items-center">
+          {/* <div className="col-span-2 flex items-center">
             <FaCamera className="mr-2 text-gray-500" />
             <input
               type="file"
@@ -448,7 +453,7 @@ const UserForm = ({ closeForm, editingUser, refreshUsers }) => {
               className="p-2 border rounded-md"
               onChange={handleChange}
             />
-          </div>
+          </div> */}
 
           <Button
             type="submit"
