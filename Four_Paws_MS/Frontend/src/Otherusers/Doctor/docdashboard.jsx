@@ -46,7 +46,7 @@ const SuccessPopup = ({ title, message, onClose }) => (
 
 
 const DoctorDashboard = () => {
-  const [activeTab, setActiveTab] = useState("medications");
+  const [activeTab, setActiveTab] = useState('medications');
   const [doctor, setDoctor] = useState(null);
   const [editingRecordId, setEditingRecordId] = useState(null);
   // ADDED: State to control the deworming success popup
@@ -104,16 +104,7 @@ const DoctorDashboard = () => {
           />
         );
       default:
-        return (
-          <div>
-            <h2 className="text-2xl font-semibold text-[#028478]">
-              Welcome to the Doctor Dashboard
-            </h2>
-            <p className="mt-4">
-              Please select a section from the sidebar to get started.
-            </p>
-          </div>
-        );
+        return null;
     }
   };
 

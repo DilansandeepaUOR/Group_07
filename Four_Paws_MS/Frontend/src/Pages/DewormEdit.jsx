@@ -126,7 +126,8 @@ const DewormEdit = ({ id, onCancel }) => {
                     <label htmlFor="weight" className="block text-gray-700 font-bold mb-2">Weight (kg)</label>
                     <input
                         type="number"
-                        step="1"
+                        min="0.01"
+                        step="0.01"
                         id="weight"
                         name="weight"
                         value={record.weight}
