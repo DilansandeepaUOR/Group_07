@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Edit, Trash2, Save, X, Check } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, Check, Settings } from 'lucide-react';
 import { message } from 'antd';
 import ConfirmDialog from '../../Components/ui/ConfirmDialog';
 import RefreshButton from '../../Components/ui/RefreshButton';
@@ -227,7 +227,10 @@ const ServiceManagement = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-        <h1 className="text-2xl font-bold text-[#028478]">Service Management</h1>
+        <div className="flex items-center gap-2">
+          <Settings className="w-6 h-6 text-[#028478]" />
+          <h1 className="text-2xl font-bold text-[#028478]">Service Management</h1>
+        </div>
         <button
           onClick={handleAddService}
           className="flex items-center gap-2 bg-[#028478] text-white px-4 py-2 rounded-md hover:bg-[#046a5b] transition-colors"

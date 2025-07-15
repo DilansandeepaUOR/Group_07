@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Edit, Trash2, Save, Plus, X } from 'lucide-react';
+import { Edit, Trash2, Save, Plus, X, Clock } from 'lucide-react';
 import { message, Switch } from 'antd';
 import ConfirmDialog from '../../Components/ui/ConfirmDialog';
 import {convertTimeFormat} from "../../Components/Appointment/utils";
@@ -99,7 +99,10 @@ const ServiceTimeManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-        <h1 className="text-2xl font-bold text-[#028478]">Service Time Management</h1>
+        <div className="flex items-center gap-2">
+          <Clock className="w-6 h-6 text-[#028478]" />
+          <h1 className="text-2xl font-bold text-[#028478]">Service Time Management</h1>
+        </div>
         <button
           onClick={handleAdd}
           className="flex items-center gap-2 bg-[#028478] text-white px-4 py-2 rounded-md hover:bg-[#046a5b] transition-colors"
