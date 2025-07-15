@@ -6,6 +6,7 @@ import {
   FaSignOutAlt,
   FaDog,
   FaCogs,
+  FaMobileAlt,
 } from "react-icons/fa";
 import axios from "axios";
 import dp from "../../../src/assets/paw_vector.png";
@@ -23,6 +24,8 @@ const DewormNotify = lazy(() => import("../../Pages/DewormNotify"));
 const DewormNotifications = lazy(() => import("../../Pages/DewormingSent"));
 const ServiceManagement = lazy(() => import("../Services/serviceManagement"));
 const ServiceTimeManagement = lazy(() => import("../Services/ServiceTimeManagement"));
+const Appointments = lazy(() => import("../Services/appointments"));
+const MobileService = lazy(() => import("../Services/mobileService"));
 
 // --- Icon for Success Popup ---
 const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-16 w-16 text-green-500 mx-auto"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>;
@@ -49,7 +52,7 @@ const SuccessPopup = ({ title, message, onClose }) => (
 
 
 const DoctorDashboard = () => {
-  const [activeTab, setActiveTab] = useState('medications');
+  const [activeTab, setActiveTab] = useState('appointments');
   const [doctor, setDoctor] = useState(null);
   const [editingRecordId, setEditingRecordId] = useState(null);
   // ADDED: State to control the deworming success popup
@@ -94,6 +97,8 @@ const DoctorDashboard = () => {
     switch (activeTab) {
       case "appointments":
         return <AppointmentsSection />;
+      case "mobile":
+        return <MobileServiceSection />;
       case "deworming":
         // MODIFIED: Pass a handler to show the success popup
         return <DewormingSection onRecordSaved={() => setShowDewormSuccess(true)} />;
@@ -144,9 +149,24 @@ const DoctorDashboard = () => {
                     setActiveTab("appointments");
                     setEditingRecordId(null);
                   }}
-                  className="cursor-pointer flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
+                  className={`flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer ${
+                    activeTab === "appointments" ? "font-bold text-[#028478]" : ""
+                  }`}
                 >
                   <FaCalendarAlt /> Appointments
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => {
+                    setActiveTab("mobile");
+                    setEditingRecordId(null);
+                  }}
+                  className={`flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer ${
+                    activeTab === "mobile" ? "font-bold text-[#028478]" : ""
+                  }`}
+                >
+                  <FaMobileAlt /> Mobile Service
                 </button>
               </li>
               <li>
@@ -155,7 +175,9 @@ const DoctorDashboard = () => {
                     setActiveTab("deworming");
                     setEditingRecordId(null);
                   }}
-                  className="cursor-pointer flex items-center gap-2 w-full text-left hover:text-gray-700"
+                  className={`flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer ${
+                    activeTab === "deworming" ? "font-bold text-[#028478]" : ""
+                  }`}
                 >
                   <FaDog /> Deworming
                 </button>
@@ -163,7 +185,9 @@ const DoctorDashboard = () => {
               <li>
                 <button
                   onClick={() => setActiveTab("medications")}
-                  className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
+                  className={`flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer ${
+                    activeTab === "medications" ? "font-bold text-[#028478]" : ""
+                  }`}
                 >
                   <FaPills /> Medications
                 </button>
@@ -174,7 +198,9 @@ const DoctorDashboard = () => {
                     setActiveTab("services");
                     setEditingRecordId(null);
                   }}
-                  className="flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer"
+                  className={`flex items-center gap-2 w-full text-left hover:text-gray-700 cursor-pointer ${
+                    activeTab === "services" ? "font-bold text-[#028478]" : ""
+                  }`}
                 >
                   <FaCogs /> Services
                 </button>
@@ -208,7 +234,23 @@ const DoctorDashboard = () => {
 const AppointmentsSection = () => (
   <div>
     <h2 className="text-2xl font-semibold text-[#028478]">Appointments</h2>
-    <p className="mt-4">Appointments area.</p>
+    <div className="mt-4">
+      <Suspense fallback={<div>Loading Appointments...</div>}>
+        <Appointments />
+      </Suspense>
+    </div>
+  </div>
+);
+
+// Mobile Service Section
+const MobileServiceSection = () => (
+  <div>
+    <h2 className="text-2xl font-semibold text-[#028478]">Mobile Service</h2>
+    <div className="mt-4">
+      <Suspense fallback={<div>Loading Mobile Service...</div>}>
+        <MobileService />
+      </Suspense>
+    </div>
   </div>
 );
 
