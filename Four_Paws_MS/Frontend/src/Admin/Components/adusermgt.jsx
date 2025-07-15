@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
+import { data } from "react-router-dom";
+import { message } from "antd";
 
 const AdUserMgt = () => {
   const [users, setUsers] = useState([]);
@@ -195,6 +197,7 @@ const EmployeeRegistrationForm = ({ closeForm, editingUser, refreshUsers }) => {
           "http://localhost:3001/api/adregform/empregister",
           formData
         );
+        message.success("Confirmation email sent for registration.");
       }
       refreshUsers();
       closeForm();

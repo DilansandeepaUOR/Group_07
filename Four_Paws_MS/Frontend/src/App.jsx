@@ -15,10 +15,12 @@ import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import Appointment from "./Pages/Appointment";
 import AppointmentLanding from "./Pages/AppointmentLanding";
+
+//import MobileAssistantDoctor from "./Pages/MobileAssistantDoctor";
+
 import Delete from "./Pages/Delete";
 import Deactivate from "./Pages/Deactivate";
 import Passwordchange from "./Pages/Passwordchange";
-
 
 
 import Mobileservice from "./Pages/MobileService";
@@ -81,6 +83,16 @@ const App = () => {
         <Route path="/Delete" element={<Delete />} />
         <Route path="/Deactivate" element={<Deactivate />} />
         <Route path="/Passwordchange" element={<Passwordchange />} />
+
+        {/* Mobile Assistant Doctor Route */}
+        {/* <Route 
+          path="/mobile/assistant-doctor" 
+          element={
+            <ProtectedRoutes allowedRoles={["Assistant Doctor"]}>
+              <MobileAssistantDoctor />
+            </ProtectedRoutes>
+          } 
+        /> */}
 
         {/* Records Routes */}
         <Route path="/appointment" element={<Appointment />} />

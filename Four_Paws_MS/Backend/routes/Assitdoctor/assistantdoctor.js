@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('../../db');
 const e = require('express');
-
+const calculateAge=require('../Utils/ageCalculator');
+const { formatDate, formatTime} = require('../Utils/dateFormatter');
 // Middleware
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
@@ -118,6 +119,30 @@ router.put('/:id', async (req, res) => {
     res.status(500).json({ error: 'Database update failed', details: error.message });
   }
 });
+
+router.get('/petinfo/:id', async (req,res)=>{
+  const {id}=req.params;
+
+  try{
+    const [row]= await db.promise().query('SELECT * FROM pet WHERE Pet_id=?;',[id]);
+    const pet=row[0];
+    pet.Pet_dob=formatDate(pet.Pet_dob);
+    pet.Pet_age=calculateAge(pet.Pet_dob);
+
+    res.status(200).json({
+      pet
+    });
+
+  }catch(err){
+    res.status(404).json({
+      success:false,
+      message:'No pet found'
+    });
+  }
+})
+
+
+
 
 
 module.exports = router;

@@ -5,7 +5,6 @@ import {
   FaLock,
   FaSignOutAlt,
   FaUser,
-  FaFileMedical,
   FaSave,
   FaEye,
   FaEyeSlash,
@@ -62,6 +61,7 @@ function Profile() {
     confirm: false,
   });
 
+  //set image preview
   const [imagePreview, setImagePreview] = useState(dp);
   const navigate = useNavigate();
 
@@ -339,8 +339,8 @@ function Profile() {
     }
   };
 
+  
   //password change
-
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
@@ -428,15 +428,6 @@ const handleDeleteRequest = async () => {
             }`}
           >
             <FaPaw className="mr-2" /> Add Your Pet
-          </li>
-
-          <li
-            onClick={() => setActiveTab("medical")}
-            className={`flex items-center cursor-pointer hover:text-gray-300 ${
-              activeTab === "medical" ? "font-bold underline" : ""
-            }`}
-          >
-            <FaFileMedical className="mr-2" /> Medical Records
           </li>
 
           <h2 className="text-2xl font-bold mb-6 mt-10 border-b border-white/30 pb-2">
@@ -937,20 +928,6 @@ const handleDeleteRequest = async () => {
                 </button>
               </div>
             </form>
-          )}
-
-          {/* Medical Records Tab */}
-          {activeTab === "medical" && (
-            <div>
-              <h2 className="text-2xl font-bold mb-6">Medical Records</h2>
-              <div className="bg-[#374151] p-4 rounded-lg">
-                {profile?.medicals ? (
-                  <p className="whitespace-pre-line">{profile.medicals}</p>
-                ) : (
-                  <p className="text-gray-400">No medical records available</p>
-                )}
-              </div>
-            </div>
           )}
 
           {/* Deactivate account Tab */}

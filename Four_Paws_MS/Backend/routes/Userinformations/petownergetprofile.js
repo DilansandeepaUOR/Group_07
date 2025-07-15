@@ -31,7 +31,7 @@ router.get("/profile", async (req, res) => {
         [id]
       );
 
-    //console.log("Database results:", results);
+    console.log("Database results:", results);
 
     if (results.length === 0) {
       return res.status(404).json({ error: "user not found" });
@@ -85,8 +85,9 @@ router.put("/update", uploadpropic.single("image"), async (req, res) => {
   }
 });
 
-// Update password
 
+
+// Update password
 router.post("/passwordreset", async (req, res) => {
   const { id1, email, newPassword, currentPassword } = req.body;
 
@@ -302,7 +303,7 @@ router.post("/addpet", async (req, res) => {
           return res.status(404).json({ error: "Pet not found" });
         }
 
-        res.status(200).json({ message: "Pet added successfully DB" });
+        res.status(200).json({ message: "Pet added successfully" });
       }
     );
   } catch (error) {
@@ -361,7 +362,7 @@ router.put("/updatepets/:ownerid/:petid", async (req, res) => {
           return res.status(404).json({ error: "Pet not found" });
         }
 
-        res.status(200).json({ message: "User updated successfully DB" });
+        res.status(200).json({ message: "User updated successfully" });
       }
     );
   } catch (error) {
