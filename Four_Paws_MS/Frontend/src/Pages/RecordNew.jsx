@@ -2,13 +2,39 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaUser, FaPaw, FaCalendarAlt, FaPlus, FaSearch, FaCheck, FaWeightHanging, FaChevronDown } from 'react-icons/fa';
 
+// --- NEW HELPER FUNCTION ---
+// This function contains the logic to map a vaccine name and its count to the correct v_code.
+const getVCode = (vaccineName, count) => {
+  const rules = {
+    'DA2PP': ['d1', 'd2', 'd3', 'dA'],
+    'Leptospirosis': ['l1', 'l2', 'lA'],
+    'Rabies': ['r1', 'rA'],
+    'Bordetella': ['b1', 'bA'],
+    'Lyme': ['y1', 'y2', 'yA'],
+    'Parainfluenza': ['p1'],
+    'Canine Influenza': ['c1', 'c2']
+  };
+
+  const sequence = rules[vaccineName];
+  if (!sequence) return null; // Return null if no rule exists for the vaccine
+
+  // If the pet has had this vaccine more times than we have codes, use the last code in the sequence
+  if (count >= sequence.length) {
+    return sequence[sequence.length - 1];
+  }
+
+  return sequence[count];
+};
+
+
 const RecordNew = ({ onSuccess }) => {
   const [allOwners, setAllOwners] = useState([]);
   const [filteredOwners, setFilteredOwners] = useState([]);
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState({
     owners: true,
-    pets: false
+    pets: false,
+    v_code: false, // --- NEW: Add loading state for v_code calculation
   });
   
   const [formData, setFormData] = useState({
@@ -22,6 +48,7 @@ const RecordNew = ({ onSuccess }) => {
     lifestyleVaccine: '',
     otherVaccine: '',
     other: '',
+    v_code: null, // --- NEW: Add v_code to your form data state
   });
 
   const [activeSections, setActiveSections] = useState({
@@ -130,6 +157,47 @@ const RecordNew = ({ onSuccess }) => {
     }
   }, [formData.ownerId, allOwners]);
 
+  // --- NEW useEffect HOOK ---
+  // This effect runs whenever the selected pet or vaccine changes.
+  // It calls the new backend endpoint to get the vaccination count and sets the v_code.
+  useEffect(() => {
+    const fetchVaccineCountAndSetCode = async () => {
+      // Determine which vaccine is currently selected
+      const selectedVaccine = formData.coreVaccine || formData.lifestyleVaccine;
+
+      // Only proceed if a pet and a vaccine are selected inside the active vaccination section
+      if (formData.petId && activeSections.vaccination && selectedVaccine) {
+        setLoading(prev => ({ ...prev, v_code: true }));
+        try {
+          const response = await axios.post('http://localhost:3001/api/vaccine-history-count', {
+            petId: formData.petId,
+            vaccineName: selectedVaccine,
+          });
+
+          if (response.data.success) {
+            const count = response.data.count;
+            const calculatedVCode = getVCode(selectedVaccine, count);
+            setFormData(prev => ({ ...prev, v_code: calculatedVCode }));
+          }
+        } catch (error) {
+          console.error('Error fetching vaccine count:', error);
+          // Optionally, set an error message for the user
+          setErrors(prev => ({ ...prev, vaccination: "Could not verify vaccine history." }));
+        } finally {
+          setLoading(prev => ({ ...prev, v_code: false }));
+        }
+      } else {
+        // Reset v_code if no pet/vaccine is selected or section is inactive
+        if (formData.v_code !== null) {
+          setFormData(prev => ({ ...prev, v_code: null }));
+        }
+      }
+    };
+
+    fetchVaccineCountAndSetCode();
+  }, [formData.petId, formData.coreVaccine, formData.lifestyleVaccine, activeSections.vaccination]);
+
+
   const filteredPets = pets.filter(pet =>
     pet.Pet_name.toLowerCase().includes(petSearchTerm.toLowerCase()) ||
     pet.Pet_type.toLowerCase().includes(petSearchTerm.toLowerCase())
@@ -138,6 +206,16 @@ const RecordNew = ({ onSuccess }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     let newErrors = { ...errors };
+
+    // When vaccine type (core/lifestyle) is changed, reset the specific vaccine choice
+    if (name === 'vaccineType') {
+        setFormData(prev => ({
+            ...prev,
+            coreVaccine: '',
+            lifestyleVaccine: '',
+            v_code: null,
+        }));
+    }
 
     if (name === 'date') {
       if (value > getTodayDateString()) {
@@ -189,9 +267,12 @@ const RecordNew = ({ onSuccess }) => {
         if (activeSections.otherNotes && !formData.other) newErrors.other = "Other notes are required";
 
         if (activeSections.vaccination) {
+          const selectedVaccine = formData.coreVaccine || formData.lifestyleVaccine;
           if (!formData.vaccineType) newErrors.vaccination = 'Please select a vaccine type';
-          else if (formData.vaccineType === 'core' && !formData.coreVaccine) newErrors.vaccination = 'Please select a core vaccine';
-          else if (formData.vaccineType === 'lifestyle' && !formData.lifestyleVaccine) newErrors.vaccination = 'Please select a lifestyle vaccine';
+          else if (!selectedVaccine) newErrors.vaccination = 'Please select a specific vaccine';
+          
+          // --- NEW: Validate that v_code has been calculated ---
+          else if (!formData.v_code) newErrors.vaccination = "Verifying vaccine history... please wait.";
         }
     }
     
@@ -208,9 +289,9 @@ const RecordNew = ({ onSuccess }) => {
     if (activeSections.surgery && !formData.surgery) return true;
     if (activeSections.otherNotes && !formData.other) return true;
     if (activeSections.vaccination) {
-        if (!formData.vaccineType) return true;
-        if (formData.vaccineType === 'core' && !formData.coreVaccine) return true;
-        if (formData.vaccineType === 'lifestyle' && !formData.lifestyleVaccine) return true;
+        if (!formData.vaccineType || !(formData.coreVaccine || formData.lifestyleVaccine) || !formData.v_code) {
+          return true;
+        }
     }
     
     return false;
@@ -225,6 +306,7 @@ const handleSubmit = async (e) => {
   setSuccessMessage('');
   
   try {
+    // --- MODIFIED: Include v_code in the payload ---
     const payload = {
       ownerId: formData.ownerId,
       petId: formData.petId,
@@ -233,28 +315,31 @@ const handleSubmit = async (e) => {
       surgery: activeSections.surgery ? formData.surgery : null,
       other: activeSections.otherNotes ? formData.other : null,
       vaccineType: null,
-      coreVaccine: null,
-      lifestyleVaccine: null,
+      vaccineName: null, // Sending one field for the vaccine name
       otherVaccine: null,
+      v_code: null,      // This will hold our special code
     };
 
     if (activeSections.vaccination && formData.vaccineType) {
       payload.vaccineType = formData.vaccineType;
-      payload.coreVaccine = formData.vaccineType === 'core' ? formData.coreVaccine : null;
-      payload.lifestyleVaccine = formData.vaccineType === 'lifestyle' ? formData.lifestyleVaccine : null;
+      payload.vaccineName = formData.coreVaccine || formData.lifestyleVaccine;
       payload.otherVaccine = formData.otherVaccine || null;
+      payload.v_code = formData.v_code; // Add the calculated v_code to the payload
     }
     
+    // Note: The backend endpoint /api/records must be updated to accept and save
+    // `vaccineName` and `v_code` into your `vaccination` table.
     const response = await axios.post('http://localhost:3001/api/records', payload);
     
     if (response.data.success) {
       if (onSuccess) {
           onSuccess();
       }
+      // --- MODIFIED: Reset v_code on success ---
       setFormData({
         ownerId: '', petId: '', date: getTodayDateString(), weight: '',
         surgery: '', vaccineType: '', coreVaccine: '', lifestyleVaccine: '',
-        otherVaccine: '', other: '',
+        otherVaccine: '', other: '', v_code: null,
       });
       setActiveSections({ surgery: false, vaccination: false, otherNotes: false });
       setSelectedOwner(null);
@@ -271,10 +356,11 @@ const handleSubmit = async (e) => {
 };
 
 const handleCancel = () => {
+  // --- MODIFIED: Reset v_code on cancel ---
   setFormData({
     ownerId: '', petId: '', date: getTodayDateString(), weight: '',
     surgery: '', vaccineType: '', coreVaccine: '', lifestyleVaccine: '',
-    otherVaccine: '', other: '',
+    otherVaccine: '', other: '', v_code: null,
   });
   setActiveSections({ surgery: false, vaccination: false, otherNotes: false });
   setOwnerSearchTerm("");
@@ -299,6 +385,7 @@ return (
         )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Owner and Pet selection (no changes here) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -374,6 +461,7 @@ return (
               {errors.petId && <p className="mt-1 text-sm text-red-600">{errors.petId}</p>}
             </div>
           </div>
+          {/* Date and Weight (no changes here) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2"><FaCalendarAlt className="inline mr-2" /> Date</label>
@@ -393,6 +481,7 @@ return (
           </div>
             
             <div className="space-y-4 pt-6 border-t border-gray-200">
+               {/* Surgery Section (no changes here) */}
                <div className={`border rounded-md ${activeSections.surgery ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-300'}`}>
                   <div className="flex justify-between items-center cursor-pointer p-4" onClick={() => toggleSection('surgery')}>
                     <h3 className="text-lg font-medium text-gray-800">Surgery Details</h3>
@@ -409,6 +498,7 @@ return (
                   )}
                 </div>
 
+                {/* Vaccination Section (MODIFIED) */}
                 <div className={`border rounded-md ${activeSections.vaccination ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-300'}`}>
                   <div className="flex justify-between items-center cursor-pointer p-4" onClick={() => toggleSection('vaccination')}>
                     <h3 className="text-lg font-medium text-gray-800">Vaccination Details</h3>
@@ -416,20 +506,6 @@ return (
                   </div>
                   {activeSections.vaccination && (
                      <div className="space-y-4 p-4 border-t border-gray-200">
-                        {/* **FIXED: VACCINATION FIELDS ARE NOW VISIBLE** */}
-                        {formData.petId && (
-                            <div className="bg-blue-50 p-3 rounded-md">
-                                <p className="text-sm text-blue-800">Pet Age: {(() => {
-                                    const selectedPet = pets.find(p => p.Pet_id == formData.petId);
-                                    if (!selectedPet || !selectedPet.Pet_dob) return 'Unknown';
-                                    const dob = new Date(selectedPet.Pet_dob);
-                                    const ageInDays = (new Date() - dob) / (1000 * 60 * 60 * 24);
-                                    if (ageInDays < 365) return `${Math.floor(ageInDays / 7)} weeks`;
-                                    return `${Math.floor(ageInDays / 365)} years`;
-                                })()}
-                                </p>
-                            </div>
-                        )}
                         <div>
                           <label className="block text-xs font-medium text-gray-500 mb-1">Vaccine Type</label>
                           <select name="vaccineType" value={formData.vaccineType} onChange={handleChange} className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
@@ -470,6 +546,7 @@ return (
                   )}
                 </div>
 
+                {/* Other Notes Section (no changes here) */}
                 <div className={`border rounded-md ${activeSections.otherNotes ? 'border-yellow-500 ring-1 ring-yellow-500' : 'border-gray-300'}`}>
                   <div className="flex justify-between items-center cursor-pointer p-4" onClick={() => toggleSection('otherNotes')}>
                     <h3 className="text-lg font-medium text-gray-800">Other Notes</h3>
@@ -489,6 +566,7 @@ return (
 
             {errors.details && <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">{errors.details}</div>}
 
+          {/* Form Actions (no changes here, logic is updated in functions) */}
           <div className="pt-4 flex flex-col sm:flex-row-reverse gap-4">
               <button type="submit" disabled={submitLoading || isFormIncomplete()}
                 className="cursor-pointer flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"

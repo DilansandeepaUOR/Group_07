@@ -510,24 +510,26 @@ router.post('/records', async (req, res) => {
     let vaccinationId = null;
     
     // Handle vaccination if provided
-    if (req.body.vaccineType) {
+    // This now checks for 'vaccineName' which is sent from the updated frontend.
+    if (req.body.vaccineName) {
       const vaccResult = await query(
+        // CHANGED: Added 'v_code' to the list of columns to insert.
         `INSERT INTO vaccination 
-         (pet_id, vaccine_type, vaccine_name, other_vaccine, vaccination_date, notes)
-         VALUES (?, ?, ?, ?, ?, ?)`,
+          (pet_id, vaccine_type, vaccine_name, other_vaccine, vaccination_date, v_code)
+         VALUES (?, ?, ?, ?, ?, ?)`, // CHANGED: Added a placeholder for v_code
         [
           req.body.petId,
           req.body.vaccineType,
-          req.body.vaccineType === 'core' ? req.body.coreVaccine : req.body.lifestyleVaccine,
+          req.body.vaccineName, // CHANGED: Using the simplified 'vaccineName' field from the request
           req.body.otherVaccine || null,
           req.body.date,
-          req.body.other || null
+          req.body.v_code // ADDED: Passing the v_code from the request body to the query
         ]
       );
       vaccinationId = vaccResult.insertId;
     }
 
-    // Create the record
+    // Create the record (No changes needed in this part)
     const recordResult = await query(
       `INSERT INTO record 
        (Pet_id, Owner_id, date, weight, surgery, other, vaccination_id)
@@ -884,5 +886,41 @@ router.put("/cat-templates/:id", (req, res) => {
   });
 });
 
+
+// Endpoint to get vaccine history count for v_code
+router.post('/vaccine-history-count', async (req, res) => {
+  const { petId, vaccineName } = req.body;
+
+  if (!petId || !vaccineName) {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'Pet ID and vaccine name are required.' 
+    });
+  }
+
+  try {
+    // This query assumes you have a 'vaccination' table with these columns.
+    // Adjust table and column names if they are different in your schema.
+    const sql = `
+      SELECT COUNT(*) as count 
+      FROM vaccination 
+      WHERE pet_id = ? AND vaccine_name = ?`;
+      
+    const results = await query(sql, [petId, vaccineName]);
+    
+    // The query returns an array with one object, e.g., [{ count: 2 }]
+    const count = results[0].count;
+    
+    res.json({ success: true, count });
+
+  } catch (error) {
+    console.error('Error fetching vaccine count:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to fetch vaccine history.',
+      details: error.message
+    });
+  }
+});
 
 module.exports = router;

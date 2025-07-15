@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FaSearch, FaFilter, FaTimes } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaTimes, FaDog, FaCat } from 'react-icons/fa';
+import { Button, Space } from 'antd';
+
 
 const DewormingSent = () => {
     // --- State Management ---
@@ -8,6 +10,8 @@ const DewormingSent = () => {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [animalType, setAnimalType] = useState('dog'); // 'dog' or 'cat'
+
 
     // --- State for Search and Filters ---
     const [searchTerm, setSearchTerm] = useState('');
@@ -15,38 +19,52 @@ const DewormingSent = () => {
     const [years, setYears] = useState([]);
     const [showFilters, setShowFilters] = useState(false);
     const [isFiltered, setIsFiltered] = useState(false);
-    
+
+
     // --- State for Pagination ---
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
 
+
     // --- Data Fetching and Processing ---
     useEffect(() => {
         fetchNotifications();
-    }, []);
+    }, [animalType]);
+
 
     const fetchNotifications = async () => {
         setLoading(true);
+        // Determine the correct static endpoint based on the animalType state
+        const endpoint = animalType === 'dog' ? 'deworming-notifications/deworming-notification-history' : 'cat-deworming-notifications/deworming-notification-history';
+        const url = `http://localhost:3001/api/${endpoint}`;
+
+
         try {
-            const response = await axios.get('http://localhost:3001/api/deworming-notifications/deworming-notification-history');
+            const response = await axios.get(url);
+
+
             const data = response.data;
             setAllNotifications(data);
             setNotifications(data);
 
+
             const uniqueYears = [...new Set(data.map(item => new Date(item.sent_date).getFullYear()))];
             setYears(uniqueYears.sort((a, b) => b - a));
 
+
         } catch (error) {
             console.error('Error fetching deworming notifications:', error);
-            setNotifications([]); 
+            setNotifications([]);
         } finally {
             setLoading(false);
         }
     };
 
+
     // --- Search and Filter Logic ---
     const applyFilters = () => {
         let filteredData = [...allNotifications];
+
 
         if (searchTerm) {
             filteredData = filteredData.filter(item =>
@@ -54,6 +72,7 @@ const DewormingSent = () => {
                 item.Owner_name.toLowerCase().includes(searchTerm.toLowerCase())
             );
         }
+
 
         if (filters.year) {
             filteredData = filteredData.filter(item => new Date(item.sent_date).getFullYear() === parseInt(filters.year));
@@ -65,15 +84,18 @@ const DewormingSent = () => {
             filteredData = filteredData.filter(item => item.sent_date.split('T')[0] === filters.date);
         }
 
+
         setNotifications(filteredData);
         setIsFiltered(true);
         setCurrentPage(1);
     };
 
+
     const handleFilterSubmit = (e) => {
         e.preventDefault();
         applyFilters();
     };
+
 
     const clearAllFilters = () => {
         setSearchTerm('');
@@ -83,10 +105,12 @@ const DewormingSent = () => {
         setCurrentPage(1);
     };
 
+
     const handleFilterChange = (e) => {
       const { name, value } = e.target;
       setFilters(prev => ({ ...prev, [name]: value }));
     };
+
 
     const handleRefresh = async () => {
         setIsRefreshing(true);
@@ -103,9 +127,11 @@ const DewormingSent = () => {
         }
     };
 
+
     // --- Helper constants and functions ---
     const months = Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: new Date(0, i).toLocaleString('en', { month: 'long' }) }));
     const formatDate = (dateString) => new Date(dateString).toLocaleDateString('en-US');
+
 
     // --- Pagination Logic ---
     const indexOfLastRow = currentPage * rowsPerPage;
@@ -113,8 +139,10 @@ const DewormingSent = () => {
     const currentRows = notifications.slice(indexOfFirstRow, indexOfLastRow);
     const totalPages = Math.ceil(notifications.length / rowsPerPage);
 
+
     const goToPrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
     const goToNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
+
 
     return (
         <div className="p-6 max-w-7xl mx-auto">
@@ -125,17 +153,18 @@ const DewormingSent = () => {
                 </button>
             </div>
 
+
             {/* --- Filter and Search Section --- */}
             <div className="mb-6 bg-gray-50 p-4 rounded-lg">
                 <div className="flex flex-col md:flex-row gap-4 items-center">
                     <div className="relative flex-grow w-full">
                         <FaSearch className="text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                        <input 
-                            type="text" 
-                            placeholder="Search by owner or pet name..." 
-                            value={searchTerm} 
-                            onChange={(e) => setSearchTerm(e.target.value)} 
-                            onKeyPress={(e) => e.key === 'Enter' && applyFilters()} 
+                        <input
+                            type="text"
+                            placeholder="Search by owner or pet name..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && applyFilters()}
                             className="pl-10 pr-10 w-full p-2 border rounded-md"
                         />
                         {searchTerm && (
@@ -146,8 +175,8 @@ const DewormingSent = () => {
                     </div>
                     <div className="flex flex-shrink-0 gap-2">
                         {searchTerm.trim() ? (
-                                <button 
-                                    onClick={applyFilters} 
+                                <button
+                                    onClick={applyFilters}
                                     className="cursor-pointer flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-all duration-150"
                                 >
                                     <FaSearch /> Search
@@ -157,8 +186,8 @@ const DewormingSent = () => {
                                     <FaSearch /> Search
                                 </span>
                             )}
-                            <button 
-                                onClick={() => setShowFilters(!showFilters)} 
+                            <button
+                                onClick={() => setShowFilters(!showFilters)}
                                 className="cursor-pointer flex items-center gap-2 bg-white border px-4 py-2 rounded-md hover:bg-gray-100"
                             >
                                 <FaFilter /> Filters
@@ -194,6 +223,23 @@ const DewormingSent = () => {
                     </form>
                 )}
             </div>
+            <Space style={{ marginBottom: 16 }}>
+                <Button
+                    type={animalType === 'dog' ? 'primary' : 'default'}
+                    icon={<FaDog />}
+                    onClick={() => setAnimalType('dog')}
+                >
+                    Dogs
+                </Button>
+                <Button
+                    type={animalType === 'cat' ? 'primary' : 'default'}
+                    icon={<FaCat />}
+                    onClick={() => setAnimalType('cat')}
+                >
+                    Cats
+                </Button>
+            </Space>
+
 
             {/* --- Records Table --- */}
             <div className="overflow-x-auto">
@@ -234,6 +280,7 @@ const DewormingSent = () => {
                             </tbody>
                         </table>
 
+
                         {/* --- Pagination Controls --- */}
                         {totalPages > 1 && (
                             <div className="flex items-center justify-between mt-4">
@@ -261,5 +308,6 @@ const DewormingSent = () => {
         </div>
     );
 };
+
 
 export default DewormingSent;
