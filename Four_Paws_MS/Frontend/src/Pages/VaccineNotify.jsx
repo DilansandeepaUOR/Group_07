@@ -44,15 +44,6 @@ const NotificationTemplates = () => {
     }
   };
 
-  const handleAdd = () => {
-    setModalMode('add');
-    setCurrentTemplate(null);
-    form.resetFields();
-    // default value for is_active switch
-    form.setFieldsValue({ is_active: true });
-    setModalVisible(true);
-  };
-
   const handleEdit = (template) => {
     setModalMode('edit');
     setCurrentTemplate(template);
@@ -201,9 +192,6 @@ const NotificationTemplates = () => {
         <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
           Templates are automatically triggered based on pet age and vaccine requirements.
         </Text>
-        <button className='cursor-pointer px-4 py-2 mb-4 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 align-right' onClick={handleAdd}>
-          Add New Template
-        </button>
         {templates.length === 0 && !loading ? (
           <div style={{ padding: 16, textAlign: 'center' }}>
             No notification templates found.

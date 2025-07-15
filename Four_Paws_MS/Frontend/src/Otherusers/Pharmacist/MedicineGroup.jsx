@@ -173,7 +173,7 @@ const filteredGroups = useMemo(() => {
         throw new Error(errorData.error || 'Failed to create group')
       }
   
-      const data = await response.json()
+      //const data = await response.json()
       
       const fetchResponse = await fetch(
         `${API_BASE_URL}?search=${searchTerm}&page=${currentPage}&limit=${itemsPerPage}`

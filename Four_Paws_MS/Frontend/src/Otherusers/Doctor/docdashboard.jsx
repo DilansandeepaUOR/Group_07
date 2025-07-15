@@ -15,7 +15,7 @@ const ViewRecords = lazy(() => import("../../Pages/AllRecords"));
 const Notify = lazy(() => import("../../Pages/VaccineNotify"));
 const SentNotify = lazy(() => import("../../Pages/VaccineSent"));
 const EditRecord = lazy(() => import("../../Pages/RecordEdit"));
-const DewormNew = lazy(() => import("../../Pages/DeWormNew"));
+const DewormNew = lazy(() => import("../../Pages/DewormNew"));
 const DewormRecords = lazy(() => import("../../Pages/DewormRecords"));
 const DewormEdit = lazy(() => import("../../Pages/DewormEdit"));
 const DewormNotify = lazy(() => import("../../Pages/DewormNotify"));
