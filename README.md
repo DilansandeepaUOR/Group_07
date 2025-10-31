@@ -57,5 +57,5 @@ This project was developed as our **3rd Year Group Project** at the **University
 ### 1️⃣ Clone the Repository
 ```bash
 git clone https://github.com/SandeepaSenarathna/Group_07.git
-cd 4paws-animal-hospital
+
 
